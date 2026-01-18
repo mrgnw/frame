@@ -53,6 +53,28 @@
             <span
                 class="text-[10px] text-ds-gray-500 uppercase tracking-widest block border-b border-ds-gray-100 pb-1 mb-2"
             >
+                Resolution
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+                {#each ["original", "1080p", "720p", "480p"] as res}
+                    <button
+                        onclick={() => onUpdate({ resolution: res })}
+                        {disabled}
+                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
+                        {config.resolution === res
+                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
+                            : 'bg-transparent text-ds-gray-500 border-ds-gray-200 hover:border-ds-gray-400'}"
+                    >
+                        {res}
+                    </button>
+                {/each}
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <span
+                class="text-[10px] text-ds-gray-500 uppercase tracking-widest block border-b border-ds-gray-100 pb-1 mb-2"
+            >
                 Video Encoder
             </span>
             <div class="grid grid-cols-1 gap-1.5">
