@@ -1,8 +1,8 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use tauri::{command, AppHandle, Emitter};
-use tauri_plugin_shell::process::CommandEvent;
+use tauri::{AppHandle, Emitter, command};
 use tauri_plugin_shell::ShellExt;
+use tauri_plugin_shell::process::CommandEvent;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -48,7 +48,14 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
     ];
 
     if config.resolution != "original" {
-        // TODO: resolution logic
+        let scale = match config.resolution.as_str() {
+            "1080p" => "scale=-1:1080",
+            "720p" => "scale=-1:720",
+            "480p" => "scale=-1:480",
+            _ => "scale=-1:-1",
+        };
+        args.push("-vf".to_string());
+        args.push(scale.to_string());
     }
 
     args.push("-y".to_string());
@@ -156,8 +163,12 @@ pub async fn start_conversion(
 mod tests {
     use super::*;
 
+    fn contains_args(args: &[String], expected: &[&str]) -> bool {
+        expected.iter().all(|e| args.iter().any(|a| a == e))
+    }
+
     #[test]
-    fn test_build_args() {
+    fn test_default_mp4_h264() {
         let config = ConversionConfig {
             container: "mp4".into(),
             video_codec: "libx264".into(),
@@ -167,15 +178,94 @@ mod tests {
             preset: "medium".into(),
         };
         let args = build_ffmpeg_args("input.mov", "output.mp4", &config);
+
         assert_eq!(args[0], "-i");
         assert_eq!(args[1], "input.mov");
-        assert_eq!(args[5], "23");
-        assert_eq!(args.last().unwrap(), "output.mp4");
+
+        assert!(contains_args(&args, &["-c:v", "libx264"]));
+        assert!(contains_args(&args, &["-c:a", "aac"]));
+
+        assert!(contains_args(&args, &["-crf", "23"]));
+        assert!(contains_args(&args, &["-preset", "medium"]));
+
+        assert!(!args.iter().any(|a| a == "-vf"));
     }
 
     #[test]
-    fn test_parse_time() {
+    fn test_resolution_scaling_1080p() {
+        let config = ConversionConfig {
+            container: "mp4".into(),
+            video_codec: "libx264".into(),
+            audio_codec: "aac".into(),
+            resolution: "1080p".into(),
+            crf: 23,
+            preset: "medium".into(),
+        };
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        let vf_index = args.iter().position(|r| r == "-vf").unwrap();
+        assert_eq!(args[vf_index + 1], "scale=-1:1080");
+    }
+
+    #[test]
+    fn test_resolution_scaling_720p() {
+        let config = ConversionConfig {
+            container: "mp4".into(),
+            video_codec: "libx264".into(),
+            audio_codec: "aac".into(),
+            resolution: "720p".into(),
+            crf: 23,
+            preset: "medium".into(),
+        };
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        let vf_index = args.iter().position(|r| r == "-vf").unwrap();
+        assert_eq!(args[vf_index + 1], "scale=-1:720");
+    }
+
+    #[test]
+    fn test_high_quality_h265() {
+        let config = ConversionConfig {
+            container: "mkv".into(),
+            video_codec: "libx265".into(),
+            audio_codec: "ac3".into(),
+            resolution: "original".into(),
+            crf: 18,
+            preset: "slow".into(),
+        };
+        let args = build_ffmpeg_args("raw.mov", "archive.mkv", &config);
+
+        assert!(contains_args(&args, &["-c:v", "libx265"]));
+        assert!(contains_args(&args, &["-crf", "18"]));
+        assert!(contains_args(&args, &["-preset", "slow"]));
+        assert!(contains_args(&args, &["-c:a", "ac3"]));
+        assert_eq!(args.last().unwrap(), "archive.mkv");
+    }
+
+    #[test]
+    fn test_web_optimization_vp9() {
+        let config = ConversionConfig {
+            container: "webm".into(),
+            video_codec: "libvpx-vp9".into(),
+            audio_codec: "libopus".into(),
+            resolution: "original".into(),
+            crf: 30,
+            preset: "medium".into(),
+        };
+        let args = build_ffmpeg_args("clip.mp4", "web.webm", &config);
+
+        assert!(contains_args(&args, &["-c:v", "libvpx-vp9"]));
+        assert!(contains_args(&args, &["-c:a", "libopus"]));
+        assert!(args.last().unwrap().ends_with(".webm"));
+    }
+
+    #[test]
+    fn test_time_parsing() {
         assert_eq!(parse_time("00:00:10.50"), Some(10.5));
         assert_eq!(parse_time("01:00:00.00"), Some(3600.0));
+        assert_eq!(parse_time("00:01:05.10"), Some(65.1));
+
+        assert_eq!(parse_time("invalid"), None);
+        assert_eq!(parse_time("00:10"), None);
     }
 }
