@@ -1,5 +1,7 @@
 <script lang="ts">
     import { v4 as uuidv4 } from "uuid";
+    import { open } from "@tauri-apps/plugin-dialog";
+    import { stat } from "@tauri-apps/plugin-fs";
 
     import Header from "$lib/components/Header.svelte";
     import FileList from "$lib/components/FileList.svelte";
@@ -10,6 +12,10 @@
         FileStatus,
         type ConversionConfig,
     } from "$lib/types";
+    import {
+        startConversion as startConversionService,
+        setupConversionListeners,
+    } from "$lib/services/conversion";
 
     const DEFAULT_CONFIG: ConversionConfig = {
         container: "mp4",
@@ -27,26 +33,93 @@
     let selectedFile = $derived(files.find((f) => f.id === selectedFileId));
     let totalSize = $derived(files.reduce((acc, curr) => acc + curr.size, 0));
 
-    function handleAddFile(event: Event) {
-        const target = event.target as HTMLInputElement;
-        if (target.files) {
-            const newFiles: FileItem[] = Array.from(target.files).map(
-                (f: File) => ({
+    $effect(() => {
+        const unlistenPromise = setupConversionListeners(
+            (payload) => {
+                files = files.map((f) =>
+                    f.id === payload.id
+                        ? { ...f, progress: payload.progress }
+                        : f,
+                );
+            },
+            (payload) => {
+                files = files.map((f) =>
+                    f.id === payload.id
+                        ? { ...f, status: FileStatus.COMPLETED, progress: 100 }
+                        : f,
+                );
+                checkAllDone();
+            },
+            (payload) => {
+                files = files.map((f) =>
+                    f.id === payload.id
+                        ? { ...f, status: FileStatus.ERROR }
+                        : f,
+                );
+                checkAllDone();
+            },
+        );
+
+        return () => {
+            unlistenPromise.then((unlisten) => unlisten());
+        };
+    });
+
+    function checkAllDone() {
+        if (
+            files.every(
+                (f) =>
+                    f.status === FileStatus.COMPLETED ||
+                    f.status === FileStatus.ERROR ||
+                    f.status === FileStatus.IDLE,
+            )
+        ) {
+            isProcessing = false;
+        }
+    }
+
+    async function handleAddFile() {
+        const selected = await open({
+            multiple: true,
+            filters: [
+                {
+                    name: "Videos",
+                    extensions: ["mp4", "mov", "mkv", "avi", "webm"],
+                },
+            ],
+        });
+
+        if (selected) {
+            const paths = Array.isArray(selected) ? selected : [selected];
+
+            const newFiles: FileItem[] = [];
+
+            for (const pathStr of paths) {
+                const name = pathStr.split(/[/\\]/).pop() || "unknown";
+                let size = 0;
+                try {
+                    const metadata = await stat(pathStr);
+                    size = metadata.size;
+                } catch (e) {
+                    console.error("Failed to stat file:", pathStr, e);
+                }
+
+                newFiles.push({
                     id: uuidv4(),
-                    name: f.name,
-                    size: f.size,
+                    name: name,
+                    size: size,
                     status: FileStatus.IDLE,
                     progress: 0,
-                    originalFormat: f.name.split(".").pop() || "unknown",
+                    originalFormat: name.split(".").pop() || "unknown",
                     config: { ...DEFAULT_CONFIG },
-                    path: `/mock/path/to/${f.name}`,
-                }),
-            );
+                    path: pathStr,
+                });
+            }
+
             files = [...files, ...newFiles];
             if (!selectedFileId && newFiles.length > 0) {
                 selectedFileId = newFiles[0].id;
             }
-            target.value = "";
         }
     }
 
@@ -65,45 +138,22 @@
         }
     }
 
-    function startConversion() {
+    async function startConversion() {
+        const pendingFiles = files.filter((f) => f.status === FileStatus.IDLE);
+        if (pendingFiles.length === 0) return;
+
         isProcessing = true;
+
         files = files.map((f) =>
             f.status === FileStatus.IDLE
                 ? { ...f, status: FileStatus.CONVERTING, progress: 0 }
                 : f,
         );
+
+        for (const file of pendingFiles) {
+            await startConversionService(file.id, file.path, file.config);
+        }
     }
-
-    $effect(() => {
-        if (!isProcessing) return;
-
-        const interval = setInterval(() => {
-            let allDone = true;
-            const nextState = files.map((f) => {
-                if (f.status === FileStatus.CONVERTING) {
-                    const increment = Math.random() * 8 + 2;
-                    const newProgress = Math.min(f.progress + increment, 100);
-                    if (newProgress < 100) {
-                        allDone = false;
-                        return { ...f, progress: newProgress };
-                    } else {
-                        return {
-                            ...f,
-                            progress: 100,
-                            status: FileStatus.COMPLETED,
-                        };
-                    }
-                }
-                return f;
-            });
-
-            files = nextState;
-
-            if (allDone) isProcessing = false;
-        }, 200);
-
-        return () => clearInterval(interval);
-    });
 </script>
 
 <div

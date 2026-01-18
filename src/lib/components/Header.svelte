@@ -11,7 +11,7 @@
         totalSize: number;
         fileCount: number;
         isProcessing: boolean;
-        onAddFile: (event: Event) => void;
+        onAddFile: () => void;
         onStartConversion: () => void;
     } = $props();
 
@@ -33,7 +33,9 @@
                 class="w-8 h-8 bg-foreground rounded flex items-center justify-center text-black"
             ></div>
             <div class="flex flex-col">
-                <span class="text-sm font-bold tracking-tight"> Relay </span>
+                <span class="text-sm font-bold tracking-tight uppercase">
+                    Relay
+                </span>
                 <span class="text-[10px] font-mono text-ds-gray-500">
                     FFMPEG Converter
                 </span>
@@ -53,22 +55,13 @@
     </div>
 
     <div class="flex items-center gap-3">
-        <div class="relative group">
-            <input
-                type="file"
-                id="file-upload"
-                multiple
-                class="hidden"
-                onchange={onAddFile}
-            />
-            <label
-                for="file-upload"
-                class="flex items-center gap-2 bg-ds-gray-100 hover:bg-ds-gray-200 text-foreground px-4 py-2 rounded text-xs font-mono font-medium transition-colors cursor-pointer border border-ds-gray-200 uppercase tracking-wide"
-            >
-                <Plus size={14} />
-                Add Source
-            </label>
-        </div>
+        <button
+            onclick={onAddFile}
+            class="flex items-center gap-2 bg-ds-gray-100 hover:bg-ds-gray-200 text-foreground px-4 py-2 rounded text-xs font-mono font-medium transition-colors cursor-pointer border border-ds-gray-200 uppercase tracking-wide"
+        >
+            <Plus size={14} />
+            Add Source
+        </button>
 
         <button
             onclick={onStartConversion}

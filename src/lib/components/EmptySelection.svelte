@@ -1,7 +1,3 @@
-<script>
-    // No props needed for this static component
-</script>
-
 <div
     class="h-full flex flex-col items-center justify-center text-center p-8 bg-ds-gray-100/5 relative overflow-hidden"
 >
