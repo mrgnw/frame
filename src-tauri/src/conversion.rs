@@ -34,6 +34,16 @@ struct ErrorPayload {
     error: String,
 }
 
+#[derive(Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ProbeMetadata {
+    duration: Option<String>,
+    bitrate: Option<String>,
+    video_codec: Option<String>,
+    audio_codec: Option<String>,
+    resolution: Option<String>,
+}
+
 pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -> Vec<String> {
     let mut args = vec![
         "-i".to_string(),
@@ -183,6 +193,75 @@ pub async fn start_conversion(
     });
 
     Ok(())
+}
+
+#[command]
+pub async fn probe_media(app: AppHandle, file_path: String) -> Result<ProbeMetadata, String> {
+    let args = vec![
+        "-hide_banner".to_string(),
+        "-i".to_string(),
+        file_path.clone(),
+    ];
+
+    let sidecar_command = app
+        .shell()
+        .sidecar("ffmpeg")
+        .map_err(|e| e.to_string())?
+        .args(args);
+
+    let (mut rx, _) = sidecar_command.spawn().map_err(|e| e.to_string())?;
+
+    let duration_regex = Regex::new(
+        r"Duration:\s(?P<duration>\d{2}:\d{2}:\d{2}\.\d{2}),.*bitrate:\s(?P<bitrate>[^,\r\n]+)",
+    )
+    .unwrap();
+    let video_regex = Regex::new(r"Stream #\d+:\d+.*Video:\s(?P<codec>[^,]+)").unwrap();
+    let resolution_regex = Regex::new(r"(?P<resolution>\d{2,5}x\d{2,5})").unwrap();
+    let audio_regex = Regex::new(r"Stream #\d+:\d+.*Audio:\s(?P<codec>[^,]+)").unwrap();
+
+    let mut metadata = ProbeMetadata::default();
+
+    while let Some(event) = rx.recv().await {
+        if let CommandEvent::Stderr(line_bytes) = event {
+            let line = String::from_utf8_lossy(&line_bytes);
+
+            if metadata.duration.is_none() {
+                if let Some(caps) = duration_regex.captures(&line) {
+                    if let Some(duration) = caps.name("duration") {
+                        metadata.duration = Some(duration.as_str().to_string());
+                    }
+                    if let Some(bitrate) = caps.name("bitrate") {
+                        metadata.bitrate = Some(bitrate.as_str().trim().to_string());
+                    }
+                }
+            }
+
+            if let Some(caps) = video_regex.captures(&line) {
+                if metadata.video_codec.is_none() {
+                    if let Some(codec) = caps.name("codec") {
+                        metadata.video_codec = Some(codec.as_str().trim().to_string());
+                    }
+                }
+                if metadata.resolution.is_none() {
+                    if let Some(res_caps) = resolution_regex.captures(&line) {
+                        if let Some(res) = res_caps.name("resolution") {
+                            metadata.resolution = Some(res.as_str().to_string());
+                        }
+                    }
+                }
+            }
+
+            if metadata.audio_codec.is_none() {
+                if let Some(caps) = audio_regex.captures(&line) {
+                    if let Some(codec) = caps.name("codec") {
+                        metadata.audio_codec = Some(codec.as_str().trim().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(metadata)
 }
 
 #[cfg(test)]

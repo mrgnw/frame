@@ -18,6 +18,7 @@
         startConversion as startConversionService,
         setupConversionListeners,
     } from "$lib/services/conversion";
+    import { probeMedia } from "$lib/services/media";
     import {
         DEFAULT_PRESETS,
         loadCustomPresets,
@@ -180,11 +181,15 @@
                     originalFormat: name.split(".").pop() || "unknown",
                     config: createInitialConfig(),
                     outputName: deriveOutputName(name),
+                    metadataStatus: "idle",
                     path: pathStr,
                 });
             }
 
             files = [...files, ...newFiles];
+            for (const file of newFiles) {
+                loadSourceMetadata(file.id, file.path);
+            }
             if (!selectedFileId && newFiles.length > 0) {
                 selectedFileId = newFiles[0].id;
             }
@@ -210,6 +215,41 @@
         if (selectedFileId) {
             files = files.map((f) =>
                 f.id === selectedFileId ? { ...f, outputName: value } : f,
+            );
+        }
+    }
+
+    async function loadSourceMetadata(fileId: string, path: string) {
+        files = files.map((f) =>
+            f.id === fileId
+                ? { ...f, metadataStatus: "loading", metadataError: undefined }
+                : f,
+        );
+        try {
+            const metadata = await probeMedia(path);
+            files = files.map((f) =>
+                f.id === fileId
+                    ? {
+                          ...f,
+                          metadataStatus: "ready",
+                          metadata,
+                          metadataError: undefined,
+                      }
+                    : f,
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to probe source";
+            files = files.map((f) =>
+                f.id === fileId
+                    ? {
+                          ...f,
+                          metadataStatus: "error",
+                          metadataError: message,
+                      }
+                    : f,
             );
         }
     }
@@ -263,6 +303,9 @@
                     <SettingsPanel
                         config={selectedFile.config}
                         outputName={selectedFile.outputName}
+                        metadata={selectedFile.metadata}
+                        metadataStatus={selectedFile.metadataStatus}
+                        metadataError={selectedFile.metadataError}
                         presets={presets}
                         onUpdate={updateSelectedConfig}
                         onUpdateOutputName={updateSelectedOutputName}

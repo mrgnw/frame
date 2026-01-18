@@ -20,7 +20,10 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(StoreBuilder::new().build())
-        .invoke_handler(tauri::generate_handler![conversion::start_conversion])
+        .invoke_handler(tauri::generate_handler![
+            conversion::start_conversion,
+            conversion::probe_media
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

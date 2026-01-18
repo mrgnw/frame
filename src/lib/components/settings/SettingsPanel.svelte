@@ -1,13 +1,20 @@
 <script lang="ts">
     import { Sliders } from "lucide-svelte";
-    import type { ConversionConfig, PresetDefinition } from "$lib/types";
+    import type {
+        ConversionConfig,
+        MetadataStatus,
+        PresetDefinition,
+        SourceMetadata,
+    } from "$lib/types";
 
+    import SourceTab from "./tabs/SourceTab.svelte";
     import OutputTab from "./tabs/OutputTab.svelte";
     import PresetsTab from "./tabs/PresetsTab.svelte";
     import VideoTab from "./tabs/VideoTab.svelte";
     import AudioTab from "./tabs/AudioTab.svelte";
 
     const TABS = [
+        { id: "source", label: "Source" },
         { id: "output", label: "Output" },
         { id: "presets", label: "Presets" },
         { id: "video", label: "Video" },
@@ -25,6 +32,9 @@
         onDeletePreset,
         outputName = "",
         onUpdateOutputName,
+        metadata,
+        metadataStatus = "idle",
+        metadataError,
     }: {
         config: ConversionConfig;
         onUpdate: (newConfig: Partial<ConversionConfig>) => void;
@@ -39,9 +49,12 @@
         ) => Promise<boolean | void> | boolean | void;
         outputName?: string;
         onUpdateOutputName?: (name: string) => void;
+        metadata?: SourceMetadata;
+        metadataStatus?: MetadataStatus;
+        metadataError?: string;
     } = $props();
 
-    let activeTab = $state<TabId>("output");
+    let activeTab = $state<TabId>("source");
 </script>
 
 <div class="flex flex-col h-full font-mono">
@@ -72,7 +85,13 @@
             {/each}
         </div>
 
-        {#if activeTab === "output"}
+        {#if activeTab === "source"}
+            <SourceTab
+                metadata={metadata}
+                status={metadataStatus}
+                error={metadataError}
+            />
+        {:else if activeTab === "output"}
             <OutputTab
                 {config}
                 {disabled}

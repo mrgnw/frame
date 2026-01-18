@@ -39,9 +39,9 @@
         </p>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-3">
         <span
-            class="text-[10px] text-ds-gray-500 uppercase tracking-widest block border-b border-ds-gray-100 pb-1 mb-1"
+            class="text-[10px] text-ds-gray-500 uppercase tracking-widest block border-b border-ds-gray-100 pb-1"
         >
             Output Container
         </span>

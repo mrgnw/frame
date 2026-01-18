@@ -123,7 +123,7 @@
         </button>
     </div>
 
-    <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+    <div class="space-y-1.5 max-h-52 overflow-y-auto">
         {#each presets as preset (preset.id)}
             <div
                 class="flex items-center gap-2 border border-ds-gray-100 rounded px-2 py-1.5 group/preset-button"

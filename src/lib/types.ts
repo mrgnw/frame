@@ -23,6 +23,9 @@ export interface FileItem {
   originalFormat: string;
   config: ConversionConfig;
   outputName: string;
+  metadata?: SourceMetadata;
+  metadataStatus: MetadataStatus;
+  metadataError?: string;
   path: string;
 }
 
@@ -32,3 +35,13 @@ export interface PresetDefinition {
   config: ConversionConfig;
   builtIn?: boolean;
 }
+
+export interface SourceMetadata {
+  duration?: string;
+  bitrate?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  resolution?: string;
+}
+
+export type MetadataStatus = "idle" | "loading" | "ready" | "error";
