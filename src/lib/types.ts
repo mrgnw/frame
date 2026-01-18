@@ -24,3 +24,10 @@ export interface FileItem {
   config: ConversionConfig;
   path: string;
 }
+
+export interface PresetDefinition {
+  id: string;
+  name: string;
+  config: ConversionConfig;
+  builtIn?: boolean;
+}

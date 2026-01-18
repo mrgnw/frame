@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { v4 as uuidv4 } from "uuid";
     import { open } from "@tauri-apps/plugin-dialog";
     import { stat } from "@tauri-apps/plugin-fs";
@@ -11,27 +12,88 @@
         type FileItem,
         FileStatus,
         type ConversionConfig,
+        type PresetDefinition,
     } from "$lib/types";
     import {
         startConversion as startConversionService,
         setupConversionListeners,
     } from "$lib/services/conversion";
-
-    const DEFAULT_CONFIG: ConversionConfig = {
-        container: "mp4",
-        videoCodec: "libx264",
-        audioCodec: "aac",
-        resolution: "original",
-        crf: 23,
-        preset: "medium",
-    };
+    import {
+        DEFAULT_PRESETS,
+        loadCustomPresets,
+        saveCustomPresets,
+        createCustomPreset,
+        cloneConfig as clonePresetConfig,
+        getDefaultConfig,
+    } from "$lib/services/presets";
 
     let files = $state<FileItem[]>([]);
     let selectedFileId = $state<string | null>(null);
     let isProcessing = $state(false);
+    let customPresets = $state<PresetDefinition[]>([]);
 
     let selectedFile = $derived(files.find((f) => f.id === selectedFileId));
     let totalSize = $derived(files.reduce((acc, curr) => acc + curr.size, 0));
+    let presets = $derived([
+        ...DEFAULT_PRESETS,
+        ...customPresets,
+    ] as PresetDefinition[]);
+
+    onMount(async () => {
+        customPresets = await loadCustomPresets();
+    });
+
+    function createInitialConfig(): ConversionConfig {
+        return getDefaultConfig();
+    }
+
+    function applyPresetToSelection(preset: PresetDefinition) {
+        if (!selectedFileId) return;
+
+        const nextConfig = clonePresetConfig(preset.config);
+        files = files.map((f) =>
+            f.id === selectedFileId ? { ...f, config: nextConfig } : f,
+        );
+    }
+
+    async function handleSavePreset(name: string): Promise<boolean> {
+        if (!selectedFile) return false;
+        const trimmedName = name.trim();
+        if (!trimmedName) return false;
+
+        const newPreset = createCustomPreset(trimmedName, selectedFile.config);
+        const previous = customPresets;
+        const updated = [...customPresets, newPreset];
+        customPresets = updated;
+
+        try {
+            await saveCustomPresets(updated);
+            return true;
+        } catch (error) {
+            console.error("Failed to persist preset", error);
+            customPresets = previous;
+            return false;
+        }
+    }
+
+    async function handleDeletePreset(id: string): Promise<boolean> {
+        const target = customPresets.find((p) => p.id === id);
+        if (!target) return false;
+
+        const previous = customPresets;
+        const updated = customPresets.filter((p) => p.id !== id);
+        customPresets = updated;
+
+        try {
+            await saveCustomPresets(updated);
+            return true;
+        } catch (error) {
+            console.error("Failed to delete preset", error);
+            customPresets = previous;
+            return false;
+        }
+    }
+
 
     $effect(() => {
         const unlistenPromise = setupConversionListeners(
@@ -111,7 +173,7 @@
                     status: FileStatus.IDLE,
                     progress: 0,
                     originalFormat: name.split(".").pop() || "unknown",
-                    config: { ...DEFAULT_CONFIG },
+                    config: createInitialConfig(),
                     path: pathStr,
                 });
             }
@@ -181,7 +243,11 @@
                 {#if selectedFile}
                     <SettingsPanel
                         config={selectedFile.config}
+                        presets={presets}
                         onUpdate={updateSelectedConfig}
+                        onApplyPreset={applyPresetToSelection}
+                        onSavePreset={handleSavePreset}
+                        onDeletePreset={handleDeletePreset}
                         disabled={selectedFile.status ===
                             FileStatus.CONVERTING ||
                             selectedFile.status === FileStatus.COMPLETED}
