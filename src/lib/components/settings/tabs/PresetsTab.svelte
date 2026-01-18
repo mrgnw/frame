@@ -126,20 +126,22 @@
     <div class="space-y-1.5 max-h-52 overflow-y-auto">
         {#each presets as preset (preset.id)}
             <div
-                class="flex items-center gap-2 border rounded px-2 py-1.5 transition-all group {configsMatch(
-                    config,
-                    preset.config,
-                )
-                    ? 'bg-ds-blue-900/20 border-ds-blue-600'
-                    : 'hover:bg-gray-alpha-100 border-gray-alpha-200'}"
+                class="w-full flex items-center gap-2 border rounded px-2 py-1.5 transition-all text-left cursor-pointer
+                {configsMatch(config, preset.config)
+                    ? 'bg-ds-blue-900/20 border-ds-blue-600 text-ds-blue-600'
+                    : 'border-gray-alpha-200 hover:bg-gray-alpha-100 text-gray-alpha-600 hover:text-foreground!'}"
+                role="button"
+                tabindex="0"
+                onclick={() => applyPreset(preset)}
+                onkeydown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        applyPreset(preset);
+                    }
+                }}
             >
-                <button
-                    class="flex-1 text-left flex items-center justify-between gap-2 text-[11px] font-mono uppercase tracking-tight transition-colors
-                    {configsMatch(config, preset.config)
-                        ? 'text-ds-blue-600'
-                        : 'text-gray-alpha-600 group-hover:text-foreground!'}"
-                    onclick={() => applyPreset(preset)}
-                    {disabled}
+                <span
+                    class="flex-1 flex items-center justify-between gap-2 text-[11px] font-mono uppercase tracking-tight pointer-events-none"
                 >
                     <span class="truncate">{preset.name}</span>
                     <span class="text-[9px] font-semibold">
@@ -147,12 +149,16 @@
                             ? "APPLIED"
                             : "APPLY"}
                     </span>
-                </button>
+                </span>
                 {#if !preset.builtIn}
                     <button
+                        type="button"
                         class="size-4 flex items-center justify-center rounded text-gray-alpha-600 hover:text-ds-red-600 transition-colors"
                         title="Delete preset"
-                        onclick={() => removePreset(preset)}
+                        onclick={(event) => {
+                            event.stopPropagation();
+                            removePreset(preset);
+                        }}
                         {disabled}
                     >
                         <Trash2 size={12} />
