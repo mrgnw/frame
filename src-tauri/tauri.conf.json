@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "relay",
+  "productName": "frame",
   "version": "0.1.0",
-  "identifier": "relay",
+  "identifier": "frame",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "relay",
+        "title": "frame",
         "width": 1200,
         "height": 750,
         "minHeight": 750,

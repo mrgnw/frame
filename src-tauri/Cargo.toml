@@ -1,5 +1,5 @@
 [package]
-name = "relay"
+name = "frame"
 version = "0.1.0"
 description = "FFMPEG Converter"
 edition = "2024"
@@ -8,7 +8,7 @@ license = "MIT"
 
 
 [lib]
-name = "relay_lib"
+name = "frame_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
