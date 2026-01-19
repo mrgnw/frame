@@ -31,7 +31,7 @@
                 onclick={() => onUpdate({ audioCodec: codec.id })}
                 {disabled}
                 class="text-[11px] py-1.5 px-3 border-l-2 text-left transition-all uppercase flex justify-between
-                {config.audioCodec === codec.id
+                    {config.audioCodec === codec.id
                     ? 'border-l-ds-blue-600 bg-gray-alpha-100 text-foreground pl-3'
                     : 'border-l-transparent text-gray-alpha-600 hover:text-foreground pl-2'}"
             >
@@ -40,4 +40,20 @@
             </button>
         {/each}
     </div>
+</div>
+
+<div class="space-y-2 pt-1">
+    <label
+        for="audio-bitrate"
+        class="text-[10px] text-gray-alpha-600 uppercase tracking-widest block"
+        >Audio Bitrate (kbps)</label
+    >
+    <input
+        id="audio-bitrate"
+        type="number"
+        value={config.audioBitrate}
+        oninput={(e) => onUpdate({ audioBitrate: e.currentTarget.value })}
+        class="w-full text-[11px] font-mono uppercase tracking-wide px-3 py-1.5 border border-gray-alpha-200 rounded bg-transparent focus:outline-none focus:border-ds-blue-600! transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        {disabled}
+    />
 </div>

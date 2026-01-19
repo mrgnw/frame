@@ -297,7 +297,7 @@
             />
 
             <div
-                class="col-span-12 lg:col-span-4 grid gap-3 h-full grid-rows-[minmax(0,1fr)_200px]"
+                class="col-span-12 lg:col-span-4 grid gap-3 h-full grid-rows-[minmax(0,1fr)_180px]"
             >
                 <div
                     class="border border-gray-alpha-100 rounded-lg bg-gray-alpha-100 overflow-hidden h-full min-h-0"

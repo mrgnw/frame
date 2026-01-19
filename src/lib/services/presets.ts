@@ -14,7 +14,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
     config: {
       container: "mp4",
       videoCodec: "libx264",
+      videoBitrateMode: "crf",
+      videoBitrate: "5000",
       audioCodec: "aac",
+      audioBitrate: "128",
       resolution: "original",
       crf: 23,
       preset: "medium",
@@ -27,7 +30,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
     config: {
       container: "mkv",
       videoCodec: "libx265",
+      videoBitrateMode: "crf",
+      videoBitrate: "8000",
       audioCodec: "ac3",
+      audioBitrate: "192",
       resolution: "original",
       crf: 18,
       preset: "slow",
@@ -40,7 +46,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
     config: {
       container: "webm",
       videoCodec: "vp9",
+      videoBitrateMode: "crf",
+      videoBitrate: "2500",
       audioCodec: "libopus",
+      audioBitrate: "96",
       resolution: "720p",
       crf: 30,
       preset: "medium",
@@ -53,7 +62,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
     config: {
       container: "mp3",
       videoCodec: "libx264",
+      videoBitrateMode: "crf",
+      videoBitrate: "0",
       audioCodec: "mp3",
+      audioBitrate: "128",
       resolution: "original",
       crf: 23,
       preset: "medium",
