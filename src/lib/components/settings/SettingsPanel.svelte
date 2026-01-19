@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Sliders } from "lucide-svelte";
+    import { cn } from "$lib/utils/cn";
     import type {
         ConversionConfig,
         MetadataStatus,
@@ -67,11 +67,13 @@
                     tab.id === "video" && config.container === "mp3"}
                 <button
                     disabled={isVideoDisabled}
-                    class="text-[10px] font-mono uppercase tracking-widest font-medium transition-all
-                    {activeTab === tab.id
-                        ? 'text-ds-blue-600'
-                        : 'text-gray-alpha-600 hover:text-foreground'}
-                    {isVideoDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
+                    class={cn(
+                        "text-[10px] font-mono uppercase tracking-widest font-medium transition-all",
+                        activeTab === tab.id
+                            ? "text-ds-blue-600"
+                            : "text-gray-alpha-600 hover:text-foreground",
+                        isVideoDisabled && "opacity-50 cursor-not-allowed",
+                    )}
                     onclick={() => (activeTab = tab.id)}
                 >
                     {tab.label}

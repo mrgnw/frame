@@ -206,10 +206,10 @@
             <button
                 onclick={onStartConversion}
                 disabled={isProcessing || fileCount === 0}
-                class="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-mono font-medium uppercase tracking-wide transition-all
-            {isProcessing || fileCount === 0
-                    ? 'bg-foreground text-black hover:bg-foreground border border-foreground opacity-50 cursor-not-allowed'
-                    : 'bg-foreground text-black hover:bg-foreground border border-foreground'}"
+                class={cn(
+                    "flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-mono font-medium uppercase tracking-wide transition-all bg-foreground text-black hover:bg-foreground border border-foreground",
+                    (isProcessing || fileCount === 0) && "opacity-50 cursor-not-allowed",
+                )}
             >
                 {#if isProcessing}
                     <span class="animate-pulse">PROCESSING...</span>

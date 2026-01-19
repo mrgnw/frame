@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { cn } from "$lib/utils/cn";
     import type { ConversionConfig } from "$lib/types";
 
     const RESOLUTIONS = [
@@ -55,10 +56,12 @@
                 <button
                     onclick={() => onUpdate({ resolution: res })}
                     {disabled}
-                    class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                    {config.resolution === res
-                        ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                        : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                    class={cn(
+                        "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                        config.resolution === res
+                            ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                            : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                    )}
                 >
                     {res}
                 </button>
@@ -115,10 +118,12 @@
                     <button
                         onclick={() => onUpdate({ scalingAlgorithm: algo.id })}
                         disabled={disabled || config.resolution === "original"}
-                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                        {config.scalingAlgorithm === algo.id
-                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 disabled:cursor-not-allowed hover:bg-gray-alpha-100 hover:text-foreground disabled:opacity-50'}"
+                        class={cn(
+                            "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                            config.scalingAlgorithm === algo.id
+                                ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                                : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 disabled:cursor-not-allowed hover:bg-gray-alpha-100 hover:text-foreground disabled:opacity-50",
+                        )}
                     >
                         {algo.label}
                     </button>
@@ -137,10 +142,12 @@
                     <button
                         onclick={() => onUpdate({ fps: opt.id })}
                         {disabled}
-                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                        {config.fps === opt.id
-                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                        class={cn(
+                            "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                            config.fps === opt.id
+                                ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                                : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                        )}
                     >
                         {opt.label}
                     </button>
@@ -160,10 +167,12 @@
                 <button
                     onclick={() => onUpdate({ videoCodec: codec.id })}
                     {disabled}
-                    class="text-[11px] py-1.5 px-3 border-l-2 text-left transition-all uppercase flex justify-between
-                    {config.videoCodec === codec.id
-                        ? 'border-l-ds-blue-600 bg-gray-alpha-100 text-foreground pl-3'
-                        : 'border-l-transparent text-gray-alpha-600 hover:text-foreground pl-2'}"
+                    class={cn(
+                        "text-[11px] py-1.5 px-3 border-l-2 text-left transition-all uppercase flex justify-between",
+                        config.videoCodec === codec.id
+                            ? "border-l-ds-blue-600 bg-gray-alpha-100 text-foreground pl-3"
+                            : "border-l-transparent text-gray-alpha-600 hover:text-foreground pl-2",
+                    )}
                 >
                     <span>{codec.id}</span>
                     <span class="opacity-50 text-[9px]">{codec.label}</span>
@@ -182,20 +191,24 @@
             <button
                 onclick={() => onUpdate({ videoBitrateMode: "crf" })}
                 {disabled}
-                class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                {config.videoBitrateMode === 'crf'
-                    ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                    : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                class={cn(
+                    "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                    config.videoBitrateMode === "crf"
+                        ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                        : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                )}
             >
                 Constant Quality
             </button>
             <button
                 onclick={() => onUpdate({ videoBitrateMode: "bitrate" })}
                 {disabled}
-                class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                {config.videoBitrateMode === 'bitrate'
-                    ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                    : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                class={cn(
+                    "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                    config.videoBitrateMode === "bitrate"
+                        ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                        : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                )}
             >
                 Target Bitrate
             </button>

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { cn } from "$lib/utils/cn";
     import type { ConversionConfig } from "$lib/types";
 
     const CONTAINERS = ["mp4", "mkv", "webm", "mov", "mp3"] as const;
@@ -50,10 +51,12 @@
                 <button
                     onclick={() => onUpdate({ container: fmt })}
                     {disabled}
-                    class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                    {config.container === fmt
-                        ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                        : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                    class={cn(
+                        "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                        config.container === fmt
+                            ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                            : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                    )}
                 >
                     {fmt}
                 </button>

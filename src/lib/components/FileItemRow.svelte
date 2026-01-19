@@ -1,6 +1,7 @@
 <script lang="ts">
     import { FileStatus, type FileItem } from "../types";
     import { Trash2 } from "lucide-svelte";
+    import { cn } from "$lib/utils/cn";
 
     let {
         item,
@@ -27,8 +28,10 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     onclick={() => onSelect(item.id)}
-    class="group flex items-center px-4 py-3 border-b border-gray-alpha-100 cursor-pointer transition-colors
-    {isSelected ? 'bg-gray-alpha-100' : 'hover:bg-gray-alpha-100'}"
+    class={cn(
+        "group flex items-center px-4 py-3 border-b border-gray-alpha-100 cursor-pointer transition-colors",
+        isSelected ? "bg-gray-alpha-100" : "hover:bg-gray-alpha-100",
+    )}
 >
     <div class="flex-1 grid grid-cols-12 gap-4 items-center font-mono">
         <div class="col-span-5 flex items-center gap-2 overflow-hidden">

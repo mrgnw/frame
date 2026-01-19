@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { cn } from "$lib/utils/cn";
     import type { ConversionConfig, SourceMetadata } from "$lib/types";
 
     const AUDIO_CODECS = [
@@ -53,10 +54,12 @@
                         onclick={() =>
                             onUpdate({ audioChannels: ch.id as any })}
                         {disabled}
-                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
-                        {config.audioChannels === ch.id
-                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                        class={cn(
+                            "text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase",
+                            config.audioChannels === ch.id
+                                ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                                : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                        )}
                     >
                         {ch.label}
                     </button>
@@ -94,11 +97,13 @@
                 <button
                     onclick={() => onUpdate({ audioCodec: codec.id })}
                     disabled={disabled || !isAllowed}
-                    class="text-[11px] py-1.5 px-3 border-l-2 text-left transition-all uppercase flex justify-between
-                    {config.audioCodec === codec.id
-                        ? 'border-l-ds-blue-600 bg-gray-alpha-100 text-foreground pl-3'
-                        : 'border-l-transparent text-gray-alpha-600 hover:text-foreground pl-2'}
-                    {!isAllowed ? 'opacity-50 cursor-not-allowed' : ''}"
+                    class={cn(
+                        "text-[11px] py-1.5 px-3 border-l-2 text-left transition-all uppercase flex justify-between",
+                        config.audioCodec === codec.id
+                            ? "border-l-ds-blue-600 bg-gray-alpha-100 text-foreground pl-3"
+                            : "border-l-transparent text-gray-alpha-600 hover:text-foreground pl-2",
+                        !isAllowed && "opacity-50 cursor-not-allowed",
+                    )}
                 >
                     <span>{codec.id}</span>
                     <span class="opacity-50 text-[9px]">
@@ -126,10 +131,12 @@
                     <button
                         onclick={() => toggleTrack(track.index)}
                         {disabled}
-                        class="w-full py-2 px-3 border rounded transition-all text-left flex items-center justify-between
-                        {isSelected
-                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
-                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                        class={cn(
+                            "w-full py-2 px-3 border rounded transition-all text-left flex items-center justify-between",
+                            isSelected
+                                ? "bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600"
+                                : "bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground",
+                        )}
                     >
                         <div class="space-y-0.5">
                             <div class="flex items-center gap-2">
@@ -156,10 +163,12 @@
                         </div>
 
                         <div
-                            class="w-4 h-4 rounded-full border flex items-center justify-center transition-all duration-200
-                            {isSelected
-                                ? 'border-ds-blue-600'
-                                : 'border-gray-alpha-200'}"
+                            class={cn(
+                                "w-4 h-4 rounded-full border flex items-center justify-center transition-all duration-200",
+                                isSelected
+                                    ? "border-ds-blue-600"
+                                    : "border-gray-alpha-200",
+                            )}
                         >
                             <div
                                 class="w-2 h-2 rounded-full bg-ds-blue-600 transition-all duration-200"
