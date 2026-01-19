@@ -1,72 +1,72 @@
-import { invoke } from "@tauri-apps/api/core";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { ConversionConfig } from "../types";
+import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { ConversionConfig } from '../types';
 
 export interface ProgressEvent {
-    id: string;
-    progress: number;
+	id: string;
+	progress: number;
 }
 
 export interface CompletedEvent {
-    id: string;
-    outputPath: string;
+	id: string;
+	outputPath: string;
 }
 
 export interface ErrorEvent {
-    id: string;
-    error: string;
+	id: string;
+	error: string;
 }
 
 export interface LogEvent {
-    id: string;
-    line: string;
+	id: string;
+	line: string;
 }
 
 export async function startConversion(
-    id: string,
-    filePath: string,
-    config: ConversionConfig,
-    outputName?: string,
+	id: string,
+	filePath: string,
+	config: ConversionConfig,
+	outputName?: string
 ) {
-    try {
-        await invoke("queue_conversion", {
-            id,
-            filePath,
-            outputName,
-            config,
-        });
-    } catch (error) {
-        console.error("Failed to queue conversion:", error);
-        throw error;
-    }
+	try {
+		await invoke('queue_conversion', {
+			id,
+			filePath,
+			outputName,
+			config
+		});
+	} catch (error) {
+		console.error('Failed to queue conversion:', error);
+		throw error;
+	}
 }
 
 export async function setupConversionListeners(
-    onProgress: (payload: ProgressEvent) => void,
-    onCompleted: (payload: CompletedEvent) => void,
-    onError: (payload: ErrorEvent) => void,
-    onLog: (payload: LogEvent) => void
+	onProgress: (payload: ProgressEvent) => void,
+	onCompleted: (payload: CompletedEvent) => void,
+	onError: (payload: ErrorEvent) => void,
+	onLog: (payload: LogEvent) => void
 ): Promise<UnlistenFn> {
-    const unlistenProgress = await listen<ProgressEvent>("conversion-progress", (event) => {
-        onProgress(event.payload);
-    });
+	const unlistenProgress = await listen<ProgressEvent>('conversion-progress', (event) => {
+		onProgress(event.payload);
+	});
 
-    const unlistenCompleted = await listen<CompletedEvent>("conversion-completed", (event) => {
-        onCompleted(event.payload);
-    });
+	const unlistenCompleted = await listen<CompletedEvent>('conversion-completed', (event) => {
+		onCompleted(event.payload);
+	});
 
-    const unlistenError = await listen<ErrorEvent>("conversion-error", (event) => {
-        onError(event.payload);
-    });
+	const unlistenError = await listen<ErrorEvent>('conversion-error', (event) => {
+		onError(event.payload);
+	});
 
-    const unlistenLog = await listen<LogEvent>("conversion-log", (event) => {
-        onLog(event.payload);
-    });
+	const unlistenLog = await listen<LogEvent>('conversion-log', (event) => {
+		onLog(event.payload);
+	});
 
-    return () => {
-        unlistenProgress();
-        unlistenCompleted();
-        unlistenError();
-        unlistenLog();
-    };
+	return () => {
+		unlistenProgress();
+		unlistenCompleted();
+		unlistenError();
+		unlistenLog();
+	};
 }
