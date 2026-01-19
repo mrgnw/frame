@@ -63,11 +63,15 @@
     >
         <div class="flex items-center gap-4 w-full justify-start">
             {#each TABS as tab}
+                {@const isVideoDisabled =
+                    tab.id === "video" && config.container === "mp3"}
                 <button
+                    disabled={isVideoDisabled}
                     class="text-[10px] font-mono uppercase tracking-widest font-medium transition-all
                     {activeTab === tab.id
                         ? 'text-ds-blue-600'
-                        : 'text-gray-alpha-600 hover:text-foreground'}"
+                        : 'text-gray-alpha-600 hover:text-foreground'}
+                    {isVideoDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
                     onclick={() => (activeTab = tab.id)}
                 >
                     {tab.label}
