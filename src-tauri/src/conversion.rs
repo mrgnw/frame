@@ -655,6 +655,67 @@ mod tests {
     }
 
     #[test]
+    fn test_video_bitrate_mode() {
+        let mut config = sample_config("mp4");
+        config.video_bitrate_mode = "bitrate".into();
+        config.video_bitrate = "2500".into();
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        assert!(contains_args(&args, &["-b:v", "2500k"]));
+        assert!(!args.iter().any(|a| a == "-crf"));
+    }
+
+    #[test]
+    fn test_av1_codec() {
+        let mut config = sample_config("mkv");
+        config.video_codec = "libsvtav1".into();
+
+        let args = build_ffmpeg_args("in.mp4", "out.mkv", &config);
+
+        assert!(contains_args(&args, &["-c:v", "libsvtav1"]));
+    }
+
+    #[test]
+    fn test_hardware_encoder_videotoolbox() {
+        let mut config = sample_config("mov");
+        config.video_codec = "h264_videotoolbox".into();
+
+        let args = build_ffmpeg_args("in.mov", "out.mov", &config);
+
+        assert!(contains_args(&args, &["-c:v", "h264_videotoolbox"]));
+    }
+
+    fn sample_metadata() -> ProbeMetadata {
+        ProbeMetadata {
+            duration: Some("00:01:00.00".into()),
+            bitrate: Some("4000 kb/s".into()),
+            video_codec: Some("h264".into()),
+            audio_codec: Some("aac".into()),
+            resolution: Some("1920x1080".into()),
+        }
+    }
+
+    #[test]
+    fn test_scaling_algorithms() {
+        let algos = vec![
+            ("lanczos", ":flags=lanczos"),
+            ("bicubic", ":flags=bicubic"),
+            ("nearest", ":flags=neighbor"),
+        ];
+
+        for (algo_name, expected_flag) in algos {
+            let mut config = sample_config("mp4");
+            config.resolution = "720p".into();
+            config.scaling_algorithm = algo_name.into();
+            
+            let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+            let vf_arg = args.iter().find(|a| a.starts_with("scale=")).unwrap();
+            assert!(vf_arg.ends_with(expected_flag), "Algorithm {} expected flag {}, got {}", algo_name, expected_flag, vf_arg);
+        }
+    }
+
+    #[test]
     fn test_estimate_output_standard_video() {
         let config = sample_config("mp4");
         let metadata = sample_metadata();
