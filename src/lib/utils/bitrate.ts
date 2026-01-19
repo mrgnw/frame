@@ -52,10 +52,11 @@ function parseResolutionHeight(resolution?: string): number | null {
   return parseInt(height, 10);
 }
 
-function inferTargetHeight(
-  config: ConversionConfig,
-  metadata?: SourceMetadata,
-): number {
+function inferTargetHeight(config: ConversionConfig, metadata?: SourceMetadata): number {
+  if (config.resolution === "custom") {
+      const h = parseInt(config.customHeight || "0", 10);
+      return h > 0 ? h : 720;
+  }
   if (config.resolution !== "original") {
     return RESOLUTION_HEIGHTS[config.resolution] ?? 720;
   }

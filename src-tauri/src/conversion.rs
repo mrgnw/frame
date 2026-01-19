@@ -15,6 +15,10 @@ pub struct ConversionConfig {
     pub audio_codec: String,
     pub audio_bitrate: String,
     pub resolution: String,
+    pub custom_width: Option<String>,
+    pub custom_height: Option<String>,
+    pub scaling_algorithm: String,
+    pub fps: String,
     pub crf: u8,
     pub preset: String,
 }
@@ -78,15 +82,40 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         args.push("-preset".to_string());
         args.push(config.preset.clone());
 
-        if config.resolution != "original" {
-            let scale = match config.resolution.as_str() {
-                "1080p" => "scale=-1:1080",
-                "720p" => "scale=-1:720",
-                "480p" => "scale=-1:480",
-                _ => "scale=-1:-1",
+        if config.resolution != "original" || config.resolution == "custom" {
+            let scale_filter = if config.resolution == "custom" {
+                let w = config.custom_width.as_deref().unwrap_or("-1");
+                let h = config.custom_height.as_deref().unwrap_or("-1");
+                // Ensure at least one dimension is set, otherwise default to original
+                if w == "-1" && h == "-1" {
+                    "scale=-1:-1".to_string()
+                } else {
+                    format!("scale={}:{}", w, h)
+                }
+            } else {
+                match config.resolution.as_str() {
+                    "1080p" => "scale=-1:1080".to_string(),
+                    "720p" => "scale=-1:720".to_string(),
+                    "480p" => "scale=-1:480".to_string(),
+                    _ => "scale=-1:-1".to_string(),
+                }
             };
+
+            let algorithm = match config.scaling_algorithm.as_str() {
+                "lanczos" => ":flags=lanczos",
+                "bilinear" => ":flags=bilinear",
+                "nearest" => ":flags=neighbor",
+                "bicubic" => ":flags=bicubic", // Default usually, but explicit is good
+                _ => "",
+            };
+
             args.push("-vf".to_string());
-            args.push(scale.to_string());
+            args.push(format!("{}{}", scale_filter, algorithm));
+        }
+
+        if config.fps != "original" {
+            args.push("-r".to_string());
+            args.push(config.fps.clone());
         }
     }
 
@@ -313,6 +342,13 @@ fn parse_resolution_height(resolution: Option<&String>) -> Option<i32> {
 }
 
 fn infer_target_height(config: &ConversionConfig, metadata: Option<&ProbeMetadata>) -> i32 {
+    if config.resolution == "custom" {
+        return config
+            .custom_height
+            .as_deref()
+            .and_then(|h| h.parse().ok())
+            .unwrap_or(720);
+    }
     match config.resolution.as_str() {
         "480p" => 480,
         "720p" => 720,
@@ -441,6 +477,10 @@ mod tests {
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
             resolution: "original".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 23,
             preset: "medium".into(),
         };
@@ -450,6 +490,7 @@ mod tests {
         assert_eq!(args[1], "input.mov");
 
         assert!(contains_args(&args, &["-c:v", "libx264"]));
+        // Note: Audio arguments are added after video arguments now
         assert!(contains_args(&args, &["-c:a", "aac"]));
 
         assert!(contains_args(&args, &["-crf", "23"]));
@@ -468,13 +509,17 @@ mod tests {
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
             resolution: "1080p".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 23,
             preset: "medium".into(),
         };
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
         let vf_index = args.iter().position(|r| r == "-vf").unwrap();
-        assert_eq!(args[vf_index + 1], "scale=-1:1080");
+        assert_eq!(args[vf_index + 1], "scale=-1:1080:flags=bicubic");
     }
 
     #[test]
@@ -487,13 +532,17 @@ mod tests {
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
             resolution: "720p".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 23,
             preset: "medium".into(),
         };
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
         let vf_index = args.iter().position(|r| r == "-vf").unwrap();
-        assert_eq!(args[vf_index + 1], "scale=-1:720");
+        assert_eq!(args[vf_index + 1], "scale=-1:720:flags=bicubic");
     }
 
     #[test]
@@ -506,6 +555,10 @@ mod tests {
             audio_codec: "ac3".into(),
             audio_bitrate: "192".into(),
             resolution: "original".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 18,
             preset: "slow".into(),
         };
@@ -528,6 +581,10 @@ mod tests {
             audio_codec: "libopus".into(),
             audio_bitrate: "96".into(),
             resolution: "original".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 30,
             preset: "medium".into(),
         };
@@ -570,19 +627,31 @@ mod tests {
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
             resolution: "original".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
             crf: 23,
             preset: "medium".into(),
         }
     }
 
-    fn sample_metadata() -> ProbeMetadata {
-        ProbeMetadata {
-            duration: Some("00:01:00.00".into()),
-            bitrate: Some("4000 kb/s".into()),
-            video_codec: Some("h264".into()),
-            audio_codec: Some("aac".into()),
-            resolution: Some("1920x1080".into()),
-        }
+    #[test]
+    fn test_custom_resolution_and_fps() {
+        let mut config = sample_config("mp4");
+        config.resolution = "custom".into();
+        config.custom_width = Some("1280".into());
+        config.custom_height = Some("720".into());
+        config.fps = "30".into();
+        config.scaling_algorithm = "lanczos".into();
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        let vf_index = args.iter().position(|r| r == "-vf").unwrap();
+        assert_eq!(args[vf_index + 1], "scale=1280:720:flags=lanczos");
+        
+        let fps_index = args.iter().position(|r| r == "-r").unwrap();
+        assert_eq!(args[fps_index + 1], "30");
     }
 
     #[test]

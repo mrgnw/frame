@@ -1,12 +1,35 @@
 <script lang="ts">
     import type { ConversionConfig } from "$lib/types";
 
-    const RESOLUTIONS = ["original", "1080p", "720p", "480p"] as const;
+    const RESOLUTIONS = [
+        "original",
+        "1080p",
+        "720p",
+        "480p",
+        "custom",
+    ] as const;
     const VIDEO_CODECS = [
         { id: "libx264", label: "H.264 / AVC" },
         { id: "libx265", label: "H.265 / HEVC" },
         { id: "vp9", label: "VP9 / Web" },
         { id: "prores", label: "Apple ProRes" },
+        { id: "libsvtav1", label: "AV1 / SVT" },
+        { id: "h264_videotoolbox", label: "H.264 (Apple Silicon)" },
+        { id: "h264_nvenc", label: "H.264 (NVIDIA)" },
+    ] as const;
+
+    const SCALING_ALGOS = [
+        { id: "bicubic", label: "Bicubic" },
+        { id: "lanczos", label: "Lanczos" },
+        { id: "bilinear", label: "Bilinear" },
+        { id: "nearest", label: "Nearest" },
+    ] as const;
+
+    const FPS_OPTIONS = [
+        { id: "original", label: "Same as source" },
+        { id: "24", label: "24 fps" },
+        { id: "30", label: "30 fps" },
+        { id: "60", label: "60 fps" },
     ] as const;
 
     let {
@@ -25,9 +48,9 @@
         <span
             class="text-[10px] text-gray-alpha-600 uppercase tracking-widest block border-b border-gray-alpha-100 pb-1"
         >
-            Resolution
+            Resolution & Framerate
         </span>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2 mb-2">
             {#each RESOLUTIONS as res}
                 <button
                     onclick={() => onUpdate({ resolution: res })}
@@ -40,6 +63,89 @@
                     {res}
                 </button>
             {/each}
+        </div>
+
+        {#if config.resolution === "custom"}
+            <div class="grid grid-cols-2 gap-2 mb-2 pt-1">
+                <div class="flex flex-col gap-1">
+                    <label
+                        for="width"
+                        class="text-[9px] text-gray-alpha-600 uppercase tracking-widest pb-1"
+                        >Width</label
+                    >
+                    <input
+                        id="width"
+                        type="number"
+                        placeholder="1920"
+                        value={config.customWidth}
+                        oninput={(e) =>
+                            onUpdate({ customWidth: e.currentTarget.value })}
+                        class="w-full text-[11px] font-mono uppercase tracking-wide px-3 py-1.5 border border-gray-alpha-200 rounded bg-transparent focus:outline-none focus:border-ds-blue-600! transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        {disabled}
+                    />
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label
+                        for="height"
+                        class="text-[9px] text-gray-alpha-600 uppercase tracking-widest pb-1"
+                        >Height</label
+                    >
+                    <input
+                        id="height"
+                        type="number"
+                        placeholder="1080"
+                        value={config.customHeight}
+                        oninput={(e) =>
+                            onUpdate({ customHeight: e.currentTarget.value })}
+                        class="w-full text-[11px] font-mono uppercase tracking-wide px-3 py-1.5 border border-gray-alpha-200 rounded bg-transparent focus:outline-none focus:border-ds-blue-600! transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        {disabled}
+                    />
+                </div>
+            </div>
+        {/if}
+
+        <div class="space-y-3 pt-2">
+            <span
+                class="text-[10px] text-gray-alpha-600 uppercase tracking-widest block border-b border-gray-alpha-100 pb-1"
+            >
+                Scaling Algorithm
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+                {#each SCALING_ALGOS as algo}
+                    <button
+                        onclick={() => onUpdate({ scalingAlgorithm: algo.id })}
+                        disabled={disabled || config.resolution === "original"}
+                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
+                        {config.scalingAlgorithm === algo.id
+                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
+                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 disabled:pointer-events-none hover:bg-gray-alpha-100 hover:text-foreground disabled:opacity-50 disabled:hover:bg-transparent'}"
+                    >
+                        {algo.label}
+                    </button>
+                {/each}
+            </div>
+        </div>
+
+        <div class="space-y-3 pt-2">
+            <span
+                class="text-[10px] text-gray-alpha-600 uppercase tracking-widest block border-b border-gray-alpha-100 pb-1"
+            >
+                Framerate
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+                {#each FPS_OPTIONS as opt}
+                    <button
+                        onclick={() => onUpdate({ fps: opt.id })}
+                        {disabled}
+                        class="text-[11px] py-1.5 px-2 border rounded transition-all text-center uppercase
+                        {config.fps === opt.id
+                            ? 'bg-ds-blue-900/20 text-ds-blue-600 border-ds-blue-600'
+                            : 'bg-transparent text-gray-alpha-600 border-gray-alpha-200 hover:bg-gray-alpha-100 hover:text-foreground'}"
+                    >
+                        {opt.label}
+                    </button>
+                {/each}
+            </div>
         </div>
     </div>
 
@@ -101,7 +207,7 @@
             <div class="flex justify-between items-end">
                 <label
                     for="quality-factor"
-                    class="text-[10px] text-gray-alpha-600 uppercase tracking-widest"
+                    class="text-[10px] text-gray-alpha-600 uppercase tracking-widest pb-1"
                     >Quality Factor</label
                 >
                 <div

@@ -12,7 +12,11 @@ export interface ConversionConfig {
   videoBitrate: string;
   audioCodec: string;
   audioBitrate: string;
-  resolution: string;
+  resolution: string; // "original", "1080p", "custom", etc.
+  customWidth?: string;
+  customHeight?: string;
+  scalingAlgorithm: "bicubic" | "lanczos" | "bilinear" | "nearest";
+  fps: string; // "original", "30", "60", etc.
   crf: number;
   preset: string;
 }
