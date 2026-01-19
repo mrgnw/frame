@@ -8,7 +8,10 @@ export enum FileStatus {
 export interface ConversionConfig {
   container: string;
   videoCodec: string;
+  videoBitrateMode: "crf" | "bitrate";
+  videoBitrate: string;
   audioCodec: string;
+  audioBitrate: string;
   resolution: string;
   crf: number;
   preset: string;

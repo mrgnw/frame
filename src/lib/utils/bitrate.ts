@@ -24,9 +24,9 @@ const AUDIO_BITRATES: Record<string, number> = {
 
 const CODEC_SCALE: Record<string, number> = {
   libx264: 1,
-  "h264": 1,
+  h264: 1,
   libx265: 0.65,
-  "h265": 0.65,
+  h265: 0.65,
   vp9: 0.7,
   "libvpx-vp9": 0.7,
   prores: 1.6,
@@ -52,7 +52,10 @@ function parseResolutionHeight(resolution?: string): number | null {
   return parseInt(height, 10);
 }
 
-function inferTargetHeight(config: ConversionConfig, metadata?: SourceMetadata): number {
+function inferTargetHeight(
+  config: ConversionConfig,
+  metadata?: SourceMetadata,
+): number {
   if (config.resolution !== "original") {
     return RESOLUTION_HEIGHTS[config.resolution] ?? 720;
   }
@@ -77,7 +80,6 @@ function parseSourceBitrate(metadata?: SourceMetadata): number | null {
   if (!match) return null;
   const value = parseFloat(match[1]);
   if (Number.isNaN(value)) return null;
-  // Assume metadata bitrate already in kb/s
   return value;
 }
 
@@ -97,18 +99,38 @@ export interface OutputEstimate {
   sizeMb?: number;
 }
 
-export function estimateOutput(config: ConversionConfig, metadata?: SourceMetadata): OutputEstimate {
-  const height = inferTargetHeight(config, metadata);
-  const sourceVideoBitrate = parseSourceBitrate(metadata);
+export function estimateOutput(
+  config: ConversionConfig,
+  metadata?: SourceMetadata,
+): OutputEstimate {
+  const isAudioOnly = config.container.toLowerCase() === "mp3";
 
-  let videoKbps =
-    sourceVideoBitrate ??
-    baseVideoBitrate(height) * codecScaleFactor(config.videoCodec || "");
+  let videoKbps = 0;
+  if (!isAudioOnly) {
+    if (config.videoBitrateMode === "bitrate") {
+      videoKbps = parseFloat(config.videoBitrate) || 0;
+    } else {
+      const height = inferTargetHeight(config, metadata);
+      const sourceHeight =
+        parseResolutionHeight(metadata?.resolution) || height;
+      const sourceVideoBitrate = parseSourceBitrate(metadata);
 
-  videoKbps *= crfScale(config.crf);
-  videoKbps = Math.max(400, videoKbps);
+      let baseKbps = 0;
+      if (sourceVideoBitrate) {
+        const scaleFactor = Math.pow(height / sourceHeight, 1.75);
+        baseKbps = sourceVideoBitrate * scaleFactor;
+      } else {
+        baseKbps =
+          baseVideoBitrate(height) * codecScaleFactor(config.videoCodec || "");
+      }
 
-  const audioKbps = audioBitrate(config.audioCodec);
+      videoKbps = baseKbps * crfScale(config.crf);
+      videoKbps = Math.max(400, videoKbps);
+    }
+  }
+
+  const audioKbps =
+    parseFloat(config.audioBitrate) || audioBitrate(config.audioCodec);
   const totalKbps = videoKbps + audioKbps;
 
   const durationSeconds = parseDurationToSeconds(metadata?.duration);

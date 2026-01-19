@@ -10,7 +10,10 @@ use tauri_plugin_shell::process::CommandEvent;
 pub struct ConversionConfig {
     pub container: String,
     pub video_codec: String,
+    pub video_bitrate_mode: String,
+    pub video_bitrate: String,
     pub audio_codec: String,
+    pub audio_bitrate: String,
     pub resolution: String,
     pub crf: u8,
     pub preset: String,
@@ -59,13 +62,22 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         input.to_string(),
         "-c:v".to_string(),
         config.video_codec.clone(),
-        "-crf".to_string(),
-        config.crf.to_string(),
-        "-preset".to_string(),
-        config.preset.clone(),
-        "-c:a".to_string(),
-        config.audio_codec.clone(),
     ];
+
+    if config.video_bitrate_mode == "bitrate" {
+        args.push("-b:v".to_string());
+        args.push(format!("{}k", config.video_bitrate));
+    } else {
+        args.push("-crf".to_string());
+        args.push(config.crf.to_string());
+    }
+
+    args.push("-preset".to_string());
+    args.push(config.preset.clone());
+    args.push("-c:a".to_string());
+    args.push(config.audio_codec.clone());
+    args.push("-b:a".to_string());
+    args.push(format!("{}k", config.audio_bitrate));
 
     if config.resolution != "original" {
         let scale = match config.resolution.as_str() {
@@ -349,16 +361,6 @@ fn crf_scale(crf: u8) -> f64 {
     (2f64).powf(diff as f64 / 6.0)
 }
 
-fn audio_bitrate(codec: &str) -> f64 {
-    match codec.to_lowercase().as_str() {
-        "aac" => 128.0,
-        "ac3" => 192.0,
-        "libopus" => 96.0,
-        "mp3" => 128.0,
-        _ => 128.0,
-    }
-}
-
 fn is_audio_only_container(container: &str) -> bool {
     matches!(container.to_lowercase().as_str(), "mp3")
 }
@@ -373,10 +375,21 @@ pub async fn estimate_output(
 
     let video_kbps = if audio_only {
         0.0
+    } else if config.video_bitrate_mode == "bitrate" {
+        config.video_bitrate.parse::<f64>().unwrap_or(0.0)
     } else {
         let height = infer_target_height(&config, metadata_ref);
-        let mut kbps = parse_source_bitrate(metadata_ref)
-            .unwrap_or_else(|| base_video_bitrate(height) * codec_scale(&config.video_codec));
+        let source_height =
+            parse_resolution_height(metadata_ref.and_then(|m| m.resolution.as_ref()))
+                .unwrap_or(height);
+
+        let mut kbps = if let Some(source_kbps) = parse_source_bitrate(metadata_ref) {
+            let scale_factor = (height as f64 / source_height as f64).powf(1.75);
+            source_kbps * scale_factor
+        } else {
+            base_video_bitrate(height) * codec_scale(&config.video_codec)
+        };
+
         kbps *= crf_scale(config.crf);
         if kbps < 400.0 {
             kbps = 400.0;
@@ -385,7 +398,7 @@ pub async fn estimate_output(
     };
 
     let audio_kbps = if audio_only || metadata_ref.and_then(|m| m.audio_codec.as_ref()).is_some() {
-        audio_bitrate(&config.audio_codec)
+        config.audio_bitrate.parse::<f64>().unwrap_or(128.0)
     } else {
         0.0
     };
@@ -418,7 +431,10 @@ mod tests {
         let config = ConversionConfig {
             container: "mp4".into(),
             video_codec: "libx264".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
+            audio_bitrate: "128".into(),
             resolution: "original".into(),
             crf: 23,
             preset: "medium".into(),
@@ -442,7 +458,10 @@ mod tests {
         let config = ConversionConfig {
             container: "mp4".into(),
             video_codec: "libx264".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
+            audio_bitrate: "128".into(),
             resolution: "1080p".into(),
             crf: 23,
             preset: "medium".into(),
@@ -458,7 +477,10 @@ mod tests {
         let config = ConversionConfig {
             container: "mp4".into(),
             video_codec: "libx264".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
+            audio_bitrate: "128".into(),
             resolution: "720p".into(),
             crf: 23,
             preset: "medium".into(),
@@ -474,7 +496,10 @@ mod tests {
         let config = ConversionConfig {
             container: "mkv".into(),
             video_codec: "libx265".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "8000".into(),
             audio_codec: "ac3".into(),
+            audio_bitrate: "192".into(),
             resolution: "original".into(),
             crf: 18,
             preset: "slow".into(),
@@ -493,7 +518,10 @@ mod tests {
         let config = ConversionConfig {
             container: "webm".into(),
             video_codec: "libvpx-vp9".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "2500".into(),
             audio_codec: "libopus".into(),
+            audio_bitrate: "96".into(),
             resolution: "original".into(),
             crf: 30,
             preset: "medium".into(),
@@ -532,7 +560,10 @@ mod tests {
         ConversionConfig {
             container: container.into(),
             video_codec: "libx264".into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
+            audio_bitrate: "128".into(),
             resolution: "original".into(),
             crf: 23,
             preset: "medium".into(),
@@ -554,8 +585,9 @@ mod tests {
         let config = sample_config("mp4");
         let metadata = sample_metadata();
 
-        let estimate =
-            async_runtime::block_on(async { estimate_output(config, Some(metadata)).await.unwrap() });
+        let estimate = async_runtime::block_on(async {
+            estimate_output(config, Some(metadata)).await.unwrap()
+        });
 
         assert_eq!(estimate.video_kbps, 4000);
         assert_eq!(estimate.audio_kbps, 128);
@@ -570,8 +602,9 @@ mod tests {
         let mut metadata = sample_metadata();
         metadata.audio_codec = None;
 
-        let estimate =
-            async_runtime::block_on(async { estimate_output(config, Some(metadata)).await.unwrap() });
+        let estimate = async_runtime::block_on(async {
+            estimate_output(config, Some(metadata)).await.unwrap()
+        });
 
         assert_eq!(estimate.audio_kbps, 0);
         assert!(estimate.video_kbps > 0);
@@ -583,8 +616,9 @@ mod tests {
         config.audio_codec = "mp3".into();
         let metadata = sample_metadata();
 
-        let estimate =
-            async_runtime::block_on(async { estimate_output(config, Some(metadata)).await.unwrap() });
+        let estimate = async_runtime::block_on(async {
+            estimate_output(config, Some(metadata)).await.unwrap()
+        });
 
         assert_eq!(estimate.video_kbps, 0);
         assert_eq!(estimate.audio_kbps, 128);
