@@ -108,7 +108,7 @@
             type="text"
             bind:value={newPresetName}
             placeholder="Preset Label"
-            class="flex-1 text-[11px] font-mono uppercase tracking-wide px-3 py-1.5 border border-gray-alpha-200 rounded bg-transparent focus:outline-none focus:border-ds-blue-600! transition-all"
+            class="flex-1 text-[11px] font-mono placeholder:uppercase tracking-wide px-3 py-1.5 border border-gray-alpha-200 rounded bg-transparent focus:outline-none focus:border-ds-blue-600! transition-all"
             {disabled}
         />
         <button
