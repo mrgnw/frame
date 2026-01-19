@@ -52,8 +52,8 @@
 	class="w-full pt-2 flex items-center justify-between px-4 select-none z-50 shrink-0"
 	data-tauri-drag-region
 >
-	<div class="flex items-center gap-6">
-		<div class="flex items-center z-50 mr-2 group">
+	<div class="flex items-center gap-6 pointer-events-none">
+		<div class="flex items-center z-50 mr-2 group pointer-events-auto">
 			<button
 				onclick={close}
 				class="size-6 rounded-full flex items-center justify-center transition-opacity"
@@ -108,18 +108,18 @@
 		</div>
 
 		<span
-			class="flex items-center justify-center px-2 [&>svg]:size-5 [&>svg]:opacity-60 [&>svg]:fill-current text-foreground"
+			class="flex items-center justify-center px-2 [&>svg]:size-5 [&>svg]:opacity-60 [&>svg]:fill-current text-foreground pointer-events-none"
 			aria-hidden="true"
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html frameIcon}
 		</span>
 
-		<div class="h-6 w-px bg-gray-alpha-100"></div>
+		<div class="h-6 w-px bg-gray-alpha-100 pointer-events-none"></div>
 
 		{#if onChangeView}
 			<div
-				class="flex items-center gap-1 bg-gray-alpha-100 p-0.5 rounded border border-gray-alpha-100"
+				class="flex items-center gap-1 bg-gray-alpha-100 p-0.5 rounded border border-gray-alpha-100 pointer-events-auto"
 			>
 				<button
 					onclick={() => onChangeView('dashboard')}
@@ -148,9 +148,9 @@
 			</div>
 		{/if}
 
-		<div class="h-6 w-px bg-gray-alpha-100"></div>
+		<div class="h-6 w-px bg-gray-alpha-100 pointer-events-none"></div>
 
-		<div class="flex items-center gap-4 text-[10px] text-gray-alpha-600">
+		<div class="flex items-center gap-4 text-[10px] text-gray-alpha-600 pointer-events-none">
 			<div class="flex items-center gap-2">
 				<HardDrive size={12} />
 				<span>STORAGE: {formatTotalSize(totalSize)}</span>
@@ -162,11 +162,11 @@
 		</div>
 	</div>
 
-	<div class="flex items-center gap-3 mt-2">
+	<div class="flex items-center gap-3 mt-2 pointer-events-none">
 		{#if onAddFile}
 			<button
 				onclick={onAddFile}
-				class="flex items-center gap-2 bg-gray-alpha-100 hover:bg-gray-alpha-200 text-foreground px-3 py-1.5 rounded text-[10px] font-medium transition-colors cursor-pointer border border-gray-alpha-100 uppercase tracking-wide"
+				class="flex items-center gap-2 bg-gray-alpha-100 hover:bg-gray-alpha-200 text-foreground px-3 py-1.5 rounded text-[10px] font-medium transition-colors cursor-pointer border border-gray-alpha-100 uppercase tracking-wide pointer-events-auto"
 			>
 				<Plus size={12} />
 				Add Source
@@ -178,7 +178,7 @@
 				onclick={onStartConversion}
 				disabled={isProcessing || fileCount === 0}
 				class={cn(
-					'flex items-center gap-2 px-4 py-1.5 rounded text-[10px]  font-medium uppercase tracking-wide transition-all bg-foreground text-black hover:bg-foreground border border-foreground',
+					'flex items-center gap-2 px-4 py-1.5 rounded text-[10px]  font-medium uppercase tracking-wide transition-all bg-foreground text-black hover:bg-foreground border border-foreground pointer-events-auto',
 					(isProcessing || fileCount === 0) && 'opacity-50 cursor-not-allowed'
 				)}
 			>
