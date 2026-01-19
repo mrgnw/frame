@@ -5,6 +5,14 @@ export enum FileStatus {
   ERROR = "ERROR",
 }
 
+export interface AudioTrack {
+  index: number;
+  codec: string;
+  channels: string;
+  language?: string;
+  label?: string;
+}
+
 export interface ConversionConfig {
   container: string;
   videoCodec: string;
@@ -12,13 +20,24 @@ export interface ConversionConfig {
   videoBitrate: string;
   audioCodec: string;
   audioBitrate: string;
-  resolution: string; // "original", "1080p", "custom", etc.
+  audioChannels: "original" | "stereo" | "mono";
+  selectedAudioTracks: number[];
+  resolution: string;
   customWidth?: string;
   customHeight?: string;
   scalingAlgorithm: "bicubic" | "lanczos" | "bilinear" | "nearest";
-  fps: string; // "original", "30", "60", etc.
+  fps: string;
   crf: number;
   preset: string;
+}
+
+export interface SourceMetadata {
+  duration?: string;
+  bitrate?: string;
+  videoCodec?: string;
+  audioCodec?: string;
+  resolution?: string;
+  audioTracks?: AudioTrack[];
 }
 
 export interface FileItem {
@@ -49,6 +68,7 @@ export interface SourceMetadata {
   videoCodec?: string;
   audioCodec?: string;
   resolution?: string;
+  audioTracks?: AudioTrack[];
 }
 
 export type MetadataStatus = "idle" | "loading" | "ready" | "error";

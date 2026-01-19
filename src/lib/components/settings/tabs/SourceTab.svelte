@@ -14,6 +14,30 @@
     function display(value?: string) {
         return value && value.trim().length > 0 ? value : "—";
     }
+
+    function formatDuration(raw?: string): string {
+        if (!raw) return "—";
+        const seconds = parseFloat(raw);
+        if (isNaN(seconds)) return raw;
+
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function formatBitrate(raw?: string): string {
+        if (!raw) return "—";
+        const bps = parseFloat(raw);
+        if (isNaN(bps)) return raw;
+
+        if (bps >= 1_000_000) {
+            return `${(bps / 1_000_000).toFixed(1)} Mb/s`;
+        }
+        return `${Math.round(bps / 1_000)} kb/s`;
+    }
 </script>
 
 <div class="space-y-3">
@@ -40,7 +64,7 @@
                 class="grid grid-cols-2 gap-2 text-[11px] font-mono uppercase tracking-wide"
             >
                 <div class="text-gray-alpha-600">Duration</div>
-                <div>{display(metadata.duration)}</div>
+                <div>{formatDuration(metadata.duration)}</div>
                 <div class="text-gray-alpha-600">Video Codec</div>
                 <div>{display(metadata.videoCodec)}</div>
                 <div class="text-gray-alpha-600">Resolution</div>
@@ -48,7 +72,7 @@
                 <div class="text-gray-alpha-600">Audio Codec</div>
                 <div>{display(metadata.audioCodec)}</div>
                 <div class="text-gray-alpha-600">Bitrate</div>
-                <div>{display(metadata.bitrate)}</div>
+                <div>{formatBitrate(metadata.bitrate)}</div>
             </div>
         </div>
     {:else}

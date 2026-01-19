@@ -35,52 +35,37 @@ const CODEC_SCALE: Record<string, number> = {
 export function parseDurationToSeconds(duration?: string): number | null {
   if (!duration) return null;
   const match = duration.match(/(\d{2}):(\d{2}):(\d{2})\.(\d{2})/);
-  if (!match) return null;
-  const [, hh, mm, ss, cs] = match;
-  const hours = parseInt(hh, 10);
-  const minutes = parseInt(mm, 10);
-  const seconds = parseInt(ss, 10);
-  const centiseconds = parseInt(cs, 10);
-  return hours * 3600 + minutes * 60 + seconds + centiseconds / 100;
-}
-
-function parseResolutionHeight(resolution?: string): number | null {
-  if (!resolution) return null;
-  const match = resolution.match(/(\d{2,5})x(\d{2,5})/i);
-  if (!match) return null;
-  const [, , height] = match;
-  return parseInt(height, 10);
-}
-
-function inferTargetHeight(config: ConversionConfig, metadata?: SourceMetadata): number {
-  if (config.resolution === "custom") {
-      const h = parseInt(config.customHeight || "0", 10);
-      return h > 0 ? h : 720;
+  if (match) {
+    const [, hh, mm, ss, cs] = match;
+    const hours = parseInt(hh, 10);
+    const minutes = parseInt(mm, 10);
+    const seconds = parseInt(ss, 10);
+    const centiseconds = parseInt(cs, 10);
+    return hours * 3600 + minutes * 60 + seconds + centiseconds / 100;
   }
-  if (config.resolution !== "original") {
-    return RESOLUTION_HEIGHTS[config.resolution] ?? 720;
+  const seconds = parseFloat(duration);
+  if (!isNaN(seconds)) {
+    return seconds;
   }
-  const metaHeight = parseResolutionHeight(metadata?.resolution);
-  return metaHeight ?? 720;
+  return null;
 }
 
-function baseVideoBitrate(height: number): number {
-  const tier = BASE_BITRATES.find((t) => height >= t.height);
-  return tier ? tier.kbps : BASE_BITRATES[BASE_BITRATES.length - 1].kbps;
-}
-
-function codecScaleFactor(codec: string): number {
-  const key = codec.toLowerCase();
-  return CODEC_SCALE[key] ?? 1;
-}
+// ...
 
 function parseSourceBitrate(metadata?: SourceMetadata): number | null {
   const raw = metadata?.bitrate;
   if (!raw) return null;
-  const match = raw.replace(/,/g, "").match(/([\d.]+)/);
-  if (!match) return null;
-  const value = parseFloat(match[1]);
+
+  const clean = raw.replace(/[^0-9.]/g, "");
+  const value = parseFloat(clean);
   if (Number.isNaN(value)) return null;
+
+  // Heuristic: If value > 100,000, assume it's in bits per second (bps) and convert to kbps.
+  // Example: 2,000,000 bps -> 2000 kbps.
+  // If it's 2000, assume it's already kbps (legacy or low bitrate).
+  if (value > 100_000) {
+    return value / 1000;
+  }
   return value;
 }
 

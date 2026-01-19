@@ -14,6 +14,8 @@ pub struct ConversionConfig {
     pub video_bitrate: String,
     pub audio_codec: String,
     pub audio_bitrate: String,
+    pub audio_channels: String,
+    pub selected_audio_tracks: Vec<u32>,
     pub resolution: String,
     pub custom_width: Option<String>,
     pub custom_height: Option<String>,
@@ -43,12 +45,23 @@ struct ErrorPayload {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct AudioTrack {
+    index: u32,
+    codec: String,
+    channels: String,
+    language: Option<String>,
+    label: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProbeMetadata {
     duration: Option<String>,
     bitrate: Option<String>,
     video_codec: Option<String>,
     audio_codec: Option<String>,
     resolution: Option<String>,
+    audio_tracks: Vec<AudioTrack>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,6 +71,37 @@ pub struct OutputEstimate {
     audio_kbps: u32,
     total_kbps: u32,
     size_mb: Option<f64>,
+}
+
+#[derive(Deserialize)]
+struct FfprobeOutput {
+    streams: Vec<FfprobeStream>,
+    format: FfprobeFormat,
+}
+
+#[derive(Deserialize)]
+struct FfprobeStream {
+    index: u32,
+    codec_type: String,
+    codec_name: Option<String>,
+    width: Option<i32>,
+    height: Option<i32>,
+    channels: Option<i32>,
+    #[allow(dead_code)]
+    channel_layout: Option<String>,
+    tags: Option<FfprobeTags>,
+}
+
+#[derive(Deserialize)]
+struct FfprobeFormat {
+    duration: Option<String>,
+    bit_rate: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct FfprobeTags {
+    language: Option<String>,
+    title: Option<String>,
 }
 
 pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -> Vec<String> {
@@ -82,11 +126,12 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         args.push("-preset".to_string());
         args.push(config.preset.clone());
 
+        let mut video_filters = Vec::new();
+
         if config.resolution != "original" || config.resolution == "custom" {
             let scale_filter = if config.resolution == "custom" {
                 let w = config.custom_width.as_deref().unwrap_or("-1");
                 let h = config.custom_height.as_deref().unwrap_or("-1");
-                // Ensure at least one dimension is set, otherwise default to original
                 if w == "-1" && h == "-1" {
                     "scale=-1:-1".to_string()
                 } else {
@@ -105,12 +150,16 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
                 "lanczos" => ":flags=lanczos",
                 "bilinear" => ":flags=bilinear",
                 "nearest" => ":flags=neighbor",
-                "bicubic" => ":flags=bicubic", // Default usually, but explicit is good
+                "bicubic" => ":flags=bicubic",
                 _ => "",
             };
 
+            video_filters.push(format!("{}{}", scale_filter, algorithm));
+        }
+
+        if !video_filters.is_empty() {
             args.push("-vf".to_string());
-            args.push(format!("{}{}", scale_filter, algorithm));
+            args.push(video_filters.join(","));
         }
 
         if config.fps != "original" {
@@ -119,10 +168,34 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         }
     }
 
+    if !config.selected_audio_tracks.is_empty() && !is_audio_only {
+        args.push("-map".to_string());
+        args.push("0:v:0".to_string());
+    }
+
+    if !config.selected_audio_tracks.is_empty() {
+        for track_index in &config.selected_audio_tracks {
+            args.push("-map".to_string());
+            args.push(format!("0:{}", track_index));
+        }
+    }
+
     args.push("-c:a".to_string());
     args.push(config.audio_codec.clone());
     args.push("-b:a".to_string());
     args.push(format!("{}k", config.audio_bitrate));
+
+    match config.audio_channels.as_str() {
+        "stereo" => {
+            args.push("-ac".to_string());
+            args.push("2".to_string());
+        }
+        "mono" => {
+            args.push("-ac".to_string());
+            args.push("1".to_string());
+        }
+        _ => {}
+    }
 
     args.push("-y".to_string());
     args.push(output.to_string());
@@ -253,75 +326,77 @@ pub async fn start_conversion(
 #[command]
 pub async fn probe_media(app: AppHandle, file_path: String) -> Result<ProbeMetadata, String> {
     let args = vec![
-        "-hide_banner".to_string(),
-        "-i".to_string(),
+        "-v".to_string(),
+        "quiet".to_string(),
+        "-print_format".to_string(),
+        "json".to_string(),
+        "-show_format".to_string(),
+        "-show_streams".to_string(),
         file_path.clone(),
     ];
 
-    let sidecar_command = app
+    let output = app
         .shell()
-        .sidecar("ffmpeg")
+        .sidecar("ffprobe")
         .map_err(|e| e.to_string())?
-        .args(args);
+        .args(args)
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
 
-    let (mut rx, _) = sidecar_command.spawn().map_err(|e| e.to_string())?;
+    if !output.status.success() {
+        return Err(format!("ffprobe failed: {:?}", output.stderr));
+    }
 
-    let duration_regex = Regex::new(
-        r"Duration:\s(?P<duration>\d{2}:\d{2}:\d{2}\.\d{2}),.*bitrate:\s(?P<bitrate>[^,\r\n]+)",
-    )
-    .unwrap();
-    let video_regex = Regex::new(r"Stream #\d+:\d+.*Video:\s(?P<codec>[^,]+)").unwrap();
-    let resolution_regex = Regex::new(r"(?P<resolution>\d{2,5}x\d{2,5})").unwrap();
-    let audio_regex = Regex::new(r"Stream #\d+:\d+.*Audio:\s(?P<codec>[^,]+)").unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let probe_data: FfprobeOutput = serde_json::from_str(&stdout).map_err(|e| e.to_string())?;
 
     let mut metadata = ProbeMetadata::default();
 
-    while let Some(event) = rx.recv().await {
-        if let CommandEvent::Stderr(line_bytes) = event {
-            let line = String::from_utf8_lossy(&line_bytes);
+    metadata.duration = probe_data.format.duration;
+    metadata.bitrate = probe_data.format.bit_rate;
 
-            if metadata.duration.is_none() {
-                if let Some(caps) = duration_regex.captures(&line) {
-                    if let Some(duration) = caps.name("duration") {
-                        metadata.duration = Some(duration.as_str().to_string());
-                    }
-                    if let Some(bitrate) = caps.name("bitrate") {
-                        metadata.bitrate = Some(bitrate.as_str().trim().to_string());
-                    }
-                }
-            }
-
-            if let Some(caps) = video_regex.captures(&line) {
-                if metadata.video_codec.is_none() {
-                    if let Some(codec) = caps.name("codec") {
-                        metadata.video_codec = Some(codec.as_str().trim().to_string());
-                    }
-                }
-                if metadata.resolution.is_none() {
-                    if let Some(res_caps) = resolution_regex.captures(&line) {
-                        if let Some(res) = res_caps.name("resolution") {
-                            metadata.resolution = Some(res.as_str().to_string());
-                        }
-                    }
-                }
-            }
-
-            if metadata.audio_codec.is_none() {
-                if let Some(caps) = audio_regex.captures(&line) {
-                    if let Some(codec) = caps.name("codec") {
-                        metadata.audio_codec = Some(codec.as_str().trim().to_string());
-                    }
-                }
-            }
+    if let Some(video_stream) = probe_data.streams.iter().find(|s| s.codec_type == "video") {
+        metadata.video_codec = video_stream.codec_name.clone();
+        if let (Some(w), Some(h)) = (video_stream.width, video_stream.height) {
+            metadata.resolution = Some(format!("{}x{}", w, h));
         }
+    }
+
+    for stream in probe_data
+        .streams
+        .iter()
+        .filter(|s| s.codec_type == "audio")
+    {
+        let label = stream.tags.as_ref().and_then(|t| t.title.clone());
+        let language = stream.tags.as_ref().and_then(|t| t.language.clone());
+
+        metadata.audio_tracks.push(AudioTrack {
+            index: stream.index,
+            codec: stream.codec_name.clone().unwrap_or("unknown".to_string()),
+            channels: stream
+                .channels
+                .map(|c| c.to_string())
+                .unwrap_or("?".to_string()),
+            label,
+            language,
+        });
+    }
+
+    if let Some(first_audio) = metadata.audio_tracks.first() {
+        metadata.audio_codec = Some(first_audio.codec.clone());
     }
 
     Ok(metadata)
 }
 
 fn parse_duration_to_seconds(duration: Option<&String>) -> Option<f64> {
-    let duration = duration?;
-    let parts: Vec<&str> = duration.split([':', '.']).collect();
+    let duration_str = duration?;
+    if let Ok(seconds) = duration_str.parse::<f64>() {
+        return Some(seconds);
+    }
+
+    let parts: Vec<&str> = duration_str.split([':', '.']).collect();
     if parts.len() != 4 {
         return None;
     }
@@ -394,7 +469,13 @@ fn parse_source_bitrate(metadata: Option<&ProbeMetadata>) -> Option<f64> {
     if digits.is_empty() {
         return None;
     }
-    digits.parse().ok()
+    let value = digits.parse::<f64>().ok()?;
+
+    if value > 100_000.0 {
+        Some(value / 1000.0)
+    } else {
+        Some(value)
+    }
 }
 
 fn crf_scale(crf: u8) -> f64 {
@@ -476,6 +557,8 @@ mod tests {
             video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -490,7 +573,6 @@ mod tests {
         assert_eq!(args[1], "input.mov");
 
         assert!(contains_args(&args, &["-c:v", "libx264"]));
-        // Note: Audio arguments are added after video arguments now
         assert!(contains_args(&args, &["-c:a", "aac"]));
 
         assert!(contains_args(&args, &["-crf", "23"]));
@@ -508,6 +590,8 @@ mod tests {
             video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "1080p".into(),
             custom_width: None,
             custom_height: None,
@@ -531,6 +615,8 @@ mod tests {
             video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "720p".into(),
             custom_width: None,
             custom_height: None,
@@ -554,6 +640,8 @@ mod tests {
             video_bitrate: "8000".into(),
             audio_codec: "ac3".into(),
             audio_bitrate: "192".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -580,6 +668,8 @@ mod tests {
             video_bitrate: "2500".into(),
             audio_codec: "libopus".into(),
             audio_bitrate: "96".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -626,6 +716,8 @@ mod tests {
             video_bitrate: "5000".into(),
             audio_codec: "aac".into(),
             audio_bitrate: "128".into(),
+            audio_channels: "original".into(),
+            selected_audio_tracks: vec![],
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -649,7 +741,7 @@ mod tests {
 
         let vf_index = args.iter().position(|r| r == "-vf").unwrap();
         assert_eq!(args[vf_index + 1], "scale=1280:720:flags=lanczos");
-        
+
         let fps_index = args.iter().position(|r| r == "-r").unwrap();
         assert_eq!(args[fps_index + 1], "30");
     }
@@ -693,6 +785,7 @@ mod tests {
             video_codec: Some("h264".into()),
             audio_codec: Some("aac".into()),
             resolution: Some("1920x1080".into()),
+            audio_tracks: vec![],
         }
     }
 
@@ -708,10 +801,16 @@ mod tests {
             let mut config = sample_config("mp4");
             config.resolution = "720p".into();
             config.scaling_algorithm = algo_name.into();
-            
+
             let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
             let vf_arg = args.iter().find(|a| a.starts_with("scale=")).unwrap();
-            assert!(vf_arg.ends_with(expected_flag), "Algorithm {} expected flag {}, got {}", algo_name, expected_flag, vf_arg);
+            assert!(
+                vf_arg.ends_with(expected_flag),
+                "Algorithm {} expected flag {}, got {}",
+                algo_name,
+                expected_flag,
+                vf_arg
+            );
         }
     }
 

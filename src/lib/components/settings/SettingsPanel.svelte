@@ -103,7 +103,7 @@
         {:else if activeTab === "video"}
             <VideoTab {config} {disabled} {onUpdate} />
         {:else}
-            <AudioTab {config} {disabled} {onUpdate} />
+            <AudioTab {config} {disabled} {onUpdate} {metadata} />
         {/if}
     </div>
 </div>
