@@ -3,6 +3,7 @@
 	import { type } from '@tauri-apps/plugin-os';
 	import MacosTitlebar from './titlebar/MacosTitlebar.svelte';
 	import WindowsTitlebar from './titlebar/WindowsTitlebar.svelte';
+	import LinuxTitlebar from './titlebar/LinuxTitlebar.svelte';
 
 	let {
 		totalSize = 0,
@@ -33,6 +34,17 @@
 
 {#if platform === 'windows'}
 	<WindowsTitlebar
+		{totalSize}
+		{fileCount}
+		{selectedCount}
+		{isProcessing}
+		{activeView}
+		{onAddFile}
+		{onStartConversion}
+		{onChangeView}
+	/>
+{:else if platform === 'linux'}
+	<LinuxTitlebar
 		{totalSize}
 		{fileCount}
 		{selectedCount}
