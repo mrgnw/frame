@@ -22,10 +22,24 @@
 	});
 
 	let currentLogs = $derived(selectedLogFileId ? logs[selectedLogFileId] || [] : []);
+	let userHasScrolledUp = $state(false);
+
+	function handleScroll() {
+		if (!logContainer) return;
+		const { scrollTop, scrollHeight, clientHeight } = logContainer;
+		const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+		userHasScrolledUp = !isAtBottom;
+	}
 
 	$effect(() => {
-		if (currentLogs.length && logContainer) {
+		if (currentLogs.length && logContainer && !userHasScrolledUp) {
 			logContainer.scrollTop = logContainer.scrollHeight;
+		}
+	});
+
+	$effect(() => {
+		if (selectedLogFileId) {
+			userHasScrolledUp = false;
 		}
 	});
 </script>
@@ -60,6 +74,7 @@
 			<div
 				class="flex-1 overflow-y-auto py-4 leading-relaxed text-foreground"
 				bind:this={logContainer}
+				onscroll={handleScroll}
 			>
 				{#if currentLogs.length > 0}
 					<div class="flex flex-col">

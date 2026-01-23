@@ -36,8 +36,9 @@
 	let isProcessing = $state(false);
 	let customPresets = $state<PresetDefinition[]>([]);
 	let maxConcurrencySetting = $state(2);
-	
-	let activeView = $state<'dashboard' | 'logs'>('dashboard');	let logs = $state<Record<string, string[]>>({});
+
+	let activeView = $state<'dashboard' | 'logs'>('dashboard');
+	let logs = $state<Record<string, string[]>>({});
 
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId));
 	let totalSize = $derived(files.reduce((acc, curr) => acc + curr.size, 0));
@@ -330,7 +331,6 @@
 		onChangeView={(v) => (activeView = v)}
 		onAddFile={handleAddFile}
 		onStartConversion={startConversion}
-		onOpenSettings={() => {}}
 	/>
 
 	<div class="relative flex-1 overflow-hidden p-4">
