@@ -2,10 +2,10 @@ mod conversion;
 mod estimation;
 use tauri::Manager;
 use tauri_plugin_store::Builder as StoreBuilder;
-#[cfg(target_os = "macos")]
-use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
 #[cfg(target_os = "windows")]
 use window_vibrancy::apply_mica;
+#[cfg(target_os = "macos")]
+use window_vibrancy::{NSVisualEffectMaterial, apply_vibrancy};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,6 +25,7 @@ pub fn run() {
 
             Ok(())
         })
+        .plugin(tauri_plugin_prevent_default::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
