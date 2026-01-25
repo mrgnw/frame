@@ -13,7 +13,8 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onChangeView
+		onChangeView,
+		onOpenSettings
 	}: {
 		totalSize?: number;
 		fileCount?: number;
@@ -23,6 +24,7 @@
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
+		onOpenSettings?: () => void;
 	} = $props();
 
 	let platform = $state<string | null>(null);
@@ -42,6 +44,7 @@
 		{onAddFile}
 		{onStartConversion}
 		{onChangeView}
+		{onOpenSettings}
 	/>
 {:else if platform === 'linux'}
 	<LinuxTitlebar
@@ -53,6 +56,7 @@
 		{onAddFile}
 		{onStartConversion}
 		{onChangeView}
+		{onOpenSettings}
 	/>
 {:else}
 	<MacosTitlebar
@@ -64,5 +68,6 @@
 		{onAddFile}
 		{onStartConversion}
 		{onChangeView}
+		{onOpenSettings}
 	/>
 {/if}

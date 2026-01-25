@@ -12,15 +12,13 @@
 	import PresetsTab from './tabs/PresetsTab.svelte';
 	import VideoTab from './tabs/VideoTab.svelte';
 	import AudioTab from './tabs/AudioTab.svelte';
-	import AppTab from './tabs/AppTab.svelte';
 
 	const TABS = [
 		{ id: 'source', label: 'Source' },
 		{ id: 'output', label: 'Output' },
 		{ id: 'video', label: 'Video' },
 		{ id: 'audio', label: 'Audio' },
-		{ id: 'presets', label: 'Presets' },
-		{ id: 'app', label: 'App' }
+		{ id: 'presets', label: 'Presets' }
 	] as const;
 	type TabId = (typeof TABS)[number]['id'];
 
@@ -36,9 +34,7 @@
 		onUpdateOutputName,
 		metadata,
 		metadataStatus = 'idle',
-		metadataError,
-		maxConcurrency = 2,
-		onUpdateMaxConcurrency
+		metadataError
 	}: {
 		config: ConversionConfig;
 		onUpdate: (newConfig: Partial<ConversionConfig>) => void;
@@ -52,8 +48,6 @@
 		metadata?: SourceMetadata;
 		metadataStatus?: MetadataStatus;
 		metadataError?: string;
-		maxConcurrency?: number;
-		onUpdateMaxConcurrency?: (value: number) => void | Promise<void>;
 	} = $props();
 
 	let activeTab = $state<TabId>('source');
@@ -88,10 +82,8 @@
 			<PresetsTab {config} {disabled} {presets} {onApplyPreset} {onSavePreset} {onDeletePreset} />
 		{:else if activeTab === 'video'}
 			<VideoTab {config} {disabled} {onUpdate} />
-		{:else if activeTab === 'audio'}
-			<AudioTab {config} {disabled} {onUpdate} {metadata} />
 		{:else}
-			<AppTab {maxConcurrency} {disabled} onUpdate={onUpdateMaxConcurrency!} />
+			<AudioTab {config} {disabled} {onUpdate} {metadata} />
 		{/if}
 	</div>
 </div>

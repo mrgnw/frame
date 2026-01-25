@@ -5,12 +5,14 @@
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { invoke } from '@tauri-apps/api/core';
 	import { listen } from '@tauri-apps/api/event';
+	import { scale, fade } from 'svelte/transition';
 
 	import Titlebar from '$lib/components/Titlebar.svelte';
 	import LogsView from '$lib/components/LogsView.svelte';
 	import FileList from '$lib/components/FileList.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import EmptySelection from '$lib/components/EmptySelection.svelte';
+	import AppSettingsSheet from '$lib/components/AppSettingsSheet.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 
@@ -45,6 +47,7 @@
 	let customPresets = $state<PresetDefinition[]>([]);
 	let maxConcurrencySetting = $state(2);
 	let isDragging = $state(false);
+	let showSettings = $state(false);
 
 	let activeView = $state<'dashboard' | 'logs'>('dashboard');
 	let logs = $state<Record<string, string[]>>({});
@@ -434,6 +437,7 @@
 		onChangeView={(v) => (activeView = v)}
 		onAddFile={handleAddFile}
 		onStartConversion={startConversion}
+		onOpenSettings={() => (showSettings = !showSettings)}
 	/>
 
 	<div class="relative flex-1 overflow-hidden p-4">
@@ -468,8 +472,6 @@
 								disabled={selectedFile.status === FileStatus.CONVERTING ||
 									selectedFile.status === FileStatus.QUEUED ||
 									selectedFile.status === FileStatus.COMPLETED}
-								maxConcurrency={maxConcurrencySetting}
-								onUpdateMaxConcurrency={handleUpdateMaxConcurrency}
 							/>
 						{:else}
 							<EmptySelection />
@@ -484,10 +486,12 @@
 
 	{#if isDragging}
 		<div
-			class="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+			transition:fade={{ duration: 100 }}
+			class="absolute inset-0 z-100 flex items-center justify-center bg-background/60 backdrop-blur-sm"
 		>
 			<div
-				class="flex flex-col items-center justify-center rounded-lg border border-dashed border-ds-blue-600 bg-ds-blue-900/20 px-6 py-3 shadow-2xl backdrop-blur-sm"
+				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
+				class="flex h-36 w-72 flex-col items-center justify-center rounded-lg border border-dashed border-ds-blue-600 bg-ds-blue-900/20 shadow-2xl backdrop-blur-sm"
 			>
 				<p class="font-mono text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
 					Import Source Files
@@ -498,9 +502,11 @@
 
 	{#if updateStore.showDialog}
 		<div
-			class="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+			transition:fade={{ duration: 100 }}
+			class="absolute inset-0 z-100 flex items-center justify-center bg-background/60 backdrop-blur-sm"
 		>
 			<div
+				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
 				class="flex w-100 flex-col gap-4 rounded-lg border border-ds-blue-600 bg-ds-blue-900/20 p-3 shadow-2xl backdrop-blur-sm"
 			>
 				<div>
@@ -546,6 +552,14 @@
 				{/if}
 			</div>
 		</div>
+	{/if}
+
+	{#if showSettings}
+		<AppSettingsSheet
+			maxConcurrency={maxConcurrencySetting}
+			onUpdate={handleUpdateMaxConcurrency}
+			onClose={() => (showSettings = false)}
+		/>
 	{/if}
 </div>
 
