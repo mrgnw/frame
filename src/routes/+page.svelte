@@ -37,6 +37,7 @@
 
 	import { updateStore } from '$lib/stores/update.svelte';
 	import { checkForAppUpdate, installAppUpdate } from '$lib/services/update';
+	import { marked } from 'marked';
 
 	let files = $state<FileItem[]>([]);
 	let selectedFileId = $state<string | null>(null);
@@ -505,21 +506,22 @@
 				<div>
 					<Label variant="section" class="text-foreground">Update Available</Label>
 
-					<p class="text-gray-alpha-600 font-mono text-[9px] font-medium tracking-widest uppercase">
+					<p class="text-gray-alpha-600 font-mono text-[10px] font-medium tracking-wide uppercase">
 						Version {updateStore.version} is available.
 					</p>
 				</div>
 
 				{#if updateStore.body}
 					<div
-						class="text-gray-alpha-600 max-h-32 overflow-y-auto rounded-sm bg-gray-alpha-100 p-2 font-mono text-[10px]"
+						class="markdown-content text-gray-alpha-600 max-h-35 overflow-y-auto rounded bg-gray-alpha-100 p-3 text-xs tracking-wide uppercase"
 					>
-						{updateStore.body}
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+						{@html marked.parse(updateStore.body)}
 					</div>
 				{/if}
 
 				{#if updateStore.error}
-					<div class="text-[10px] text-ds-red-600">
+					<div class="text-xs text-ds-red-600">
 						{updateStore.error}
 					</div>
 				{/if}
@@ -546,3 +548,41 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	:global(.markdown-content h1),
+	:global(.markdown-content h2),
+	:global(.markdown-content h3) {
+		font-size: 11px;
+		font-weight: 500;
+		color: var(--foreground);
+		margin-top: 1em;
+		margin-bottom: 0.5em;
+	}
+
+	:global(.markdown-content h1:first-child),
+	:global(.markdown-content h2:first-child),
+	:global(.markdown-content h3:first-child) {
+		margin-top: 0;
+	}
+
+	:global(.markdown-content ul) {
+		list-style-type: disc;
+		padding-left: 1.5em;
+		margin-bottom: 0.5em;
+	}
+
+	:global(.markdown-content li) {
+		margin-bottom: 0.25em;
+		font-size: 10px;
+	}
+
+	:global(.markdown-content p) {
+		margin-bottom: 0.5em;
+	}
+
+	:global(.markdown-content strong) {
+		font-weight: 600;
+		color: var(--foreground);
+	}
+</style>
