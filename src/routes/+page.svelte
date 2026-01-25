@@ -133,11 +133,13 @@
 
 		try {
 			updateStore.isInstalling = true;
+			updateStore.error = null;
 			await installAppUpdate(updateStore.updateObject, (progress) => {
 				updateStore.progress = progress;
 			});
 		} catch (e) {
-			updateStore.error = e instanceof Error ? e.message : 'Update failed';
+			console.error('Update installation error:', e);
+			updateStore.error = e instanceof Error ? e.message : String(e);
 			updateStore.isInstalling = false;
 		}
 	}
