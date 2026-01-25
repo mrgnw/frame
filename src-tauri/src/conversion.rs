@@ -12,8 +12,6 @@ use tauri_plugin_shell::process::CommandEvent;
 use thiserror::Error;
 use tokio::sync::mpsc;
 
-
-
 const DEFAULT_MAX_CONCURRENCY: usize = 2;
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -336,7 +334,9 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         } else if config.video_codec == "h264_nvenc" {
             // NVENC uses -rc:v vbr and -cq:v (1-51), where 1 is best.
             // Map Quality (1-100, 100 best) to CQ (51-1).
-            let cq = (52.0 - (config.quality as f64 / 2.0)).round().clamp(1.0, 51.0) as u32;
+            let cq = (52.0 - (config.quality as f64 / 2.0))
+                .round()
+                .clamp(1.0, 51.0) as u32;
             args.push("-rc:v".to_string());
             args.push("vbr".to_string());
             args.push("-cq:v".to_string());

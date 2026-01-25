@@ -2,6 +2,8 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { checkForAppUpdate } from '$lib/services/update';
+	import { updateStore } from '$lib/stores/update.svelte';
 
 	let {
 		maxConcurrency,
@@ -26,6 +28,8 @@
 	});
 
 	let isSaving = $state(false);
+	let isCheckingForUpdate = $state(false);
+	let checkStatus = $state('');
 
 	async function handleSave() {
 		const parsed = Number(localValue.current);
@@ -34,6 +38,32 @@
 			await onUpdate(parsed);
 		} finally {
 			isSaving = false;
+		}
+	}
+
+	async function handleCheckUpdate() {
+		isCheckingForUpdate = true;
+		checkStatus = '';
+		try {
+			const result = await checkForAppUpdate();
+			if (result.available) {
+				updateStore.isAvailable = true;
+				updateStore.version = result.version || '';
+				updateStore.body = result.body || '';
+				updateStore.updateObject = result.updateObject;
+				updateStore.showDialog = true;
+				checkStatus = 'Update available!';
+			} else {
+				checkStatus = 'You are on the latest version.';
+			}
+		} catch (e) {
+			checkStatus = 'Error checking for updates.';
+			console.error(e);
+		} finally {
+			isCheckingForUpdate = false;
+			setTimeout(() => {
+				checkStatus = '';
+			}, 3000);
 		}
 	}
 </script>
@@ -67,6 +97,23 @@
 			>
 				{isSaving ? 'Saving...' : 'Apply'}
 			</Button>
+		</div>
+	</div>
+
+	<div class="space-y-2">
+		<Label variant="section">App Updates</Label>
+		<div class="flex items-center gap-3">
+			<Button
+				variant="outline"
+				class="h-7.5 w-32"
+				onclick={handleCheckUpdate}
+				disabled={isCheckingForUpdate || disabled}
+			>
+				{isCheckingForUpdate ? 'Checking...' : 'Check for Updates'}
+			</Button>
+			{#if checkStatus}
+				<span class="text-gray-alpha-600 text-[10px]">{checkStatus}</span>
+			{/if}
 		</div>
 	</div>
 </div>

@@ -1,6 +1,6 @@
 [package]
 name = "frame"
-version = "0.2.3"
+version = "0.2.3-beta.1"
 description = "A simple FFmpeg GUI"
 edition = "2024"
 authors = ["Marek Jóźwiak <hexthecoder@gmail.com>"]
@@ -29,6 +29,7 @@ tokio = "1.49.0"
 tauri-plugin-prevent-default = "4.0.3"
 thiserror = "2.0.18"
 tauri-plugin-os = "2.3.2"
+tauri-plugin-process = "2"
 
 [profile.release]
 opt-level = "z"
@@ -36,3 +37,6 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"

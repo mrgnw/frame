@@ -11,6 +11,7 @@
 	import FileList from '$lib/components/FileList.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import EmptySelection from '$lib/components/EmptySelection.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import {
 		type FileItem,
 		FileStatus,
@@ -31,6 +32,9 @@
 		cloneConfig as clonePresetConfig,
 		getDefaultConfig
 	} from '$lib/services/presets';
+
+	import { updateStore } from '$lib/stores/update.svelte';
+	import { checkForAppUpdate, installAppUpdate } from '$lib/services/update';
 
 	let files = $state<FileItem[]>([]);
 	let selectedFileId = $state<string | null>(null);
@@ -73,6 +77,8 @@
 			}, 1000);
 		})();
 
+		initUpdateCheck();
+
 		return () => {
 			mounted = false;
 			if (unlistenDragDrop) {
@@ -102,6 +108,42 @@
 			unlistenLeave();
 			unlistenDrop();
 		};
+	}
+
+	async function initUpdateCheck() {
+		try {
+			updateStore.isChecking = true;
+			const result = await checkForAppUpdate();
+			if (result.available) {
+				updateStore.isAvailable = true;
+				updateStore.version = result.version || '';
+				updateStore.body = result.body || '';
+				updateStore.updateObject = result.updateObject;
+				updateStore.showDialog = true;
+			}
+		} catch (e) {
+			console.error('Update check failed', e);
+		} finally {
+			updateStore.isChecking = false;
+		}
+	}
+
+	async function handleUpdate() {
+		if (!updateStore.updateObject) return;
+
+		try {
+			updateStore.isInstalling = true;
+			await installAppUpdate(updateStore.updateObject, (progress) => {
+				updateStore.progress = progress;
+			});
+		} catch (e) {
+			updateStore.error = e instanceof Error ? e.message : 'Update failed';
+			updateStore.isInstalling = false;
+		}
+	}
+
+	function handleCancelUpdate() {
+		updateStore.showDialog = false;
 	}
 
 	function createInitialConfig(): ConversionConfig {
@@ -445,6 +487,58 @@
 				<p class="font-mono text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
 					Import Source Files
 				</p>
+			</div>
+		</div>
+	{/if}
+
+	{#if updateStore.showDialog}
+		<div
+			class="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+		>
+			<div
+				class="border-gray-alpha-200 flex w-100 flex-col gap-4 rounded-lg border bg-gray-alpha-100 p-3 shadow-2xl backdrop-blur-sm"
+			>
+				<div>
+					<h3 class="text-[11px] font-medium text-foreground uppercase">Update Available</h3>
+					<p
+						class="text-gray-alpha-600 font-mono text-[10px] font-medium tracking-widest uppercase"
+					>
+						Version {updateStore.version} is available.
+					</p>
+				</div>
+
+				{#if updateStore.body}
+					<div
+						class="text-gray-alpha-600 max-h-32 overflow-y-auto rounded-md bg-gray-alpha-100 p-2 font-mono text-[10px]"
+					>
+						{updateStore.body}
+					</div>
+				{/if}
+
+				{#if updateStore.error}
+					<div class="text-[10px] text-ds-red-600">
+						{updateStore.error}
+					</div>
+				{/if}
+
+				{#if updateStore.isInstalling}
+					<div class="space-y-1">
+						<div class="bg-gray-alpha-200 h-1 w-full overflow-hidden rounded-full">
+							<div
+								class="h-full bg-ds-blue-600 transition-all duration-300"
+								style="width: {updateStore.progress}%"
+							></div>
+						</div>
+						<p class="text-gray-alpha-600 text-right text-[10px]">
+							{Math.round(updateStore.progress)}%
+						</p>
+					</div>
+				{:else}
+					<div class="flex justify-end gap-2">
+						<Button variant="ghost" onclick={handleCancelUpdate}>Later</Button>
+						<Button onclick={handleUpdate}>Update Now</Button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}
