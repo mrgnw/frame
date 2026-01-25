@@ -1,6 +1,6 @@
 {
 	"name": "frame",
-	"version": "0.2.3",
+	"version": "0.3.0",
 	"description": "",
 	"type": "module",
 	"scripts": {
@@ -27,6 +27,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"lucide-svelte": "^0.562.0",
+		"marked": "^17.0.1",
 		"tailwind-merge": "^3.4.0",
 		"tailwindcss": "^4.1.18",
 		"uuid": "^13.0.0"

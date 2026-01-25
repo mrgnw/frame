@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-25
+
+### Added
+
+- **UI:** Added a custom settings sheet and implemented animations for all overlays.
+- **Auto-Update:** Added Markdown parsing and text styling for release notes in the update dialog.
+
+### Removed
+
+- **UI:** Removed Windows titlebar in favor of Linux titlebar which aligns better with the overall design and user experience.
+
+
 ## [0.2.3] - 2026-01-25
 
 ### Added
@@ -170,6 +182,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preset-based configuration system.
 
 [Unreleased]: https://github.com/66HEX/frame/compare/0.2.3...HEAD
+[0.3.0]: https://github.com/66HEX/frame/compare/0.2.3...0.3.0
 [0.2.3]: https://github.com/66HEX/frame/compare/0.2.2...0.2.3
 [0.2.3-beta.3]: https://github.com/66HEX/frame/compare/0.2.3-beta.2...0.2.3-beta.3
 [0.2.3-beta.2]: https://github.com/66HEX/frame/compare/0.2.3-beta.1...0.2.3-beta.2

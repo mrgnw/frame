@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { type } from '@tauri-apps/plugin-os';
 	import MacosTitlebar from './titlebar/MacosTitlebar.svelte';
-	import WindowsTitlebar from './titlebar/WindowsTitlebar.svelte';
 	import LinuxTitlebar from './titlebar/LinuxTitlebar.svelte';
 
 	let {
@@ -13,7 +12,8 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onChangeView
+		onChangeView,
+		onOpenSettings
 	}: {
 		totalSize?: number;
 		fileCount?: number;
@@ -23,6 +23,7 @@
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
+		onOpenSettings?: () => void;
 	} = $props();
 
 	let platform = $state<string | null>(null);
@@ -32,29 +33,7 @@
 	});
 </script>
 
-{#if platform === 'windows'}
-	<WindowsTitlebar
-		{totalSize}
-		{fileCount}
-		{selectedCount}
-		{isProcessing}
-		{activeView}
-		{onAddFile}
-		{onStartConversion}
-		{onChangeView}
-	/>
-{:else if platform === 'linux'}
-	<LinuxTitlebar
-		{totalSize}
-		{fileCount}
-		{selectedCount}
-		{isProcessing}
-		{activeView}
-		{onAddFile}
-		{onStartConversion}
-		{onChangeView}
-	/>
-{:else}
+{#if platform === 'macos'}
 	<MacosTitlebar
 		{totalSize}
 		{fileCount}
@@ -64,5 +43,18 @@
 		{onAddFile}
 		{onStartConversion}
 		{onChangeView}
+		{onOpenSettings}
+	/>
+{:else}
+	<LinuxTitlebar
+		{totalSize}
+		{fileCount}
+		{selectedCount}
+		{isProcessing}
+		{activeView}
+		{onAddFile}
+		{onStartConversion}
+		{onChangeView}
+		{onOpenSettings}
 	/>
 {/if}

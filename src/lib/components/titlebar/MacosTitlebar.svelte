@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getCurrentWindow } from '@tauri-apps/api/window';
-	import { Plus, Play, FileVideo, HardDrive, LayoutList, Terminal } from 'lucide-svelte';
+	import { Plus, Play, FileVideo, HardDrive, LayoutList, Terminal, Settings } from 'lucide-svelte';
 	import { cn } from '$lib/utils/cn';
 	import frameIcon from '$lib/assets/icons/frame.svg?raw';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -15,7 +15,8 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onChangeView
+		onChangeView,
+		onOpenSettings
 	}: {
 		totalSize?: number;
 		fileCount?: number;
@@ -25,6 +26,7 @@
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
+		onOpenSettings?: () => void;
 	} = $props();
 
 	function minimize() {
@@ -160,6 +162,11 @@
 	</div>
 
 	<div class="pointer-events-none mt-2 flex items-center gap-3">
+		{#if onOpenSettings}
+			<Button onclick={onOpenSettings} variant="secondary" size="icon" class="pointer-events-auto">
+				<Settings size={14} />
+			</Button>
+		{/if}
 		{#if onAddFile}
 			<Button onclick={onAddFile} variant="secondary" class="pointer-events-auto gap-2">
 				<Plus size={12} />
