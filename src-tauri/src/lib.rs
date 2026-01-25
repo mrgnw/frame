@@ -20,7 +20,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
-            let mut builder =
+            let builder =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("")
                     .inner_size(1200.0, 800.0)
@@ -28,17 +28,8 @@ pub fn run() {
                     .resizable(true)
                     .fullscreen(false)
                     .decorations(false)
-                    .visible(false);
-
-            #[cfg(target_os = "macos")]
-            {
-                builder = builder.transparent(true);
-            }
-
-            #[cfg(target_os = "windows")]
-            {
-                builder = builder.transparent(false);
-            }
+                    .visible(false)
+                    .transparent(true);
 
             let window = builder.build().unwrap();
 
