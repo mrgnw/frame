@@ -4,7 +4,9 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 
-	const CONTAINERS = ['mp4', 'mkv', 'webm', 'mov', 'mp3'] as const;
+	import { isAudioCodecAllowed, getDefaultAudioCodec } from '$lib/services/media';
+
+	const CONTAINERS = ['mp4', 'mkv', 'webm', 'mov', 'mp3', 'm4a', 'wav', 'flac'] as const;
 
 	let {
 		config,
@@ -19,6 +21,17 @@
 		onUpdate: (config: Partial<ConversionConfig>) => void;
 		onUpdateOutputName?: (value: string) => void;
 	} = $props();
+
+	function handleContainerChange(newContainer: string) {
+		const updates: Partial<ConversionConfig> = { container: newContainer };
+
+		// Check if current audio codec is valid for the new container
+		if (!isAudioCodecAllowed(config.audioCodec, newContainer)) {
+			updates.audioCodec = getDefaultAudioCodec(newContainer);
+		}
+
+		onUpdate(updates);
+	}
 </script>
 
 <div class="space-y-4">
@@ -42,7 +55,7 @@
 			{#each CONTAINERS as fmt (fmt)}
 				<Button
 					variant={config.container === fmt ? 'selected' : 'outline'}
-					onclick={() => onUpdate({ container: fmt })}
+					onclick={() => handleContainerChange(fmt)}
 					{disabled}
 					class="w-full"
 				>

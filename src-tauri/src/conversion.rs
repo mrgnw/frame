@@ -409,8 +409,12 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
 
     args.push("-c:a".to_string());
     args.push(config.audio_codec.clone());
-    args.push("-b:a".to_string());
-    args.push(format!("{}k", config.audio_bitrate));
+
+    let lossless_audio_codecs = ["flac", "alac", "pcm_s16le"];
+    if !lossless_audio_codecs.contains(&config.audio_codec.as_str()) {
+        args.push("-b:a".to_string());
+        args.push(format!("{}k", config.audio_bitrate));
+    }
 
     match config.audio_channels.as_str() {
         "stereo" => {

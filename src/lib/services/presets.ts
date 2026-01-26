@@ -72,7 +72,7 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 	},
 	{
 		id: 'audio-only',
-		name: 'Audio Only',
+		name: 'Audio MP3',
 		builtIn: true,
 		config: {
 			container: 'mp3',
@@ -82,6 +82,48 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			audioCodec: 'mp3',
 			audioBitrate: '128',
 			audioChannels: 'stereo',
+			selectedAudioTracks: [],
+			resolution: 'original',
+			scalingAlgorithm: 'bicubic',
+			fps: 'original',
+			crf: 23,
+			quality: 50,
+			preset: 'medium'
+		}
+	},
+	{
+		id: 'audio-flac',
+		name: 'Audio FLAC (Lossless)',
+		builtIn: true,
+		config: {
+			container: 'flac',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'crf',
+			videoBitrate: '0',
+			audioCodec: 'flac',
+			audioBitrate: '0',
+			audioChannels: 'original',
+			selectedAudioTracks: [],
+			resolution: 'original',
+			scalingAlgorithm: 'bicubic',
+			fps: 'original',
+			crf: 23,
+			quality: 50,
+			preset: 'medium'
+		}
+	},
+	{
+		id: 'audio-alac',
+		name: 'Audio ALAC (Apple)',
+		builtIn: true,
+		config: {
+			container: 'm4a',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'crf',
+			videoBitrate: '0',
+			audioCodec: 'alac',
+			audioBitrate: '0',
+			audioChannels: 'original',
 			selectedAudioTracks: [],
 			resolution: 'original',
 			scalingAlgorithm: 'bicubic',

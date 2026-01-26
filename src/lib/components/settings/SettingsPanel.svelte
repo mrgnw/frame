@@ -50,6 +50,8 @@
 		metadataError?: string;
 	} = $props();
 
+	const AUDIO_ONLY_CONTAINERS = ['mp3', 'm4a', 'wav', 'flac'];
+
 	let activeTab = $state<TabId>('source');
 </script>
 
@@ -57,7 +59,8 @@
 	<div class="flex h-10 items-center justify-between border-b border-gray-alpha-100 px-4">
 		<div class="flex w-full items-center justify-start gap-4">
 			{#each TABS as tab (tab.id)}
-				{@const isVideoDisabled = tab.id === 'video' && config.container === 'mp3'}
+				{@const isVideoDisabled =
+					tab.id === 'video' && AUDIO_ONLY_CONTAINERS.includes(config.container)}
 				<button
 					disabled={isVideoDisabled}
 					class={cn(

@@ -5,12 +5,16 @@
 	import ListItem from '$lib/components/ui/ListItem.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
+	import { isAudioCodecAllowed } from '$lib/services/media';
 
 	const AUDIO_CODECS = [
 		{ id: 'aac', label: 'AAC / Stereo' },
 		{ id: 'ac3', label: 'Dolby Digital' },
 		{ id: 'libopus', label: 'Opus' },
-		{ id: 'mp3', label: 'MP3' }
+		{ id: 'mp3', label: 'MP3' },
+		{ id: 'alac', label: 'ALAC (Lossless)' },
+		{ id: 'flac', label: 'FLAC (Lossless)' },
+		{ id: 'pcm_s16le', label: 'PCM / WAV' }
 	] as const;
 
 	const CHANNELS = [
@@ -82,8 +86,13 @@
 						const value = e.currentTarget.value.replace(/[^0-9]/g, '');
 						onUpdate({ audioBitrate: value });
 					}}
-					{disabled}
+					disabled={disabled || ['flac', 'alac', 'pcm_s16le'].includes(config.audioCodec)}
 				/>
+				{#if ['flac', 'alac', 'pcm_s16le'].includes(config.audioCodec)}
+					<p class="text-[9px] text-gray-alpha-600 uppercase">
+						Bitrate ignored for lossless codecs
+					</p>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -91,17 +100,16 @@
 		<Label variant="section">Audio Codec</Label>
 		<div class="grid grid-cols-1">
 			{#each AUDIO_CODECS as codec (codec.id)}
-				{@const isMp3Container = config.container === 'mp3'}
-				{@const isAllowed = !isMp3Container || codec.id === 'mp3'}
+				{@const allowed = isAudioCodecAllowed(codec.id, config.container)}
 				<ListItem
 					selected={config.audioCodec === codec.id}
 					onclick={() => onUpdate({ audioCodec: codec.id })}
-					disabled={disabled || !isAllowed}
-					class={cn(!isAllowed && 'cursor-not-allowed opacity-50')}
+					disabled={disabled || !allowed}
+					class={cn(!allowed && 'cursor-not-allowed opacity-50')}
 				>
 					<span>{codec.id}</span>
 					<span class="text-[9px] opacity-50">
-						{isMp3Container && codec.id !== 'mp3' ? 'Incompatible with MP3' : codec.label}
+						{!allowed ? 'Incompatible container' : codec.label}
 					</span>
 				</ListItem>
 			{/each}
