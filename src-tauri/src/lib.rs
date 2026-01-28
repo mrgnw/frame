@@ -41,6 +41,7 @@ fn apply_window_effect(_window: &tauri::WebviewWindow) {}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
@@ -87,6 +88,8 @@ pub fn run() {
         .plugin(StoreBuilder::new().build())
         .invoke_handler(tauri::generate_handler![
             conversion::queue_conversion,
+            conversion::pause_conversion,
+            conversion::resume_conversion,
             conversion::probe_media,
             conversion::get_max_concurrency,
             conversion::set_max_concurrency,

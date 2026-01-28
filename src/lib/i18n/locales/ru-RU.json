@@ -136,6 +136,10 @@
 		"later": "Позже",
 		"updateNow": "Обновить сейчас"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "Очередь завершена",
+		"conversionFinishedBody": "Обработано {count} файлов с {errors} ошибками."
+	},
 	"encodingSpeed": {
 		"ultrafast": "Сверхбыстро",
 		"ultrafastDesc": "Макс. файл, быстрейшая конвертация",

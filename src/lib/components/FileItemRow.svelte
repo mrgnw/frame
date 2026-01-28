@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { FileStatus, type FileItem } from '../types';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, Pause, Play } from 'lucide-svelte';
 	import { cn } from '$lib/utils/cn';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Checkbox from '$lib/components/ui/Checkbox.svelte';
@@ -11,12 +11,16 @@
 		onRemove,
 		onSelect,
 		onToggleBatch,
+		onPause,
+		onResume,
 		isSelected
 	}: {
 		item: FileItem;
 		onRemove: (id: string) => void;
 		onSelect: (id: string) => void;
 		onToggleBatch: (id: string, isChecked: boolean) => void;
+		onPause?: (id: string) => void;
+		onResume?: (id: string) => void;
 		isSelected: boolean;
 	} = $props();
 
@@ -62,8 +66,36 @@
 		</div>
 
 		<div class="col-span-2 text-right">
-			{#if item.status === FileStatus.CONVERTING}
-				<span class="text-[13px] text-ds-amber-800">{Math.round(item.progress)}%</span>
+			{#if item.status === FileStatus.CONVERTING || item.status === FileStatus.PAUSED}
+				<div class="flex items-center justify-end gap-2">
+					<span
+						class={cn(
+							'text-[13px]',
+							item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-ds-amber-800'
+						)}>{Math.round(item.progress)}%</span
+					>
+					{#if item.status === FileStatus.CONVERTING}
+						<button
+							onclick={(e) => {
+								e.stopPropagation();
+								onPause?.(item.id);
+							}}
+							class="text-gray-alpha-600 transition-colors hover:text-foreground"
+						>
+							<Pause size={14} fill="currentColor" color="none" />
+						</button>
+					{:else}
+						<button
+							onclick={(e) => {
+								e.stopPropagation();
+								onResume?.(item.id);
+							}}
+							class="text-gray-alpha-600 transition-colors hover:text-foreground"
+						>
+							<Play size={14} fill="currentColor" color="none" />
+						</button>
+					{/if}
+				</div>
 			{:else if item.status === FileStatus.COMPLETED}
 				<span class="text-[13px] text-ds-blue-600">{$_('fileStatus.ready')}</span>
 			{:else if item.status === FileStatus.QUEUED}

@@ -10,7 +10,9 @@
 		onSelect,
 		onRemove,
 		onToggleBatch,
-		onToggleAllBatch
+		onToggleAllBatch,
+		onPause,
+		onResume
 	}: {
 		files: FileItem[];
 		selectedFileId: string | null;
@@ -18,6 +20,8 @@
 		onRemove: (id: string) => void;
 		onToggleBatch: (id: string, isChecked: boolean) => void;
 		onToggleAllBatch: (isChecked: boolean) => void;
+		onPause?: (id: string) => void;
+		onResume?: (id: string) => void;
 	} = $props();
 
 	let allChecked = $derived(files.length > 0 && files.every((f) => f.isSelectedForConversion));
@@ -64,6 +68,8 @@
 						{onSelect}
 						{onRemove}
 						{onToggleBatch}
+						{onPause}
+						{onResume}
 					/>
 				{/each}
 				<div class="mt-2 border-t border-gray-alpha-100 p-4 text-center">

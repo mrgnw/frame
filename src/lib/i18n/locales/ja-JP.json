@@ -136,6 +136,10 @@
 		"later": "後で",
 		"updateNow": "今すぐ更新"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "キュー完了",
+		"conversionFinishedBody": "{count} ファイルを処理しました ({errors} エラー)"
+	},
 	"encodingSpeed": {
 		"ultrafast": "超高速",
 		"ultrafastDesc": "最大ファイル、最速変換",

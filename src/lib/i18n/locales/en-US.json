@@ -136,6 +136,10 @@
 		"later": "Later",
 		"updateNow": "Update Now"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "Queue Finished",
+		"conversionFinishedBody": "Processed {count} files with {errors} errors."
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrafast",
 		"ultrafastDesc": "Largest file, fastest conversion",

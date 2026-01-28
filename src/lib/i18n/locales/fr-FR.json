@@ -136,6 +136,10 @@
 		"later": "Plus tard",
 		"updateNow": "Mettre à jour"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "File terminée",
+		"conversionFinishedBody": "Traité {count} fichiers avec {errors} erreurs."
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultra-rapide",
 		"ultrafastDesc": "Fichier max, conversion la plus rapide",

@@ -136,6 +136,10 @@
 		"later": "나중에",
 		"updateNow": "지금 업데이트"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "대기열 완료",
+		"conversionFinishedBody": "{count}개 파일 처리됨 ({errors} 오류)"
+	},
 	"encodingSpeed": {
 		"ultrafast": "초고속",
 		"ultrafastDesc": "최대 파일, 최고속 변환",

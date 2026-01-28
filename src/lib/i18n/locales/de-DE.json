@@ -136,6 +136,10 @@
 		"later": "Später",
 		"updateNow": "Jetzt aktualisieren"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "Warteschlange beendet",
+		"conversionFinishedBody": "{count} Dateien verarbeitet mit {errors} Fehlern."
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultraschnell",
 		"ultrafastDesc": "Größte Datei, schnellste Konvertierung",

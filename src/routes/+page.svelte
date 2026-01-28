@@ -26,7 +26,9 @@
 	} from '$lib/types';
 	import {
 		startConversion as startConversionService,
-		setupConversionListeners
+		setupConversionListeners,
+		pauseConversion,
+		resumeConversion
 	} from '$lib/services/conversion';
 	import { probeMedia, getDefaultAudioCodec } from '$lib/services/media';
 	import {
@@ -42,6 +44,7 @@
 		cloneConfig as clonePresetConfig,
 		getDefaultConfig
 	} from '$lib/services/presets';
+	import { sendAppNotification } from '$lib/services/notifications';
 
 	import { updateStore } from '$lib/stores/update.svelte';
 	import { checkForAppUpdate, installAppUpdate } from '$lib/services/update';
@@ -269,6 +272,19 @@
 					f.status === FileStatus.IDLE
 			)
 		) {
+			if (isProcessing) {
+				const completedCount = files.filter((f) => f.status === FileStatus.COMPLETED).length;
+				const errorCount = files.filter((f) => f.status === FileStatus.ERROR).length;
+
+				if (completedCount > 0 || errorCount > 0) {
+					sendAppNotification(
+						$_('notifications.conversionFinishedTitle'),
+						$_('notifications.conversionFinishedBody', {
+							values: { count: completedCount, errors: errorCount }
+						})
+					);
+				}
+			}
 			isProcessing = false;
 		}
 	}
@@ -423,6 +439,24 @@
 		files = files.map((f) => ({ ...f, isSelectedForConversion: isChecked }));
 	}
 
+	async function handlePause(id: string) {
+		try {
+			await pauseConversion(id);
+			files = files.map((f) => (f.id === id ? { ...f, status: FileStatus.PAUSED } : f));
+		} catch (error) {
+			console.error('Failed to pause:', error);
+		}
+	}
+
+	async function handleResume(id: string) {
+		try {
+			await resumeConversion(id);
+			files = files.map((f) => (f.id === id ? { ...f, status: FileStatus.CONVERTING } : f));
+		} catch (error) {
+			console.error('Failed to resume:', error);
+		}
+	}
+
 	async function startConversion() {
 		const pendingFiles = files.filter(
 			(f) =>
@@ -478,6 +512,8 @@
 					onRemove={handleRemoveFile}
 					onToggleBatch={handleToggleBatch}
 					onToggleAllBatch={handleToggleAllBatch}
+					onPause={handlePause}
+					onResume={handleResume}
 				/>
 
 				<div class="col-span-12 h-full min-h-0 lg:col-span-4">

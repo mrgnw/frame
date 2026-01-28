@@ -41,6 +41,24 @@ export async function startConversion(
 	}
 }
 
+export async function pauseConversion(id: string) {
+	try {
+		await invoke('pause_conversion', { id });
+	} catch (error) {
+		console.error('Failed to pause conversion:', error);
+		throw error;
+	}
+}
+
+export async function resumeConversion(id: string) {
+	try {
+		await invoke('resume_conversion', { id });
+	} catch (error) {
+		console.error('Failed to resume conversion:', error);
+		throw error;
+	}
+}
+
 export async function setupConversionListeners(
 	onProgress: (payload: ProgressEvent) => void,
 	onCompleted: (payload: CompletedEvent) => void,

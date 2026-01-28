@@ -136,6 +136,10 @@
 		"later": "Más tarde",
 		"updateNow": "Actualizar ahora"
 	},
+	"notifications": {
+		"conversionFinishedTitle": "Cola finalizada",
+		"conversionFinishedBody": "Procesados {count} archivos con {errors} errores."
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrarrápido",
 		"ultrafastDesc": "Archivo más grande, conversión más rápida",

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Task Control:** Added ability to pause and resume active conversion tasks directly from the file list. Supported on macOS, Linux, and Windows.
+- **Notifications:** Added native system notifications that trigger when a conversion queue finishes processing, summarizing the results (successes and errors).
+
+### Fixed
+
+- **CI/CD:** Removed deprecated `depends_on macos` directive from the Homebrew Cask generation workflow to resolve `brew doctor` warnings.
+
 ## [0.6.0] - 2026-01-28
 
 ### Added
@@ -238,7 +247,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preset-based configuration system.
 
 [Unreleased]: https://github.com/66HEX/frame/compare/0.6.0...HEAD
-[0.5.0]: https://github.com/66HEX/frame/compare/0.5.0...0.6.0
+[0.6.0]: https://github.com/66HEX/frame/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/66HEX/frame/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/66HEX/frame/compare/0.3.3...0.4.0
 [0.3.3]: https://github.com/66HEX/frame/compare/0.3.2...0.3.3
