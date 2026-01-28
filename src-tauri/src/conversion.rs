@@ -17,7 +17,6 @@ use libc;
 
 #[cfg(windows)]
 use windows::{
-    core::{PCSTR, s},
     Win32::{
         Foundation::{CloseHandle, HANDLE, HMODULE},
         System::{
@@ -25,6 +24,7 @@ use windows::{
             Threading::{OpenProcess, PROCESS_SUSPEND_RESUME, PROCESS_TERMINATE, TerminateProcess},
         },
     },
+    core::{PCSTR, s},
 };
 
 const DEFAULT_MAX_CONCURRENCY: usize = 2;
@@ -316,9 +316,8 @@ impl ConversionManager {
 
 #[cfg(windows)]
 unsafe fn windows_suspend_resume(pid: u32, suspend: bool) -> Result<(), ConversionError> {
-    let process_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid).map_err(|e| {
-        ConversionError::Shell(format!("Failed to open process: {}", e))
-    })?;
+    let process_handle = OpenProcess(PROCESS_SUSPEND_RESUME, false, pid)
+        .map_err(|e| ConversionError::Shell(format!("Failed to open process: {}", e)))?;
 
     let ntdll = GetModuleHandleA(s!("ntdll.dll")).map_err(|e| {
         let _ = CloseHandle(process_handle);
@@ -370,17 +369,20 @@ impl ConversionManager {
             unsafe {
                 // Resume first just in case
                 let _ = windows_suspend_resume(pid, false);
-                
+
                 let process_handle = OpenProcess(
                     windows::Win32::System::Threading::PROCESS_TERMINATE,
                     false,
-                    pid
-                ).map_err(|e| ConversionError::Shell(format!("Failed to open process for termination: {}", e)))?;
-                
+                    pid,
+                )
+                .map_err(|e| {
+                    ConversionError::Shell(format!("Failed to open process for termination: {}", e))
+                })?;
+
                 let _ = windows::Win32::System::Threading::TerminateProcess(process_handle, 1);
                 let _ = CloseHandle(process_handle);
             }
-            
+
             Ok(())
         } else {
             // Task might not be running yet or already finished, which is fine for cancel
@@ -417,6 +419,8 @@ pub struct ConversionConfig {
     #[serde(default = "default_quality")]
     pub quality: u32,
     pub preset: String,
+    pub start_time: Option<String>,
+    pub end_time: Option<String>,
 }
 
 fn default_quality() -> u32 {
@@ -481,7 +485,24 @@ struct FfprobeTags {
 }
 
 pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -> Vec<String> {
-    let mut args = vec!["-i".to_string(), input.to_string()];
+    let mut args = Vec::new();
+
+    if let Some(start) = &config.start_time {
+        if !start.is_empty() {
+            args.push("-ss".to_string());
+            args.push(start.clone());
+        }
+    }
+
+    args.push("-i".to_string());
+    args.push(input.to_string());
+
+    if let Some(end) = &config.end_time {
+        if !end.is_empty() {
+            args.push("-to".to_string());
+            args.push(end.clone());
+        }
+    }
 
     let is_audio_only = is_audio_only_container(&config.container);
 
@@ -970,6 +991,8 @@ mod tests {
             crf: 23,
             quality: 50,
             preset: "medium".into(),
+            start_time: None,
+            end_time: None,
         };
 
         let args = build_ffmpeg_args("input.mov", "output.mp4", &config);
@@ -1005,6 +1028,8 @@ mod tests {
             crf: 23,
             quality: 50,
             preset: "medium".into(),
+            start_time: None,
+            end_time: None,
         };
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
@@ -1031,6 +1056,8 @@ mod tests {
             crf: 23,
             quality: 50,
             preset: "medium".into(),
+            start_time: None,
+            end_time: None,
         };
 
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
@@ -1058,6 +1085,8 @@ mod tests {
             crf: 18,
             quality: 50,
             preset: "slow".into(),
+            start_time: None,
+            end_time: None,
         };
         let args = build_ffmpeg_args("raw.mov", "archive.mkv", &config);
 
@@ -1087,6 +1116,8 @@ mod tests {
             crf: 30,
             quality: 50,
             preset: "medium".into(),
+            start_time: None,
+            end_time: None,
         };
         let args = build_ffmpeg_args("clip.mp4", "web.webm", &config);
 
@@ -1136,6 +1167,8 @@ mod tests {
             crf: 23,
             quality: 50,
             preset: "medium".into(),
+            start_time: None,
+            end_time: None,
         }
     }
 
