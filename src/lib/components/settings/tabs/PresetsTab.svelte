@@ -2,7 +2,12 @@
 	import { onDestroy } from 'svelte';
 	import { Trash2 } from 'lucide-svelte';
 	import { cn } from '$lib/utils/cn';
-	import { AUDIO_ONLY_CONTAINERS, type ConversionConfig, type PresetDefinition, type SourceMetadata } from '$lib/types';
+	import {
+		AUDIO_ONLY_CONTAINERS,
+		type ConversionConfig,
+		type PresetDefinition,
+		type SourceMetadata
+	} from '$lib/types';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import ListItem from '$lib/components/ui/ListItem.svelte';

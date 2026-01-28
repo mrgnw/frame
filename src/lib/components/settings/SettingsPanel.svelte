@@ -56,7 +56,8 @@
 		<div class="flex w-full items-center justify-start gap-4">
 			{#each TABS as tabId (tabId)}
 				{@const isVideoDisabled =
-					tabId === 'video' && (AUDIO_ONLY_CONTAINERS.includes(config.container) || isSourceAudioOnly)}
+					tabId === 'video' &&
+					(AUDIO_ONLY_CONTAINERS.includes(config.container) || isSourceAudioOnly)}
 				<button
 					disabled={isVideoDisabled}
 					class={cn(
