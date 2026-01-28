@@ -12,7 +12,8 @@
 		"name": "Имя",
 		"size": "Размер",
 		"state": "Состояние",
-		"target": "Цель"
+		"target": "Цель",
+		"actions": "Действия"
 	},
 	"titlebar": {
 		"close": "Закрыть",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "Очередь завершена",
 		"conversionFinishedBody": "Обработано {count} файлов с {errors} ошибками."
+	},
+	"trim": {
+		"startTime": "Начало",
+		"endTime": "Конец",
+		"duration": "Длительность",
+		"save": "Сохранить",
+		"cancel": "Отмена"
 	},
 	"encodingSpeed": {
 		"ultrafast": "Сверхбыстро",

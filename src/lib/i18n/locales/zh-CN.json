@@ -12,7 +12,8 @@
 		"name": "名称",
 		"size": "大小",
 		"state": "状态",
-		"target": "目标"
+		"target": "目标",
+		"actions": "操作"
 	},
 	"titlebar": {
 		"close": "关闭",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "队列已完成",
 		"conversionFinishedBody": "已处理 {count} 个文件，包含 {errors} 个错误。"
+	},
+	"trim": {
+		"startTime": "开始时间",
+		"endTime": "结束时间",
+		"duration": "时长",
+		"save": "保存",
+		"cancel": "取消"
 	},
 	"encodingSpeed": {
 		"ultrafast": "极快",

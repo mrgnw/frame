@@ -12,7 +12,8 @@
 		"name": "이름",
 		"size": "크기",
 		"state": "상태",
-		"target": "대상"
+		"target": "대상",
+		"actions": "작업"
 	},
 	"titlebar": {
 		"close": "닫기",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "대기열 완료",
 		"conversionFinishedBody": "{count}개 파일 처리됨 ({errors} 오류)"
+	},
+	"trim": {
+		"startTime": "시작 시간",
+		"endTime": "종료 시간",
+		"duration": "재생 시간",
+		"save": "저장",
+		"cancel": "취소"
 	},
 	"encodingSpeed": {
 		"ultrafast": "초고속",

@@ -12,7 +12,8 @@
 		"name": "Nombre",
 		"size": "Tamaño",
 		"state": "Estado",
-		"target": "Destino"
+		"target": "Destino",
+		"actions": "Acciones"
 	},
 	"titlebar": {
 		"close": "Cerrar",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "Cola finalizada",
 		"conversionFinishedBody": "Procesados {count} archivos con {errors} errores."
+	},
+	"trim": {
+		"startTime": "Tiempo inicial",
+		"endTime": "Tiempo final",
+		"duration": "Duración",
+		"save": "Guardar",
+		"cancel": "Cancelar"
 	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrarrápido",

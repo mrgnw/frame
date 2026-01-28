@@ -12,7 +12,8 @@
 		onToggleBatch,
 		onToggleAllBatch,
 		onPause,
-		onResume
+		onResume,
+		onTrim
 	}: {
 		files: FileItem[];
 		selectedFileId: string | null;
@@ -22,6 +23,7 @@
 		onToggleAllBatch: (isChecked: boolean) => void;
 		onPause?: (id: string) => void;
 		onResume?: (id: string) => void;
+		onTrim?: (id: string) => void;
 	} = $props();
 
 	let allChecked = $derived(files.length > 0 && files.every((f) => f.isSelectedForConversion));
@@ -44,12 +46,16 @@
 					onchange={(e) => onToggleAllBatch(e.currentTarget.checked)}
 				/>
 			</div>
-			<div class="col-span-4">{$_('common.name')}</div>
-			<div class="col-span-3 text-right">{$_('common.size')}</div>
+			<div class="col-span-5">{$_('common.name')}</div>
+			<div class="col-span-2 text-right">{$_('common.size')}</div>
 			<div class="col-span-2 text-right">{$_('common.target')}</div>
 			<div class="col-span-2 text-right">{$_('common.state')}</div>
 		</div>
-		<div class="ml-4 w-8"></div>
+		<div
+			class="text-gray-alpha-600 ml-4 w-16 text-right text-[10px] font-medium tracking-widest uppercase"
+		>
+			{$_('common.actions')}
+		</div>
 	</div>
 
 	<div class="relative z-10 flex-1 overflow-y-auto">
@@ -70,6 +76,7 @@
 						{onToggleBatch}
 						{onPause}
 						{onResume}
+						{onTrim}
 					/>
 				{/each}
 				<div class="mt-2 border-t border-gray-alpha-100 p-4 text-center">

@@ -12,7 +12,8 @@
 		"name": "Nom",
 		"size": "Taille",
 		"state": "État",
-		"target": "Cible"
+		"target": "Cible",
+		"actions": "Actions"
 	},
 	"titlebar": {
 		"close": "Fermer",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "File terminée",
 		"conversionFinishedBody": "Traité {count} fichiers avec {errors} erreurs."
+	},
+	"trim": {
+		"startTime": "Heure de début",
+		"endTime": "Heure de fin",
+		"duration": "Durée",
+		"save": "Enregistrer",
+		"cancel": "Annuler"
 	},
 	"encodingSpeed": {
 		"ultrafast": "Ultra-rapide",

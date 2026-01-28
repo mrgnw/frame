@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { FileStatus, type FileItem } from '../types';
-	import { Trash2, Pause, Play } from 'lucide-svelte';
+	import { Trash2, Pause, Play, Scissors } from 'lucide-svelte';
 	import { cn } from '$lib/utils/cn';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Checkbox from '$lib/components/ui/Checkbox.svelte';
@@ -13,6 +13,7 @@
 		onToggleBatch,
 		onPause,
 		onResume,
+		onTrim,
 		isSelected
 	}: {
 		item: FileItem;
@@ -21,6 +22,7 @@
 		onToggleBatch: (id: string, isChecked: boolean) => void;
 		onPause?: (id: string) => void;
 		onResume?: (id: string) => void;
+		onTrim?: (id: string) => void;
 		isSelected: boolean;
 	} = $props();
 
@@ -53,11 +55,11 @@
 			/>
 		</div>
 
-		<div class="col-span-4 flex items-center gap-2 overflow-hidden">
+		<div class="col-span-5 flex items-center gap-2 overflow-hidden">
 			<span class="truncate text-[13px] text-foreground [text-box:none]!">{item.name}</span>
 		</div>
 
-		<div class="col-span-3 text-right">
+		<div class="col-span-2 text-right">
 			<span class="text-gray-alpha-600 text-[13px]">{formatSize(item.size)}</span>
 		</div>
 
@@ -67,35 +69,12 @@
 
 		<div class="col-span-2 text-right">
 			{#if item.status === FileStatus.CONVERTING || item.status === FileStatus.PAUSED}
-				<div class="flex items-center justify-end gap-2">
-					<span
-						class={cn(
-							'text-[13px]',
-							item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-ds-amber-800'
-						)}>{Math.round(item.progress)}%</span
-					>
-					{#if item.status === FileStatus.CONVERTING}
-						<button
-							onclick={(e) => {
-								e.stopPropagation();
-								onPause?.(item.id);
-							}}
-							class="text-gray-alpha-600 transition-colors hover:text-foreground"
-						>
-							<Pause size={14} fill="currentColor" color="none" />
-						</button>
-					{:else}
-						<button
-							onclick={(e) => {
-								e.stopPropagation();
-								onResume?.(item.id);
-							}}
-							class="text-gray-alpha-600 transition-colors hover:text-foreground"
-						>
-							<Play size={14} fill="currentColor" color="none" />
-						</button>
-					{/if}
-				</div>
+				<span
+					class={cn(
+						'text-[13px]',
+						item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-ds-amber-800'
+					)}>{Math.round(item.progress)}%</span
+				>
 			{:else if item.status === FileStatus.COMPLETED}
 				<span class="text-[13px] text-ds-blue-600">{$_('fileStatus.ready')}</span>
 			{:else if item.status === FileStatus.QUEUED}
@@ -108,16 +87,60 @@
 		</div>
 	</div>
 
-	<Button
-		onclick={(e) => {
-			e.stopPropagation();
-			onRemove(item.id);
-		}}
-		variant="destructive"
-		size="none"
-		disabled={item.status === FileStatus.CONVERTING}
-		class="text-gray-alpha-600 ml-4 h-4 w-8 opacity-0 group-hover:opacity-100 hover:bg-transparent hover:text-ds-red-600 disabled:pointer-events-none disabled:opacity-50"
-	>
-		<Trash2 size={14} />
-	</Button>
+	<div class="ml-4 flex w-16 items-center justify-end gap-2">
+		<div class="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+			{#if item.status === FileStatus.CONVERTING}
+				<button
+					onclick={(e) => {
+						e.stopPropagation();
+						onPause?.(item.id);
+					}}
+					class="text-gray-alpha-600 transition-colors hover:text-foreground"
+				>
+					<Pause size={14} fill="currentColor" color="none" />
+				</button>
+			{:else if item.status === FileStatus.PAUSED}
+				<button
+					onclick={(e) => {
+						e.stopPropagation();
+						onResume?.(item.id);
+					}}
+					class="text-gray-alpha-600 transition-colors hover:text-foreground"
+				>
+					<Play size={14} fill="currentColor" color="none" />
+				</button>
+			{/if}
+
+			{#if (item.status === FileStatus.IDLE || item.status === FileStatus.QUEUED) && item.metadata?.videoCodec}
+				<button
+					onclick={(e) => {
+						e.stopPropagation();
+						onTrim?.(item.id);
+					}}
+					class={cn(
+						'transition-colors hover:text-foreground',
+						item.config.startTime || item.config.endTime
+							? 'text-ds-blue-600'
+							: 'text-gray-alpha-600'
+					)}
+					title="Trim Video"
+				>
+					<Scissors size={14} />
+				</button>
+			{/if}
+
+			<Button
+				onclick={(e) => {
+					e.stopPropagation();
+					onRemove(item.id);
+				}}
+				variant="destructive"
+				size="none"
+				disabled={item.status === FileStatus.CONVERTING}
+				class="text-gray-alpha-600 h-4 w-4 hover:bg-transparent hover:text-ds-red-600 disabled:pointer-events-none disabled:opacity-50"
+			>
+				<Trash2 size={14} />
+			</Button>
+		</div>
+	</div>
 </div>

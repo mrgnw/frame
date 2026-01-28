@@ -33,6 +33,8 @@ export interface ConversionConfig {
 	crf: number;
 	quality: number;
 	preset: string;
+	startTime?: string;
+	endTime?: string;
 }
 
 export interface SourceMetadata {

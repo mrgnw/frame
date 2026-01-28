@@ -99,6 +99,14 @@ select {
 	background-color: var(--ds-gray-alpha-200);
 }
 
+.bg-gray-alpha-400 {
+	background-color: var(--ds-gray-alpha-400);
+}
+
+.bg-gray-alpha-600 {
+	background-color: var(--ds-gray-alpha-600);
+}
+
 .text-gray-alpha-600 {
 	color: var(--ds-gray-alpha-600);
 }

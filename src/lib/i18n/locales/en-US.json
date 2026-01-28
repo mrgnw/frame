@@ -12,7 +12,8 @@
 		"name": "Name",
 		"size": "Size",
 		"state": "State",
-		"target": "Target"
+		"target": "Target",
+		"actions": "Actions"
 	},
 	"titlebar": {
 		"close": "Close",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "Queue Finished",
 		"conversionFinishedBody": "Processed {count} files with {errors} errors."
+	},
+	"trim": {
+		"startTime": "Start Time",
+		"endTime": "End Time",
+		"duration": "Duration",
+		"save": "Save Trim",
+		"cancel": "Cancel"
 	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrafast",

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-01-29
+
+
+### Added
+
+- **Video Trimming:** New interactive modal for precise video trimming. Features include:
+  - **Visual Timeline:** Draggable handles for setting start and end points with a real-time video preview.
+  - **Timecode Precision:** Dedicated `TimecodeInput` component for millisecond-accurate manual entry.
+  - **Live Preview:** Instant seek to start/end points and looped playback of the selected range.
+
+
 ## [0.7.1] - 2026-01-28
 
 ### Added
@@ -254,7 +265,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.7.1...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/66HEX/frame/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/66HEX/frame/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/66HEX/frame/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/66HEX/frame/compare/0.5.0...0.6.0

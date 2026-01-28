@@ -13,6 +13,7 @@
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import EmptySelection from '$lib/components/EmptySelection.svelte';
 	import AppSettingsSheet from '$lib/components/AppSettingsSheet.svelte';
+	import TrimModal from '$lib/components/TrimModal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import { _ } from '$lib/i18n';
@@ -58,11 +59,13 @@
 	let maxConcurrencySetting = $state(2);
 	let isDragging = $state(false);
 	let showSettings = $state(false);
+	let trimmingFileId = $state<string | null>(null);
 
 	let activeView = $state<'dashboard' | 'logs'>('dashboard');
 	let logs = $state<Record<string, string[]>>({});
 
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId));
+	let trimmingFile = $derived(files.find((f) => f.id === trimmingFileId));
 	let totalSize = $derived(files.reduce((acc, curr) => acc + curr.size, 0));
 	let presets = $derived([...DEFAULT_PRESETS, ...customPresets] as PresetDefinition[]);
 	let selectedCount = $derived(files.filter((f) => f.isSelectedForConversion).length);
@@ -466,6 +469,29 @@
 		}
 	}
 
+	function handleOpenTrim(id: string) {
+		trimmingFileId = id;
+	}
+
+	function handleSaveTrim(start?: string, end?: string) {
+		if (trimmingFileId) {
+			files = files.map((f) => {
+				if (f.id === trimmingFileId) {
+					return {
+						...f,
+						config: {
+							...f.config,
+							startTime: start,
+							endTime: end
+						}
+					};
+				}
+				return f;
+			});
+			trimmingFileId = null;
+		}
+	}
+
 	async function startConversion() {
 		const pendingFiles = files.filter(
 			(f) =>
@@ -523,6 +549,7 @@
 					onToggleAllBatch={handleToggleAllBatch}
 					onPause={handlePause}
 					onResume={handleResume}
+					onTrim={handleOpenTrim}
 				/>
 
 				<div class="col-span-12 h-full min-h-0 lg:col-span-4">
@@ -632,6 +659,16 @@
 			maxConcurrency={maxConcurrencySetting}
 			onUpdate={handleUpdateMaxConcurrency}
 			onClose={() => (showSettings = false)}
+		/>
+	{/if}
+
+	{#if trimmingFile}
+		<TrimModal
+			filePath={trimmingFile.path}
+			initialStartTime={trimmingFile.config.startTime}
+			initialEndTime={trimmingFile.config.endTime}
+			onSave={handleSaveTrim}
+			onCancel={() => (trimmingFileId = null)}
 		/>
 	{/if}
 </div>

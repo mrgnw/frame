@@ -25,7 +25,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 23,
 			quality: 50,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -46,7 +48,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 18,
 			quality: 60,
-			preset: 'slow'
+			preset: 'slow',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -67,7 +71,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 30,
 			quality: 40,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -88,7 +94,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 23,
 			quality: 50,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -109,7 +117,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 23,
 			quality: 50,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -130,7 +140,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 23,
 			quality: 50,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	},
 	{
@@ -151,7 +163,9 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			fps: 'original',
 			crf: 23,
 			quality: 50,
-			preset: 'medium'
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined
 		}
 	}
 ];

@@ -19,6 +19,10 @@
 		"store:default",
 		"notification:default",
 		{
+			"identifier": "fs:allow-read-file",
+			"allow": [{ "path": "$HOME/**" }]
+		},
+		{
 			"identifier": "fs:allow-stat",
 			"allow": [{ "path": "$HOME/**" }]
 		},

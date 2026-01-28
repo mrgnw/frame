@@ -12,7 +12,8 @@
 		"name": "名前",
 		"size": "サイズ",
 		"state": "状態",
-		"target": "ターゲット"
+		"target": "ターゲット",
+		"actions": "操作"
 	},
 	"titlebar": {
 		"close": "閉じる",
@@ -139,6 +140,13 @@
 	"notifications": {
 		"conversionFinishedTitle": "キュー完了",
 		"conversionFinishedBody": "{count} ファイルを処理しました ({errors} エラー)"
+	},
+	"trim": {
+		"startTime": "開始時間",
+		"endTime": "終了時間",
+		"duration": "再生時間",
+		"save": "保存",
+		"cancel": "キャンセル"
 	},
 	"encodingSpeed": {
 		"ultrafast": "超高速",
