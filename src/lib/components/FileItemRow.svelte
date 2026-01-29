@@ -125,7 +125,7 @@
 					class={cn(
 						'transition-colors',
 						isDisabled ? 'pointer-events-none opacity-50' : 'hover:text-foreground',
-						item.config.startTime || item.config.endTime
+						(item.config.startTime || item.config.endTime) && !isDisabled
 							? 'text-ds-blue-600'
 							: 'text-gray-alpha-600'
 					)}
