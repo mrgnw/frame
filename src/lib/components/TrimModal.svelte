@@ -186,7 +186,7 @@
 			{/if}
 		</div>
 
-		<div class="mt-4">
+		<div class="mt-4 px-2">
 			<div
 				class="relative mb-6 h-8 cursor-pointer select-none"
 				bind:this={sliderRef}
