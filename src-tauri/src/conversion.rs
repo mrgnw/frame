@@ -412,6 +412,8 @@ pub struct ConversionConfig {
     pub audio_channels: String,
     #[serde(default = "default_audio_volume")]
     pub audio_volume: f64,
+    #[serde(default)]
+    pub audio_normalize: bool,
     pub selected_audio_tracks: Vec<u32>,
     pub resolution: String,
     pub custom_width: Option<String>,
@@ -620,6 +622,10 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
     }
 
     let mut audio_filters: Vec<String> = Vec::new();
+
+    if config.audio_normalize {
+        audio_filters.push("loudnorm=I=-16:TP=-1.5:LRA=11".to_string());
+    }
 
     if (config.audio_volume - 100.0).abs() > VOLUME_EPSILON {
         let volume_factor = config.audio_volume / 100.0;
