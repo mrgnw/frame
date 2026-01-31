@@ -40,6 +40,7 @@ pub struct AudioTrack {
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate_kbps: Option<f64>,
+    pub sample_rate: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -61,6 +62,11 @@ pub struct ProbeMetadata {
     pub audio_tracks: Vec<AudioTrack>,
     #[serde(default)]
     pub tags: Option<FfprobeTags>,
+    pub pixel_format: Option<String>,
+    pub color_space: Option<String>,
+    pub color_range: Option<String>,
+    pub color_primaries: Option<String>,
+    pub profile: Option<String>,
 }
 
 pub(crate) fn parse_frame_rate_string(value: Option<&str>) -> Option<f64> {
@@ -504,6 +510,12 @@ struct FfprobeStream {
     #[allow(dead_code)]
     channel_layout: Option<String>,
     tags: Option<FfprobeTags>,
+    pix_fmt: Option<String>,
+    color_space: Option<String>,
+    color_range: Option<String>,
+    color_primaries: Option<String>,
+    profile: Option<String>,
+    sample_rate: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -1008,6 +1020,11 @@ pub async fn probe_media(
 
     if let Some(video_stream) = probe_data.streams.iter().find(|s| s.codec_type == "video") {
         metadata.video_codec = video_stream.codec_name.clone();
+        metadata.pixel_format = video_stream.pix_fmt.clone();
+        metadata.color_space = video_stream.color_space.clone();
+        metadata.color_range = video_stream.color_range.clone();
+        metadata.color_primaries = video_stream.color_primaries.clone();
+        metadata.profile = video_stream.profile.clone();
 
         if let (Some(w), Some(h)) = (video_stream.width, video_stream.height) {
             if w > 0 && h > 0 {
@@ -1046,6 +1063,7 @@ pub async fn probe_media(
             label,
             language,
             bitrate_kbps: track_bitrate,
+            sample_rate: stream.sample_rate.clone(),
         });
     }
 

@@ -14,6 +14,7 @@ export interface AudioTrack {
 	language?: string;
 	label?: string;
 	bitrateKbps?: number;
+	sampleRate?: string;
 }
 
 export interface ConversionConfig {
@@ -64,6 +65,11 @@ export interface SourceMetadata {
 	videoBitrateKbps?: number;
 	audioTracks?: AudioTrack[];
 	tags?: Record<string, string>;
+	pixelFormat?: string;
+	colorSpace?: string;
+	colorRange?: string;
+	colorPrimaries?: string;
+	profile?: string;
 }
 
 export interface FileItem {
