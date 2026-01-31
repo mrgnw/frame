@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { MetadataStatus, SourceMetadata } from '$lib/types';
+	import Label from '$lib/components/ui/Label.svelte';
 	import { _ } from '$lib/i18n';
 
 	let {
@@ -12,8 +13,9 @@
 		error?: string;
 	} = $props();
 
-	function display(value?: string) {
-		return value && value.trim().length > 0 ? value : '—';
+	function display(value?: string | number) {
+		const str = String(value);
+		return value !== undefined && str.trim().length > 0 ? str : '—';
 	}
 
 	function formatDuration(raw?: string): string {
@@ -78,9 +80,19 @@
 		}
 		return `${Math.round(bps / 1_000)} kb/s`;
 	}
+
+	function formatHz(value?: string): string {
+		if (!value) return '—';
+		const hz = parseInt(value, 10);
+		if (isNaN(hz)) return value;
+		if (hz >= 1000) {
+			return `${(hz / 1000).toFixed(1).replace(/\.0$/, '')} kHz`;
+		}
+		return `${hz} Hz`;
+	}
 </script>
 
-<div class="space-y-3">
+<div class="space-y-6">
 	{#if status === 'loading'}
 		<div class="text-gray-alpha-600 text-[11px] tracking-wide uppercase">
 			{$_('source.analyzing')}
@@ -95,30 +107,95 @@
 			{/if}
 		</div>
 	{:else if metadata}
-		<div class="space-y-2">
-			<div class="grid grid-cols-2 gap-2 text-[11px] tracking-wide uppercase">
+		<div class="space-y-3">
+			<Label variant="section">{$_('source.fileInfo')}</Label>
+			<div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] tracking-wide uppercase">
 				<div class="text-gray-alpha-600">{$_('source.duration')}</div>
-				<div>{formatDuration(metadata.duration)}</div>
-
-				<div class="text-gray-alpha-600">{$_('source.frameRate')}</div>
-				<div>{formatFrameRate(metadata.frameRate)}</div>
-
-				<div class="text-gray-alpha-600">{$_('source.dimensions')}</div>
-				<div>{formatResolution(metadata)}</div>
-
-				<div class="text-gray-alpha-600">{$_('source.videoCodec')}</div>
-				<div>{display(metadata.videoCodec)}</div>
-
-				<div class="text-gray-alpha-600">{$_('source.videoBitrate')}</div>
-				<div>{formatBitrateKbps(metadata.videoBitrateKbps)}</div>
-
-				<div class="text-gray-alpha-600">{$_('source.audioCodec')}</div>
-				<div>{display(metadata.audioCodec)}</div>
+				<div class="text-right font-medium">{formatDuration(metadata.duration)}</div>
 
 				<div class="text-gray-alpha-600">{$_('source.containerBitrate')}</div>
-				<div>{formatContainerBitrate(metadata.bitrate)}</div>
+				<div class="text-right font-medium">{formatContainerBitrate(metadata.bitrate)}</div>
 			</div>
 		</div>
+
+		{#if metadata.videoCodec}
+			<div class="space-y-3">
+				<Label variant="section">{$_('source.videoStream')}</Label>
+				<div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] tracking-wide uppercase">
+					<div class="text-gray-alpha-600">{$_('source.videoCodec')}</div>
+					<div class="text-right font-medium">{display(metadata.videoCodec)}</div>
+
+					{#if metadata.profile}
+						<div class="text-gray-alpha-600">{$_('source.profile')}</div>
+						<div class="text-right font-medium">{display(metadata.profile)}</div>
+					{/if}
+
+					<div class="text-gray-alpha-600">{$_('source.dimensions')}</div>
+					<div class="text-right font-medium">{formatResolution(metadata)}</div>
+
+					<div class="text-gray-alpha-600">{$_('source.frameRate')}</div>
+					<div class="text-right font-medium">{formatFrameRate(metadata.frameRate)}</div>
+
+					{#if metadata.pixelFormat}
+						<div class="text-gray-alpha-600">{$_('source.pixelFormat')}</div>
+						<div class="text-right font-medium">{display(metadata.pixelFormat)}</div>
+					{/if}
+
+					{#if metadata.colorSpace}
+						<div class="text-gray-alpha-600">{$_('source.colorSpace')}</div>
+						<div class="text-right font-medium">{display(metadata.colorSpace)}</div>
+					{/if}
+
+					{#if metadata.colorRange}
+						<div class="text-gray-alpha-600">{$_('source.colorRange')}</div>
+						<div class="text-right font-medium">{display(metadata.colorRange)}</div>
+					{/if}
+
+					<div class="text-gray-alpha-600">{$_('source.videoBitrate')}</div>
+					<div class="text-right font-medium">{formatBitrateKbps(metadata.videoBitrateKbps)}</div>
+				</div>
+			</div>
+		{/if}
+
+		{#if metadata.audioTracks && metadata.audioTracks.length > 0}
+			<div class="space-y-3">
+				<Label variant="section">{$_('source.audioStream')}</Label>
+				<div class="space-y-4">
+					{#each metadata.audioTracks as track, i (track.index)}
+						<div class="space-y-2">
+							<div class="flex items-center gap-2">
+								<span class="text-[9px] font-bold tracking-widest text-ds-blue-600 uppercase"
+									>{$_('source.track')} #{i + 1}</span
+								>
+								<div class="h-px flex-1 bg-gray-alpha-100"></div>
+							</div>
+							<div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] tracking-wide uppercase">
+								<div class="text-gray-alpha-600">{$_('audio.codec')}</div>
+								<div class="text-right font-medium">{display(track.codec)}</div>
+
+								<div class="text-gray-alpha-600">{$_('audio.channels')}</div>
+								<div class="text-right font-medium">{display(track.channels)}</div>
+
+								{#if track.sampleRate}
+									<div class="text-gray-alpha-600">{$_('source.sampleRate')}</div>
+									<div class="text-right font-medium">{formatHz(track.sampleRate)}</div>
+								{/if}
+
+								{#if track.bitrateKbps}
+									<div class="text-gray-alpha-600">{$_('source.bitrate')}</div>
+									<div class="text-right font-medium">{formatBitrateKbps(track.bitrateKbps)}</div>
+								{/if}
+
+								{#if track.language}
+									<div class="text-gray-alpha-600">Language</div>
+									<div class="text-right font-medium">{display(track.language)}</div>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	{:else}
 		<div class="text-gray-alpha-600 text-[11px] tracking-wide uppercase">
 			{$_('source.unavailable')}

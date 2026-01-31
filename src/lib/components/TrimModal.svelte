@@ -10,31 +10,67 @@
 
 	let {
 		filePath,
+
 		initialStartTime,
 		initialEndTime,
+		rotation = '0',
+		flipHorizontal = false,
+		flipVertical = false,
 		onSave,
 		onCancel
 	}: {
 		filePath: string;
 		initialStartTime?: string;
 		initialEndTime?: string;
+		rotation?: '0' | '90' | '180' | '270';
+		flipHorizontal?: boolean;
+		flipVertical?: boolean;
 		onSave: (start?: string, end?: string) => void;
 		onCancel: () => void;
 	} = $props();
 
 	let videoSrc = $state('');
+	let containerRef: HTMLDivElement | undefined = $state();
+	let containerWidth = $state(0);
+	let containerHeight = $state(0);
+
+	let isSideRotation = $derived(rotation === '90' || rotation === '270');
+
+	let videoStyle = $derived(
+		isSideRotation && containerWidth && containerHeight
+			? `width: ${containerHeight}px; height: ${containerWidth}px;`
+			: 'width: 100%; height: 100%;'
+	);
+
+	let transformStyle = $derived(
+		[`rotate(${rotation}deg)`, flipHorizontal ? 'scaleX(-1)' : '', flipVertical ? 'scaleY(-1)' : '']
+			.filter(Boolean)
+			.join(' ')
+	);
 
 	onMount(() => {
 		videoSrc = convertFileSrc(filePath);
-
 		if (initialStartTime) startValue = parseTimeToSeconds(initialStartTime);
+		if (containerRef) {
+			containerWidth = containerRef.clientWidth;
+
+			containerHeight = containerRef.clientHeight;
+		}
+		const ro = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				containerWidth = entry.contentRect.width;
+
+				containerHeight = entry.contentRect.height;
+			}
+		});
+		if (containerRef) ro.observe(containerRef);
+		return () => ro.disconnect();
 	});
 
 	let videoRef: HTMLVideoElement | undefined = $state();
 	let isPlaying = $state(false);
 	let currentTime = $state(0);
 	let duration = $state(0);
-
 	let startValue = $state(0);
 	let endValue = $state(0);
 
@@ -155,15 +191,21 @@
 	onclick={onCancel}
 >
 	<div
-		class="flex h-[85vh] w-[80vw] flex-col overflow-hidden rounded-xl border border-ds-blue-600 bg-ds-blue-900/20 p-3 shadow-2xl backdrop-blur-sm"
+		class="flex w-[80vw] flex-col overflow-hidden rounded-xl border border-ds-blue-600 bg-ds-blue-900/20 p-3 shadow-2xl backdrop-blur-sm"
 		transition:scale={{ start: 1.025, duration: 100, opacity: 1 }}
 		onclick={(e) => e.stopPropagation()}
 	>
-		<div class="relative flex-1 rounded-lg bg-black">
+		<div
+			transition:fade={{ duration: 100 }}
+			class="relative flex h-100 items-center justify-center rounded-lg bg-background"
+			bind:this={containerRef}
+		>
 			<video
 				bind:this={videoRef}
 				src={videoSrc}
-				class="h-full w-full rounded-lg bg-black object-cover"
+				class="block overflow-hidden rounded-lg bg-background object-contain transition-transform duration-300"
+				style={videoStyle}
+				style:transform={transformStyle}
 				onloadedmetadata={handleMetadata}
 				ontimeupdate={handleTimeUpdate}
 				onplay={() => (isPlaying = true)}

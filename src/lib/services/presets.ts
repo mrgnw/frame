@@ -32,7 +32,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -60,7 +63,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -88,7 +94,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -116,7 +125,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -144,7 +156,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -172,7 +187,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	},
 	{
@@ -200,7 +218,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			endTime: undefined,
 			metadata: {
 				mode: 'preserve'
-			}
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false
 		}
 	}
 ];

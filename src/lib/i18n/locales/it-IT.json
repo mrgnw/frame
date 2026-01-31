@@ -81,7 +81,19 @@
 		"videoCodec": "Codec video",
 		"videoBitrate": "Bitrate video",
 		"audioCodec": "Codec audio",
-		"containerBitrate": "Bitrate container"
+		"containerBitrate": "Bitrate container",
+		"pixelFormat": "Formato pixel",
+		"colorSpace": "Spazio colore",
+		"colorRange": "Gamma colori",
+		"colorPrimaries": "Primari colore",
+		"profile": "Profilo",
+		"sampleRate": "Frequenza campionamento",
+		"bitrate": "Bitrate",
+		"channels": "Canali",
+		"fileInfo": "Informazioni file",
+		"videoStream": "Flusso video",
+		"audioStream": "Flusso audio",
+		"track": "Traccia"
 	},
 	"output": {
 		"outputName": "Nome output",
@@ -91,6 +103,11 @@
 	},
 	"video": {
 		"resolutionFramerate": "Risoluzione e frame rate",
+		"transform": "Trasforma",
+		"rotation": "Rotazione",
+		"flip": "Capovolgi",
+		"flipHorizontal": "Orizzontale",
+		"flipVertical": "Verticale",
 		"width": "Larghezza",
 		"height": "Altezza",
 		"scalingAlgorithm": "Algoritmo di ridimensionamento",

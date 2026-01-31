@@ -81,7 +81,19 @@
 		"videoCodec": "Видеокодек",
 		"videoBitrate": "Битрейт видео",
 		"audioCodec": "Аудиокодек",
-		"containerBitrate": "Битрейт контейнера"
+		"containerBitrate": "Битрейт контейнера",
+		"pixelFormat": "Формат пикселей",
+		"colorSpace": "Цветовое пространство",
+		"colorRange": "Цветовой диапазон",
+		"colorPrimaries": "Основные цвета",
+		"profile": "Профиль",
+		"sampleRate": "Частота дискретизации",
+		"bitrate": "Битрейт",
+		"channels": "Каналы",
+		"fileInfo": "Информация о файле",
+		"videoStream": "Видеопоток",
+		"audioStream": "Аудиопоток",
+		"track": "Дорожка"
 	},
 	"output": {
 		"outputName": "Имя выхода",
@@ -91,6 +103,11 @@
 	},
 	"video": {
 		"resolutionFramerate": "Разрешение и частота кадров",
+		"transform": "Преобразование",
+		"rotation": "Поворот",
+		"flip": "Отражение",
+		"flipHorizontal": "По горизонтали",
+		"flipVertical": "По вертикали",
 		"width": "Ширина",
 		"height": "Высота",
 		"scalingAlgorithm": "Алгоритм масштабирования",

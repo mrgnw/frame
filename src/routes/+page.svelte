@@ -667,6 +667,9 @@
 			filePath={trimmingFile.path}
 			initialStartTime={trimmingFile.config.startTime}
 			initialEndTime={trimmingFile.config.endTime}
+			rotation={trimmingFile.config.rotation}
+			flipHorizontal={trimmingFile.config.flipHorizontal}
+			flipVertical={trimmingFile.config.flipVertical}
 			onSave={handleSaveTrim}
 			onCancel={() => (trimmingFileId = null)}
 		/>

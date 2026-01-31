@@ -81,7 +81,19 @@
 		"videoCodec": "视频编码",
 		"videoBitrate": "视频比特率",
 		"audioCodec": "音频编码",
-		"containerBitrate": "容器比特率"
+		"containerBitrate": "容器比特率",
+		"pixelFormat": "像素格式",
+		"colorSpace": "色彩空间",
+		"colorRange": "色彩范围",
+		"colorPrimaries": "原色",
+		"profile": "配置文件",
+		"sampleRate": "采样率",
+		"bitrate": "比特率",
+		"channels": "声道",
+		"fileInfo": "文件信息",
+		"videoStream": "视频流",
+		"audioStream": "音频流",
+		"track": "轨道"
 	},
 	"output": {
 		"outputName": "输出名称",
@@ -91,6 +103,11 @@
 	},
 	"video": {
 		"resolutionFramerate": "分辨率和帧率",
+		"transform": "变换",
+		"rotation": "旋转",
+		"flip": "翻转",
+		"flipHorizontal": "水平",
+		"flipVertical": "垂直",
 		"width": "宽度",
 		"height": "高度",
 		"scalingAlgorithm": "缩放算法",

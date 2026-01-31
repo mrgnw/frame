@@ -110,6 +110,46 @@
 			</div>
 		{/if}
 
+		<div class="space-y-3 pt-1">
+			<Label variant="section">{$_('video.transform')}</Label>
+			<div class="space-y-2">
+				<Label>{$_('video.rotation')}</Label>
+				<div class="grid grid-cols-4 gap-2">
+					{#each ['0', '90', '180', '270'] as deg (deg)}
+						<Button
+							variant={config.rotation === deg ? 'selected' : 'outline'}
+							onclick={() => onUpdate({ rotation: deg as ConversionConfig['rotation'] })}
+							{disabled}
+							class="w-full"
+						>
+							{deg}°
+						</Button>
+					{/each}
+				</div>
+			</div>
+			<div class="space-y-2 pt-1">
+				<Label>{$_('video.flip')}</Label>
+				<div class="grid grid-cols-2 gap-2">
+					<Button
+						variant={config.flipHorizontal ? 'selected' : 'outline'}
+						onclick={() => onUpdate({ flipHorizontal: !config.flipHorizontal })}
+						{disabled}
+						class="w-full"
+					>
+						{$_('video.flipHorizontal')}
+					</Button>
+					<Button
+						variant={config.flipVertical ? 'selected' : 'outline'}
+						onclick={() => onUpdate({ flipVertical: !config.flipVertical })}
+						{disabled}
+						class="w-full"
+					>
+						{$_('video.flipVertical')}
+					</Button>
+				</div>
+			</div>
+		</div>
+
 		<div class="space-y-3 pt-2">
 			<Label variant="section">{$_('video.scalingAlgorithm')}</Label>
 			<div class="grid grid-cols-2 gap-2">

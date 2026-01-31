@@ -14,6 +14,7 @@ export interface AudioTrack {
 	language?: string;
 	label?: string;
 	bitrateKbps?: number;
+	sampleRate?: string;
 }
 
 export interface ConversionConfig {
@@ -38,6 +39,9 @@ export interface ConversionConfig {
 	startTime?: string;
 	endTime?: string;
 	metadata: MetadataConfig;
+	rotation: '0' | '90' | '180' | '270';
+	flipHorizontal: boolean;
+	flipVertical: boolean;
 }
 
 export type MetadataMode = 'preserve' | 'clean' | 'replace';
@@ -64,6 +68,11 @@ export interface SourceMetadata {
 	videoBitrateKbps?: number;
 	audioTracks?: AudioTrack[];
 	tags?: Record<string, string>;
+	pixelFormat?: string;
+	colorSpace?: string;
+	colorRange?: string;
+	colorPrimaries?: string;
+	profile?: string;
 }
 
 export interface FileItem {

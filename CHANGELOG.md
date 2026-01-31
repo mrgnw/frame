@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.11.0] - 2026-01-31
+
+### Added
+
+- **Video Transform:** New section in the Video tab for quick orientation fixes and mirroring.
+  - **Rotation:** Rotate video by 90°, 180°, or 270° with a single click.
+  - **Flip:** Toggle horizontal or vertical mirror reflections.
+  - **Filter Integration:** Transformations are processed efficiently within the FFmpeg filter chain, compatible with existing scaling options.
+- **Media Inspector:** Expanded the 'Source' tab into a comprehensive technical inspector.
+  - Displays detailed video metadata: Profile, Pixel Format, Color Space, Color Range, and Primaries.
+  - Displays detailed audio metadata: Sample rate (Hz/kHz) and bitrate per track.
+  - Multi-track support: Lists technical details for all audio streams found in the file.
+  - Redesigned UI with categorized sections (File, Video, Audio) for better readability.
+
 ## [0.10.0] - 2026-01-31
 
 ### Added
@@ -28,14 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2026-01-29
 
-
 ### Added
 
 - **Video Trimming:** New interactive modal for precise video trimming. Features include:
   - **Visual Timeline:** Draggable handles for setting start and end points with a real-time video preview.
   - **Timecode Precision:** Dedicated `TimecodeInput` component for millisecond-accurate manual entry.
   - **Live Preview:** Instant seek to start/end points and looped playback of the selected range.
-
 
 ## [0.7.1] - 2026-01-28
 
@@ -284,7 +298,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/66HEX/frame/compare/0.10.0...0.11.0
+[0.10.0]: https://github.com/66HEX/frame/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/66HEX/frame/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/66HEX/frame/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/66HEX/frame/compare/0.7.0...0.7.1
