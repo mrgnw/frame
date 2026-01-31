@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-31
+
+### Added
+
+- **Metadata Editor:** Comprehensive metadata support with a dedicated tab.
+  - **Modes:** Choose between `Preserve` (keep original, overwrite specific), `Clean` (remove all), or `Replace` (remove original, add new).
+  - **Fields:** Edit standard tags like Title, Artist, Album, Genre, Date, and Comment.
+  - **Visualization:** Placeholders in `Preserve` mode show the file's current metadata values for reference.
+
 ## [0.9.0]
 
 ### Added
