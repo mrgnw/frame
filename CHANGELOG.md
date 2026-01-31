@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-02-01
+
+
 ### Changed
 
 - **Dashboard layout:** Split the left column into a 12-row grid so the trim preview card permanently occupies the top section while the file list sits below it. This removes the floating trim modal and gives the timeline controls dedicated real estate.
 - **Trim workflow:** The trimming card now applies start/end changes immediately (no Save/Cancel buttons) and is always visible with the selected file, providing constant video preview and faster adjustments without opening overlays.
 - **Transform controls:** Rotation and flip moved out of the Video tab and into the preview card as icon-only buttons, with rotation cycling through 0/90/180/270° on each click for quicker access while adjusting trims.
+- **Localization:** Linux titlebar buttons now use the same translated strings as the macOS variant (no more hard-coded English labels).
 
 ## [0.11.0] - 2026-01-31
 
@@ -304,7 +308,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.11.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.12.0...HEAD
+[0.12.0]: https://github.com/66HEX/frame/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/66HEX/frame/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/66HEX/frame/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/66HEX/frame/compare/0.8.0...0.9.0
