@@ -616,7 +616,7 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         if config.video_bitrate_mode == "bitrate" {
             args.push("-b:v".to_string());
             args.push(format!("{}k", config.video_bitrate));
-        } else if config.video_codec == "h264_nvenc" {
+        } else if config.video_codec == "h264_nvenc" || config.video_codec == "hevc_nvenc" {
             // NVENC uses -rc:v vbr and -cq:v (1-51), where 1 is best.
             // Map Quality (1-100, 100 best) to CQ (51-1).
             let cq = (52.0 - (config.quality as f64 / 2.0))
@@ -626,7 +626,9 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             args.push("vbr".to_string());
             args.push("-cq:v".to_string());
             args.push(cq.to_string());
-        } else if config.video_codec == "h264_videotoolbox" {
+        } else if config.video_codec == "h264_videotoolbox"
+            || config.video_codec == "hevc_videotoolbox"
+        {
             // VideoToolbox uses -q:v (1-100), where 100 is best.
             args.push("-q:v".to_string());
             args.push(config.quality.to_string());
@@ -669,23 +671,6 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         }
 
         if config.resolution != "original" || config.resolution == "custom" {
-            let scale_filter = if config.resolution == "custom" {
-                let w = config.custom_width.as_deref().unwrap_or("-1");
-                let h = config.custom_height.as_deref().unwrap_or("-1");
-                if w == "-1" && h == "-1" {
-                    "scale=-1:-1".to_string()
-                } else {
-                    format!("scale={}:{}", w, h)
-                }
-            } else {
-                match config.resolution.as_str() {
-                    "1080p" => "scale=-1:1080".to_string(),
-                    "720p" => "scale=-1:720".to_string(),
-                    "480p" => "scale=-1:480".to_string(),
-                    _ => "scale=-1:-1".to_string(),
-                }
-            };
-
             let algorithm = match config.scaling_algorithm.as_str() {
                 "lanczos" => ":flags=lanczos",
                 "bilinear" => ":flags=bilinear",
@@ -694,7 +679,32 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
                 _ => "",
             };
 
-            video_filters.push(format!("{}{}", scale_filter, algorithm));
+            let scale_filter = if config.resolution == "custom" {
+                let w = config.custom_width.as_deref().unwrap_or("-1");
+                let h = config.custom_height.as_deref().unwrap_or("-1");
+                if w != "-1" && h != "-1" {
+                    // Fit within the box, preserving aspect ratio, and pad with black bars
+                    format!(
+                        "scale={w}:{h}:force_original_aspect_ratio=decrease{algo},pad={w}:{h}:(ow-iw)/2:(oh-ih)/2",
+                        w = w,
+                        h = h,
+                        algo = algorithm
+                    )
+                } else if w == "-1" && h == "-1" {
+                    "scale=-1:-1".to_string()
+                } else {
+                    format!("scale={}:{}{}", w, h, algorithm)
+                }
+            } else {
+                match config.resolution.as_str() {
+                    "1080p" => format!("scale=-1:1080{}", algorithm),
+                    "720p" => format!("scale=-1:720{}", algorithm),
+                    "480p" => format!("scale=-1:480{}", algorithm),
+                    _ => "scale=-1:-1".to_string(),
+                }
+            };
+
+            video_filters.push(scale_filter);
         }
 
         if !video_filters.is_empty() {
@@ -1414,16 +1424,19 @@ mod tests {
         config.resolution = "custom".into();
         config.custom_width = Some("1280".into());
         config.custom_height = Some("720".into());
-        config.fps = "30".into();
         config.scaling_algorithm = "lanczos".into();
+        config.fps = "60".into();
 
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
-        let vf_index = args.iter().position(|r| r == "-vf").unwrap();
-        assert_eq!(args[vf_index + 1], "scale=1280:720:flags=lanczos");
+        let vf_arg = args.iter().find(|a| a.starts_with("scale=")).unwrap();
+        assert_eq!(
+            vf_arg,
+            "scale=1280:720:force_original_aspect_ratio=decrease:flags=lanczos,pad=1280:720:(ow-iw)/2:(oh-ih)/2"
+        );
 
-        let fps_index = args.iter().position(|r| r == "-r").unwrap();
-        assert_eq!(args[fps_index + 1], "30");
+        let fps_index = args.iter().position(|a| a == "-r").unwrap();
+        assert_eq!(args[fps_index + 1], "60");
     }
 
     #[test]
@@ -1449,19 +1462,6 @@ mod tests {
     }
 
     #[test]
-    fn test_hardware_encoder_videotoolbox() {
-        let mut config = sample_config("mov");
-        config.video_codec = "h264_videotoolbox".into();
-        config.quality = 55;
-
-        let args = build_ffmpeg_args("in.mov", "out.mov", &config);
-
-        assert!(contains_args(&args, &["-c:v", "h264_videotoolbox"]));
-        assert!(contains_args(&args, &["-q:v", "55"]));
-        assert!(!args.iter().any(|a| a == "-crf"));
-    }
-
-    #[test]
     fn test_hardware_encoder_nvenc() {
         let mut config = sample_config("mp4");
         config.video_codec = "h264_nvenc".into();
@@ -1473,6 +1473,30 @@ mod tests {
         assert!(contains_args(&args, &["-rc:v", "vbr"]));
         assert!(contains_args(&args, &["-cq:v", "27"]));
         assert!(!args.iter().any(|a| a == "-crf"));
+
+        // Test HEVC NVENC
+        config.video_codec = "hevc_nvenc".into();
+        let args_hevc = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+        assert!(contains_args(&args_hevc, &["-c:v", "hevc_nvenc"]));
+        assert!(contains_args(&args_hevc, &["-cq:v", "27"]));
+    }
+
+    #[test]
+    fn test_hardware_encoder_videotoolbox() {
+        let mut config = sample_config("mov");
+        config.video_codec = "h264_videotoolbox".into();
+        config.quality = 55;
+
+        let args = build_ffmpeg_args("in.mov", "out.mov", &config);
+
+        assert!(contains_args(&args, &["-c:v", "h264_videotoolbox"]));
+        assert!(contains_args(&args, &["-q:v", "55"]));
+        assert!(!args.iter().any(|a| a == "-crf"));
+
+        config.video_codec = "hevc_videotoolbox".into();
+        let args_hevc = build_ffmpeg_args("in.mov", "out.mov", &config);
+        assert!(contains_args(&args_hevc, &["-c:v", "hevc_videotoolbox"]));
+        assert!(contains_args(&args_hevc, &["-q:v", "55"]));
     }
 
     #[test]

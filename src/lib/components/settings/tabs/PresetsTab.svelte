@@ -47,14 +47,27 @@
 	});
 
 	function configsMatch(a: ConversionConfig, b: ConversionConfig) {
-		return (
+		const baseMatch =
 			a.container === b.container &&
 			a.videoCodec === b.videoCodec &&
 			a.audioCodec === b.audioCodec &&
 			a.resolution === b.resolution &&
-			a.crf === b.crf &&
-			a.preset === b.preset
-		);
+			a.preset === b.preset &&
+			a.videoBitrateMode === b.videoBitrateMode;
+
+		if (!baseMatch) return false;
+
+		if (a.videoBitrateMode === 'crf') {
+			if (a.crf !== b.crf || a.quality !== b.quality) return false;
+		} else {
+			if (a.videoBitrate !== b.videoBitrate) return false;
+		}
+
+		if (a.resolution === 'custom') {
+			if (a.customWidth !== b.customWidth || a.customHeight !== b.customHeight) return false;
+		}
+
+		return true;
 	}
 
 	function showNotice(text: string, tone: NoticeTone = 'success') {
@@ -147,7 +160,7 @@
 		</Button>
 	</div>
 
-	<div class="space-y-1.5">
+	<div class="grid grid-cols-1 gap-1.5">
 		{#each presets as preset (preset.id)}
 			{@const isCompatible =
 				!isSourceAudioOnly || AUDIO_ONLY_CONTAINERS.includes(preset.config.container)}
@@ -172,7 +185,7 @@
 							{$_('presets.applied')}
 						{/if}
 					</span>
-					
+
 					{#if isCompatible}
 						<Button
 							variant="ghost"

@@ -13,19 +13,22 @@
 	import TimecodeInput from '$lib/components/ui/TimecodeInput.svelte';
 	import { _ } from '$lib/i18n';
 	import type { ConversionConfig, CropSettings } from '$lib/types';
-
-	type CropRect = { x: number; y: number; width: number; height: number };
-	type DragHandle = 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+	import {
+		type CropRect,
+		type DragHandle,
+		MIN_CROP,
+		ASPECT_OPTIONS,
+		getAspectValue,
+		clamp,
+		clampRect,
+		transformCropRect,
+		remapDragDeltas,
+		adjustRectToRatio,
+		enforceAspect,
+		getHandleCursor
+	} from '$lib/utils/crop';
 
 	const ROTATION_STEPS: ConversionConfig['rotation'][] = ['0', '90', '180', '270'];
-	const ASPECT_OPTIONS = [
-		{ id: 'free', labelKey: 'crop.free', display: 'Free', ratio: null },
-		{ id: '1:1', labelKey: null, display: '1:1', ratio: 1 },
-		{ id: '4:5', labelKey: null, display: '4:5', ratio: 4 / 5 },
-		{ id: '16:9', labelKey: null, display: '16:9', ratio: 16 / 9 },
-		{ id: '9:16', labelKey: null, display: '9:16', ratio: 9 / 16 }
-	];
-	const MIN_CROP = 0.05;
 
 	let {
 		filePath,
@@ -379,45 +382,9 @@
 		}
 		const ratio = getAspectValue(id);
 		if (!ratio) return;
-		draftCrop = clampRect(adjustRectToRatio(draftCrop, ratio));
-	}
-
-	function getEffectiveAspectRatio(targetRatio: number) {
 		const w = sourceWidth ?? naturalVideoWidth;
 		const h = sourceHeight ?? naturalVideoHeight;
-		if (!w || !h) return targetRatio;
-		const physicalAspect = w / h;
-
-		if (isSideRotation) {
-			return 1 / targetRatio / physicalAspect;
-		}
-		return targetRatio / physicalAspect;
-	}
-
-	function adjustRectToRatio(rect: CropRect, ratio: number): CropRect {
-		const effectiveRatio = getEffectiveAspectRatio(ratio);
-
-		let width = rect.width;
-		let height = rect.height;
-		if (width / height > effectiveRatio) {
-			width = height * effectiveRatio;
-		} else {
-			height = width / effectiveRatio;
-		}
-		const centerX = rect.x + rect.width / 2;
-		const centerY = rect.y + rect.height / 2;
-		let nextX = centerX - width / 2;
-		let nextY = centerY - height / 2;
-		if (nextX < 0) nextX = 0;
-		if (nextY < 0) nextY = 0;
-		if (nextX + width > 1) nextX = 1 - width;
-		if (nextY + height > 1) nextY = 1 - height;
-		return { x: nextX, y: nextY, width, height };
-	}
-
-	function getAspectValue(id: string) {
-		const option = ASPECT_OPTIONS.find((opt) => opt.id === id);
-		return option?.ratio ?? null;
+		draftCrop = clampRect(adjustRectToRatio(draftCrop, ratio, w, h, isSideRotation));
 	}
 
 	function applyCrop() {
@@ -477,63 +444,6 @@
 		onUpdateConfig({ crop: payload, ...overrides });
 	}
 
-	function transformCropRect(
-		rect: CropRect,
-		rot: string,
-		fH: boolean,
-		fV: boolean,
-		inverse: boolean
-	): CropRect {
-		let cx = rect.x + rect.width / 2 - 0.5;
-		let cy = rect.y + rect.height / 2 - 0.5;
-		let w = rect.width;
-		let h = rect.height;
-
-		const rotate = () => {
-			if (rot === '90') {
-				[cx, cy] = [-cy, cx];
-				[w, h] = [h, w];
-			} else if (rot === '180') {
-				[cx, cy] = [-cx, -cy];
-			} else if (rot === '270') {
-				[cx, cy] = [cy, -cx];
-				[w, h] = [h, w];
-			}
-		};
-
-		const invRotate = () => {
-			if (rot === '90') {
-				[cx, cy] = [cy, -cx];
-				[w, h] = [h, w];
-			} else if (rot === '180') {
-				[cx, cy] = [-cx, -cy];
-			} else if (rot === '270') {
-				[cx, cy] = [-cy, cx];
-				[w, h] = [h, w];
-			}
-		};
-
-		const flip = () => {
-			if (fH) cx = -cx;
-			if (fV) cy = -cy;
-		};
-
-		if (inverse) {
-			flip();
-			invRotate();
-		} else {
-			rotate();
-			flip();
-		}
-
-		return {
-			x: cx - w / 2 + 0.5,
-			y: cy - h / 2 + 0.5,
-			width: w,
-			height: h
-		};
-	}
-
 	function handleRotateToggle() {
 		if (!onUpdateConfig || controlsDisabled) return;
 		const idx = ROTATION_STEPS.indexOf(rotation);
@@ -584,37 +494,19 @@
 		window.addEventListener('mouseup', endCropDrag);
 	}
 
-	function remapDragDeltas(dx: number, dy: number) {
-		let rDx = dx;
-		let rDy = dy;
-
-		switch (rotation) {
-			case '90':
-				rDx = dy;
-				rDy = -dx;
-				break;
-			case '180':
-				rDx = -dx;
-				rDy = -dy;
-				break;
-			case '270':
-				rDx = -dy;
-				rDy = dx;
-				break;
-		}
-
-		if (flipHorizontal) rDx = -rDx;
-		if (flipVertical) rDy = -rDy;
-
-		return { dx: rDx, dy: rDy };
-	}
-
 	function handleCropDrag(event: MouseEvent) {
 		if (!cropHandle || !cropDragOrigin || !draftCrop || !videoBounds.width || !videoBounds.height)
 			return;
 		const normalizedDx = (event.clientX - cropDragOrigin.startX) / videoBounds.width;
 		const normalizedDy = (event.clientY - cropDragOrigin.startY) / videoBounds.height;
-		const { dx, dy } = remapDragDeltas(normalizedDx, normalizedDy);
+		
+		const { dx, dy } = remapDragDeltas(
+			normalizedDx,
+			normalizedDy,
+			rotation,
+			flipHorizontal,
+			flipVertical
+		);
 		let { startRect } = cropDragOrigin;
 
 		if (cropHandle === 'move') {
@@ -654,121 +546,21 @@
 		if (cropAspect !== 'free') {
 			const ratio = getAspectValue(cropAspect);
 			if (ratio) {
-				nextRect = enforceAspect(nextRect, cropHandle, startRect, ratio);
+				const w = sourceWidth ?? naturalVideoWidth;
+				const h = sourceHeight ?? naturalVideoHeight;
+				nextRect = enforceAspect(
+					nextRect,
+					cropHandle,
+					startRect,
+					ratio,
+					w,
+					h,
+					isSideRotation
+				);
 			}
 		}
 
 		draftCrop = clampRect(nextRect);
-	}
-
-	function enforceAspect(
-		rect: CropRect,
-		handle: DragHandle,
-		startRect: CropRect,
-		ratio: number
-	): CropRect {
-		const effectiveRatio = getEffectiveAspectRatio(ratio);
-
-		let width = rect.width;
-		let height = rect.height;
-		if (width / height > effectiveRatio) {
-			width = height * effectiveRatio;
-		} else {
-			height = width / effectiveRatio;
-		}
-
-		let next = { ...rect };
-		switch (handle) {
-			case 'e':
-				next.x = startRect.x;
-				next.width = width;
-				{
-					const centerY = startRect.y + startRect.height / 2;
-					next.y = centerY - height / 2;
-					next.height = height;
-				}
-				break;
-			case 'w':
-				next.width = width;
-				next.x = startRect.x + startRect.width - width;
-				{
-					const centerY = startRect.y + startRect.height / 2;
-					next.y = centerY - height / 2;
-					next.height = height;
-				}
-				break;
-			case 'n':
-				next.height = height;
-				next.y = startRect.y + startRect.height - height;
-				{
-					const centerX = startRect.x + startRect.width / 2;
-					next.x = centerX - width / 2;
-					next.width = width;
-				}
-				break;
-			case 's':
-				next.height = height;
-				next.y = startRect.y;
-				{
-					const centerX = startRect.x + startRect.width / 2;
-					next.x = centerX - width / 2;
-					next.width = width;
-				}
-				break;
-			case 'ne':
-				next.x = startRect.x;
-				next.y = startRect.y + startRect.height - height;
-				next.width = width;
-				next.height = height;
-				break;
-			case 'nw':
-				next.width = width;
-				next.height = height;
-				next.x = startRect.x + startRect.width - width;
-				next.y = startRect.y + startRect.height - height;
-				break;
-			case 'se':
-				next.x = startRect.x;
-				next.y = startRect.y;
-				next.width = width;
-				next.height = height;
-				break;
-			case 'sw':
-				next.width = width;
-				next.height = height;
-				next.x = startRect.x + startRect.width - width;
-				next.y = startRect.y;
-				break;
-			default:
-				break;
-		}
-
-		return next;
-	}
-
-	function clampRect(rect: CropRect): CropRect {
-		let { x, y, width, height } = rect;
-		if (width < MIN_CROP) width = MIN_CROP;
-		if (height < MIN_CROP) height = MIN_CROP;
-		if (x < 0) x = 0;
-		if (y < 0) y = 0;
-		if (x + width > 1) x = 1 - width;
-		if (y + height > 1) y = 1 - height;
-		return { x, y, width, height };
-	}
-
-	function clamp(value: number, min: number, max: number) {
-		return Math.min(Math.max(value, min), max);
-	}
-
-	function getHandleCursor(handleId: string) {
-		if (handleId === 'n' || handleId === 's') return isSideRotation ? 'ew-resize' : 'ns-resize';
-		if (handleId === 'e' || handleId === 'w') return isSideRotation ? 'ns-resize' : 'ew-resize';
-		if (handleId === 'nw' || handleId === 'se')
-			return isSideRotation ? 'nesw-resize' : 'nwse-resize';
-		if (handleId === 'ne' || handleId === 'sw')
-			return isSideRotation ? 'nwse-resize' : 'nesw-resize';
-		return 'default';
 	}
 
 	function endCropDrag() {
@@ -857,7 +649,7 @@
 							<span
 								onmousedown={(event) => beginCropDrag(handle.id as DragHandle, event)}
 								class="absolute block size-3 rounded-full border border-foreground bg-foreground"
-								style={`cursor: ${getHandleCursor(handle.id)}; top: calc(${handle.top}% - 6px); left: calc(${handle.left}% - 6px);`}
+								style={`cursor: ${getHandleCursor(handle.id, isSideRotation)}; top: calc(${handle.top}% - 6px); left: calc(${handle.left}% - 6px);`}
 								role="presentation"
 							></span>
 						{/each}

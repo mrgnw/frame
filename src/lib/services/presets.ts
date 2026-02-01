@@ -230,6 +230,204 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			flipVertical: false,
 			crop: null
 		}
+	},
+	{
+		id: 'social-tiktok',
+		name: 'Social (TikTok/Reels)',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '6000',
+			audioCodec: 'aac',
+			audioBitrate: '128',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: 'custom',
+			customWidth: '1080',
+			customHeight: '1920',
+			scalingAlgorithm: 'lanczos',
+			fps: '30',
+			crf: 23,
+			quality: 50,
+			preset: 'slow',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'clean'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
+	},
+	{
+		id: 'yt-1080p',
+		name: 'YouTube 1080p',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '10000',
+			audioCodec: 'aac',
+			audioBitrate: '320',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: '1080p',
+			scalingAlgorithm: 'lanczos',
+			fps: 'original',
+			crf: 23,
+			quality: 50,
+			preset: 'slow',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'preserve'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
+	},
+	{
+		id: 'yt-4k',
+		name: 'YouTube 4K',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '40000',
+			audioCodec: 'aac',
+			audioBitrate: '320',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: 'custom',
+			customWidth: '3840',
+			customHeight: '2160',
+			scalingAlgorithm: 'lanczos',
+			fps: 'original',
+			crf: 23,
+			quality: 50,
+			preset: 'slow',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'preserve'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
+	},
+	{
+		id: 'x-landscape',
+		name: 'X (Landscape)',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '2500',
+			audioCodec: 'aac',
+			audioBitrate: '128',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: '720p',
+			scalingAlgorithm: 'lanczos',
+			fps: '30',
+			crf: 23,
+			quality: 50,
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'clean'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
+	},
+	{
+		id: 'x-portrait',
+		name: 'X (Mobile/Portrait)',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '2000',
+			audioCodec: 'aac',
+			audioBitrate: '128',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: 'custom',
+			customWidth: '720',
+			customHeight: '1280',
+			scalingAlgorithm: 'lanczos',
+			fps: '30',
+			crf: 23,
+			quality: 50,
+			preset: 'medium',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'clean'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
+	},
+	{
+		id: 'discord',
+		name: 'Discord',
+		builtIn: true,
+		config: {
+			container: 'mp4',
+			videoCodec: 'libx264',
+			videoBitrateMode: 'bitrate',
+			videoBitrate: '1000',
+			audioCodec: 'aac',
+			audioBitrate: '64',
+			audioChannels: 'stereo',
+			audioVolume: 100,
+			audioNormalize: true,
+			selectedAudioTracks: [],
+			resolution: '720p',
+			scalingAlgorithm: 'bicubic',
+			fps: '30',
+			crf: 23,
+			quality: 50,
+			preset: 'veryfast',
+			startTime: undefined,
+			endTime: undefined,
+			metadata: {
+				mode: 'clean'
+			},
+			rotation: '0',
+			flipHorizontal: false,
+			flipVertical: false,
+			crop: null
+		}
 	}
 ];
 
