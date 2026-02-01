@@ -7,8 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.12.0] - 2026-02-01
+### Added
 
+- **Interactive Crop Tool:** A powerful new tool for cropping videos directly in the preview panel.
+  - **Visual Composition:** Includes a draggable area with a rule-of-thirds (3x3) grid overlay and various aspect ratio presets (Free, 1:1, 16:9, etc.).
+  - **Auto-Zoom:** Automatically zooms and centers the preview on the cropped area after application to ensure pixel-perfect inspection.
+  - **Robust Transformations:** Fully integrates with rotation and flip controls. The crop coordinates automatically adapt to video orientation changes, and interaction handles remain intuitive (mouse direction matches visual movement) even when the video is rotated or mirrored.
+
+### Changed
+
+- **Dashboard layout:** Split the left column into a 12-row grid so the trim preview card permanently occupies the top section while the file list sits below it. This removes the floating trim modal and gives the timeline controls dedicated real estate.
+- **Trim workflow:** The trimming card now applies start/end changes immediately (no Save/Cancel buttons) and is always visible with the selected file, providing constant video preview and faster adjustments without opening overlays.
+- **Transform controls:** Rotation and flip moved out of the Video tab and into the preview card as icon-only buttons, with rotation cycling through 0/90/180/270° on each click for quicker access while adjusting trims.
+- **Localization:** Linux titlebar buttons now use the same translated strings as the macOS variant (no more hard-coded English labels).
+
+## [0.12.0] - 2026-02-01
 
 ### Changed
 
