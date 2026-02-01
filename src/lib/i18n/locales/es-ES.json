@@ -191,6 +191,12 @@
 		"save": "Guardar",
 		"cancel": "Cancelar"
 	},
+	"crop": {
+		"enter": "Recortar",
+		"apply": "Aplicar",
+		"reset": "Restablecer",
+		"free": "Libre"
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrarrápido",
 		"ultrafastDesc": "Archivo más grande, conversión más rápida",

@@ -2,16 +2,30 @@
 	import { onMount } from 'svelte';
 	import { convertFileSrc } from '@tauri-apps/api/core';
 	import {
-		Play,
-		RotateCw,
+		Crop as CropIcon,
 		FlipHorizontal as FlipHorizontalIcon,
-		FlipVertical as FlipVerticalIcon
+		FlipVertical as FlipVerticalIcon,
+		Play,
+		RotateCw
 	} from 'lucide-svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import TimecodeInput from '$lib/components/ui/TimecodeInput.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 	import { _ } from '$lib/i18n';
-	import type { ConversionConfig } from '$lib/types';
+	import type { ConversionConfig, CropSettings } from '$lib/types';
+
+	type CropRect = { x: number; y: number; width: number; height: number };
+	type DragHandle = 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+
+	const ROTATION_STEPS: ConversionConfig['rotation'][] = ['0', '90', '180', '270'];
+	const ASPECT_OPTIONS = [
+		{ id: 'free', labelKey: 'crop.free', display: 'Free', ratio: null },
+		{ id: '1:1', labelKey: null, display: '1:1', ratio: 1 },
+		{ id: '4:5', labelKey: null, display: '4:5', ratio: 4 / 5 },
+		{ id: '16:9', labelKey: null, display: '16:9', ratio: 16 / 9 },
+		{ id: '9:16', labelKey: null, display: '9:16', ratio: 9 / 16 }
+	];
+	const MIN_CROP = 0.05;
 
 	let {
 		filePath,
@@ -23,58 +37,35 @@
 		flipVertical = false,
 		onSave,
 		onUpdateConfig,
-		controlsDisabled = false
+		controlsDisabled = false,
+		initialCrop = null,
+		sourceWidth,
+		sourceHeight
 	}: {
 		filePath: string;
 		initialStartTime?: string;
 		initialEndTime?: string;
-		rotation?: '0' | '90' | '180' | '270';
+		rotation?: ConversionConfig['rotation'];
 		flipHorizontal?: boolean;
 		flipVertical?: boolean;
 		onSave: (start?: string, end?: string) => void;
 		onUpdateConfig?: (config: Partial<ConversionConfig>) => void;
 		controlsDisabled?: boolean;
+		initialCrop?: CropSettings | null;
+		sourceWidth?: number;
+		sourceHeight?: number;
 	} = $props();
 
 	let videoSrc = $state('');
 	let containerRef: HTMLDivElement | undefined = $state();
+	let videoWrapperRef: HTMLDivElement | undefined = $state();
+	let videoRef: HTMLVideoElement | undefined = $state();
 	let containerWidth = $state(0);
 	let containerHeight = $state(0);
+	let videoBounds = $state({ width: 0, height: 0 });
+	let naturalVideoWidth = $state(0);
+	let naturalVideoHeight = $state(0);
 
-	let isSideRotation = $derived(rotation === '90' || rotation === '270');
-
-	let videoStyle = $derived(
-		isSideRotation && containerWidth && containerHeight
-			? `width: ${containerHeight}px; height: ${containerWidth}px;`
-			: 'width: 100%; height: 100%;'
-	);
-
-	let transformStyle = $derived(
-		[`rotate(${rotation}deg)`, flipHorizontal ? 'scaleX(-1)' : '', flipVertical ? 'scaleY(-1)' : '']
-			.filter(Boolean)
-			.join(' ')
-	);
-
-	onMount(() => {
-		videoSrc = convertFileSrc(filePath);
-		if (initialStartTime) startValue = parseTimeToSeconds(initialStartTime);
-		if (containerRef) {
-			containerWidth = containerRef.clientWidth;
-
-			containerHeight = containerRef.clientHeight;
-		}
-		const ro = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				containerWidth = entry.contentRect.width;
-
-				containerHeight = entry.contentRect.height;
-			}
-		});
-		if (containerRef) ro.observe(containerRef);
-		return () => ro.disconnect();
-	});
-
-	let videoRef: HTMLVideoElement | undefined = $state();
 	let isPlaying = $state(false);
 	let currentTime = $state(0);
 	let duration = $state(0);
@@ -82,6 +73,94 @@
 	let endValue = $state(0);
 	let previousInitialStart: string | undefined;
 	let previousInitialEnd: string | undefined;
+
+	let sliderRef: HTMLDivElement | undefined = $state();
+	let dragging: 'start' | 'end' | null = null;
+
+	let cropMode = $state(false);
+	let appliedCrop: CropRect | null = $state(null);
+	let draftCrop: CropRect | null = $state(null);
+	let cropAspect = $state<string>('free');
+	let cropHandle: DragHandle | null = null;
+	let cropDragOrigin: {
+		handle: DragHandle;
+		startRect: CropRect;
+		startX: number;
+		startY: number;
+	} | null = null;
+
+	const isSideRotation = $derived(rotation === '90' || rotation === '270');
+
+	const videoStyle = $derived.by(() => {
+		if (!containerWidth || !containerHeight) {
+			return 'width: 100%; height: 100%;';
+		}
+
+		const baseW = sourceWidth ?? naturalVideoWidth;
+		const baseH = sourceHeight ?? naturalVideoHeight;
+
+		if (!baseW || !baseH) {
+			return 'width: 100%; height: auto;';
+		}
+
+		let targetRect = { x: 0, y: 0, width: 1, height: 1 };
+
+		if (!cropMode && appliedCrop) {
+			targetRect = appliedCrop;
+		}
+
+		const contentW = baseW * targetRect.width;
+		const contentH = baseH * targetRect.height;
+
+		const visualW = isSideRotation ? contentH : contentW;
+		const visualH = isSideRotation ? contentW : contentH;
+
+		const scale = Math.min(containerWidth / visualW, containerHeight / visualH);
+
+		const finalW = visualW * scale;
+		const finalH = visualH * scale;
+
+		return `width: ${finalW}px; height: ${finalH}px; --video-scale: ${scale};`;
+	});
+
+	const transformStyle = $derived.by(() => {
+		const baseW = sourceWidth ?? naturalVideoWidth;
+		const baseH = sourceHeight ?? naturalVideoHeight;
+
+		if (!baseW || !baseH) return '';
+
+		let crop = { x: 0, y: 0, width: 1, height: 1 };
+		if (!cropMode && appliedCrop) {
+			crop = appliedCrop;
+		}
+
+		const cx = crop.x + crop.width / 2 - 0.5;
+		const cy = crop.y + crop.height / 2 - 0.5;
+		const tx = -cx * baseW;
+		const ty = -cy * baseH;
+
+		const transforms = [
+			`scale(var(--video-scale))`,
+			`rotate(${rotation}deg)`,
+			flipHorizontal ? 'scaleX(-1)' : '',
+			flipVertical ? 'scaleY(-1)' : '',
+			`translate(${tx}px, ${ty}px)`
+		]
+			.filter(Boolean)
+			.join(' ');
+
+		return `width: ${baseW}px; height: ${baseH}px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) ${transforms};`;
+	});
+
+	const hasCropDimensions = $derived(() => {
+		const baseWidth = sourceWidth ?? naturalVideoWidth;
+		const baseHeight = sourceHeight ?? naturalVideoHeight;
+		if (!baseWidth || !baseHeight) return false;
+		if (rotation === '90' || rotation === '270') {
+			return Boolean(baseHeight && baseWidth);
+		}
+		return true;
+	});
 
 	$effect(() => {
 		if (initialStartTime !== previousInitialStart) {
@@ -95,10 +174,71 @@
 			previousInitialEnd = initialEndTime;
 			if (initialEndTime) {
 				endValue = parseTimeToSeconds(initialEndTime);
-			} else {
-				endValue = duration || 0;
+			} else if (duration) {
+				endValue = duration;
 			}
 		}
+	});
+
+	$effect(() => {
+		if (initialCrop?.enabled && initialCrop.sourceWidth && initialCrop.sourceHeight) {
+			const rawRect = {
+				x: initialCrop.x / initialCrop.sourceWidth,
+				y: initialCrop.y / initialCrop.sourceHeight,
+				width: initialCrop.width / initialCrop.sourceWidth,
+				height: initialCrop.height / initialCrop.sourceHeight
+			};
+
+			appliedCrop = clampRect(
+				transformCropRect(rawRect, rotation, flipHorizontal, flipVertical, true)
+			);
+
+			if (initialCrop.aspectRatio) {
+				cropAspect = initialCrop.aspectRatio;
+			}
+		} else if (!cropMode) {
+			appliedCrop = null;
+			if (!cropMode) {
+				cropAspect = 'free';
+			}
+		}
+
+		if (!cropMode) {
+			draftCrop = null;
+		}
+	});
+
+	onMount(() => {
+		videoSrc = convertFileSrc(filePath);
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				containerWidth = entry.contentRect.width;
+				containerHeight = entry.contentRect.height;
+			}
+		});
+
+		if (containerRef) {
+			resizeObserver.observe(containerRef);
+		}
+
+		const wrapperObserver = new ResizeObserver(() => {
+			updateVideoBounds();
+		});
+
+		if (videoWrapperRef) {
+			wrapperObserver.observe(videoWrapperRef);
+		}
+
+		const handleResize = () => updateVideoBounds();
+		window.addEventListener('resize', handleResize);
+
+		return () => {
+			resizeObserver.disconnect();
+			wrapperObserver.disconnect();
+			window.removeEventListener('resize', handleResize);
+			detachCropListeners();
+		};
 	});
 
 	function parseTimeToSeconds(timeStr?: string): number {
@@ -120,6 +260,9 @@
 	function handleMetadata() {
 		if (videoRef) {
 			duration = videoRef.duration;
+			naturalVideoWidth = videoRef.videoWidth;
+			naturalVideoHeight = videoRef.videoHeight;
+			updateVideoBounds();
 			if (initialEndTime) {
 				endValue = parseTimeToSeconds(initialEndTime);
 			} else {
@@ -162,26 +305,6 @@
 		onSave(startStr, endStr);
 	}
 
-	let sliderRef: HTMLDivElement | undefined = $state();
-	let dragging: 'start' | 'end' | null = null;
-	const ROTATION_STEPS: ConversionConfig['rotation'][] = ['0', '90', '180', '270'];
-
-	function handleRotateToggle() {
-		if (!onUpdateConfig || controlsDisabled) return;
-		const currentIndex = ROTATION_STEPS.indexOf(rotation || '0');
-		const next = ROTATION_STEPS[(currentIndex + 1) % ROTATION_STEPS.length];
-		onUpdateConfig({ rotation: next });
-	}
-
-	function toggleFlip(axis: 'horizontal' | 'vertical') {
-		if (!onUpdateConfig || controlsDisabled) return;
-		if (axis === 'horizontal') {
-			onUpdateConfig({ flipHorizontal: !flipHorizontal });
-		} else {
-			onUpdateConfig({ flipVertical: !flipVertical });
-		}
-	}
-
 	function handleMouseDown(e: MouseEvent, type: 'start' | 'end') {
 		e.preventDefault();
 		e.stopPropagation();
@@ -199,12 +322,11 @@
 		if (dragging === 'start') {
 			startValue = Math.min(time, endValue - 1);
 			if (videoRef) videoRef.currentTime = startValue;
-			commitTrimValues();
 		} else {
 			endValue = Math.max(time, startValue + 1);
 			if (videoRef) videoRef.currentTime = endValue;
-			commitTrimValues();
 		}
+		commitTrimValues();
 	}
 
 	function handleMouseUp() {
@@ -226,49 +348,568 @@
 			currentTime = time;
 		}
 	}
+
+	function updateVideoBounds() {
+		if (!videoWrapperRef) return;
+		const rect = videoWrapperRef.getBoundingClientRect();
+		videoBounds = { width: rect.width, height: rect.height };
+	}
+
+	function defaultCropRect(): CropRect {
+		return { x: 0.1, y: 0.1, width: 0.8, height: 0.8 };
+	}
+
+	function toggleCropMode() {
+		if (controlsDisabled || !hasCropDimensions) return;
+		if (cropMode) {
+			cropMode = false;
+			draftCrop = null;
+			return;
+		}
+		cropMode = true;
+		draftCrop = appliedCrop ? { ...appliedCrop } : defaultCropRect();
+	}
+
+	function selectAspect(id: string) {
+		cropAspect = id;
+		if (!draftCrop) return;
+		if (id === 'free') {
+			draftCrop = clampRect({ ...draftCrop });
+			return;
+		}
+		const ratio = getAspectValue(id);
+		if (!ratio) return;
+		draftCrop = clampRect(adjustRectToRatio(draftCrop, ratio));
+	}
+
+	function getEffectiveAspectRatio(targetRatio: number) {
+		const w = sourceWidth ?? naturalVideoWidth;
+		const h = sourceHeight ?? naturalVideoHeight;
+		if (!w || !h) return targetRatio;
+		const physicalAspect = w / h;
+
+		if (isSideRotation) {
+			return 1 / targetRatio / physicalAspect;
+		}
+		return targetRatio / physicalAspect;
+	}
+
+	function adjustRectToRatio(rect: CropRect, ratio: number): CropRect {
+		const effectiveRatio = getEffectiveAspectRatio(ratio);
+
+		let width = rect.width;
+		let height = rect.height;
+		if (width / height > effectiveRatio) {
+			width = height * effectiveRatio;
+		} else {
+			height = width / effectiveRatio;
+		}
+		const centerX = rect.x + rect.width / 2;
+		const centerY = rect.y + rect.height / 2;
+		let nextX = centerX - width / 2;
+		let nextY = centerY - height / 2;
+		if (nextX < 0) nextX = 0;
+		if (nextY < 0) nextY = 0;
+		if (nextX + width > 1) nextX = 1 - width;
+		if (nextY + height > 1) nextY = 1 - height;
+		return { x: nextX, y: nextY, width, height };
+	}
+
+	function getAspectValue(id: string) {
+		const option = ASPECT_OPTIONS.find((opt) => opt.id === id);
+		return option?.ratio ?? null;
+	}
+
+	function applyCrop() {
+		if (!draftCrop || !hasCropDimensions) return;
+		const isFull =
+			draftCrop.x <= 0.001 &&
+			draftCrop.y <= 0.001 &&
+			draftCrop.width >= 0.999 &&
+			draftCrop.height >= 0.999;
+		if (isFull) {
+			persistCrop(null);
+			appliedCrop = null;
+			cropAspect = 'free';
+		} else {
+			persistCrop(draftCrop);
+			appliedCrop = { ...draftCrop };
+		}
+		cropMode = false;
+		draftCrop = null;
+	}
+
+	function resetCropSelection() {
+		if (!draftCrop) {
+			draftCrop = defaultCropRect();
+		} else {
+			draftCrop = { x: 0, y: 0, width: 1, height: 1 };
+		}
+		cropAspect = 'free';
+	}
+
+	function persistCrop(rect: CropRect | null, overrides: Partial<ConversionConfig> = {}) {
+		if (!onUpdateConfig) return;
+
+		const nextRotation = overrides.rotation ?? rotation;
+		const nextFlipH = overrides.flipHorizontal ?? flipHorizontal;
+		const nextFlipV = overrides.flipVertical ?? flipVertical;
+
+		if (!rect) {
+			onUpdateConfig({ crop: null, ...overrides });
+			return;
+		}
+		const dims = getBaseDimensions(nextRotation);
+		if (!dims) return;
+
+		const outputRect = transformCropRect(rect, nextRotation, nextFlipH, nextFlipV, false);
+
+		const payload: CropSettings = {
+			enabled: true,
+			x: Math.round(outputRect.x * dims.width),
+			y: Math.round(outputRect.y * dims.height),
+			width: Math.round(outputRect.width * dims.width),
+			height: Math.round(outputRect.height * dims.height),
+			sourceWidth: dims.width,
+			sourceHeight: dims.height,
+			aspectRatio: cropAspect === 'free' ? null : cropAspect
+		};
+		onUpdateConfig({ crop: payload, ...overrides });
+	}
+
+	function transformCropRect(
+		rect: CropRect,
+		rot: string,
+		fH: boolean,
+		fV: boolean,
+		inverse: boolean
+	): CropRect {
+		let cx = rect.x + rect.width / 2 - 0.5;
+		let cy = rect.y + rect.height / 2 - 0.5;
+		let w = rect.width;
+		let h = rect.height;
+
+		const rotate = () => {
+			if (rot === '90') {
+				[cx, cy] = [-cy, cx];
+				[w, h] = [h, w];
+			} else if (rot === '180') {
+				[cx, cy] = [-cx, -cy];
+			} else if (rot === '270') {
+				[cx, cy] = [cy, -cx];
+				[w, h] = [h, w];
+			}
+		};
+
+		const invRotate = () => {
+			if (rot === '90') {
+				[cx, cy] = [cy, -cx];
+				[w, h] = [h, w];
+			} else if (rot === '180') {
+				[cx, cy] = [-cx, -cy];
+			} else if (rot === '270') {
+				[cx, cy] = [-cy, cx];
+				[w, h] = [h, w];
+			}
+		};
+
+		const flip = () => {
+			if (fH) cx = -cx;
+			if (fV) cy = -cy;
+		};
+
+		if (inverse) {
+			flip();
+			invRotate();
+		} else {
+			rotate();
+			flip();
+		}
+
+		return {
+			x: cx - w / 2 + 0.5,
+			y: cy - h / 2 + 0.5,
+			width: w,
+			height: h
+		};
+	}
+
+	function handleRotateToggle() {
+		if (!onUpdateConfig || controlsDisabled) return;
+		const idx = ROTATION_STEPS.indexOf(rotation);
+		const next = ROTATION_STEPS[(idx + 1) % ROTATION_STEPS.length];
+
+		if (appliedCrop) {
+			persistCrop(appliedCrop, { rotation: next });
+		} else {
+			onUpdateConfig({ rotation: next });
+		}
+	}
+
+	function toggleFlip(axis: 'horizontal' | 'vertical') {
+		if (!onUpdateConfig || controlsDisabled) return;
+
+		const nextFlipH = axis === 'horizontal' ? !flipHorizontal : flipHorizontal;
+		const nextFlipV = axis === 'vertical' ? !flipVertical : flipVertical;
+
+		if (appliedCrop) {
+			persistCrop(appliedCrop, { flipHorizontal: nextFlipH, flipVertical: nextFlipV });
+		} else {
+			onUpdateConfig({ flipHorizontal: nextFlipH, flipVertical: nextFlipV });
+		}
+	}
+
+	function getBaseDimensions(rot: ConversionConfig['rotation'] = rotation) {
+		let baseWidth = sourceWidth ?? naturalVideoWidth;
+		let baseHeight = sourceHeight ?? naturalVideoHeight;
+		if (!baseWidth || !baseHeight) return null;
+		if (rot === '90' || rot === '270') {
+			[baseWidth, baseHeight] = [baseHeight, baseWidth];
+		}
+		return { width: baseWidth, height: baseHeight };
+	}
+
+	function beginCropDrag(handle: DragHandle, event: MouseEvent) {
+		if (!draftCrop || !cropMode) return;
+		event.preventDefault();
+		event.stopPropagation();
+		cropHandle = handle;
+		cropDragOrigin = {
+			handle,
+			startRect: { ...draftCrop },
+			startX: event.clientX,
+			startY: event.clientY
+		};
+		window.addEventListener('mousemove', handleCropDrag);
+		window.addEventListener('mouseup', endCropDrag);
+	}
+
+	function remapDragDeltas(dx: number, dy: number) {
+		let rDx = dx;
+		let rDy = dy;
+
+		switch (rotation) {
+			case '90':
+				rDx = dy;
+				rDy = -dx;
+				break;
+			case '180':
+				rDx = -dx;
+				rDy = -dy;
+				break;
+			case '270':
+				rDx = -dy;
+				rDy = dx;
+				break;
+		}
+
+		if (flipHorizontal) rDx = -rDx;
+		if (flipVertical) rDy = -rDy;
+
+		return { dx: rDx, dy: rDy };
+	}
+
+	function handleCropDrag(event: MouseEvent) {
+		if (!cropHandle || !cropDragOrigin || !draftCrop || !videoBounds.width || !videoBounds.height)
+			return;
+		const normalizedDx = (event.clientX - cropDragOrigin.startX) / videoBounds.width;
+		const normalizedDy = (event.clientY - cropDragOrigin.startY) / videoBounds.height;
+		const { dx, dy } = remapDragDeltas(normalizedDx, normalizedDy);
+		let { startRect } = cropDragOrigin;
+
+		if (cropHandle === 'move') {
+			const nextX = clamp(startRect.x + dx, 0, 1 - startRect.width);
+			const nextY = clamp(startRect.y + dy, 0, 1 - startRect.height);
+			draftCrop = { x: nextX, y: nextY, width: startRect.width, height: startRect.height };
+			return;
+		}
+
+		let edges = {
+			left: startRect.x,
+			right: startRect.x + startRect.width,
+			top: startRect.y,
+			bottom: startRect.y + startRect.height
+		};
+
+		if (cropHandle.includes('w')) {
+			edges.left = clamp(startRect.x + dx, 0, edges.right - MIN_CROP);
+		}
+		if (cropHandle.includes('e')) {
+			edges.right = clamp(startRect.x + startRect.width + dx, edges.left + MIN_CROP, 1);
+		}
+		if (cropHandle.includes('n')) {
+			edges.top = clamp(startRect.y + dy, 0, edges.bottom - MIN_CROP);
+		}
+		if (cropHandle.includes('s')) {
+			edges.bottom = clamp(startRect.y + startRect.height + dy, edges.top + MIN_CROP, 1);
+		}
+
+		let nextRect: CropRect = {
+			x: edges.left,
+			y: edges.top,
+			width: edges.right - edges.left,
+			height: edges.bottom - edges.top
+		};
+
+		if (cropAspect !== 'free') {
+			const ratio = getAspectValue(cropAspect);
+			if (ratio) {
+				nextRect = enforceAspect(nextRect, cropHandle, startRect, ratio);
+			}
+		}
+
+		draftCrop = clampRect(nextRect);
+	}
+
+	function enforceAspect(
+		rect: CropRect,
+		handle: DragHandle,
+		startRect: CropRect,
+		ratio: number
+	): CropRect {
+		const effectiveRatio = getEffectiveAspectRatio(ratio);
+
+		let width = rect.width;
+		let height = rect.height;
+		if (width / height > effectiveRatio) {
+			width = height * effectiveRatio;
+		} else {
+			height = width / effectiveRatio;
+		}
+
+		let next = { ...rect };
+		switch (handle) {
+			case 'e':
+				next.x = startRect.x;
+				next.width = width;
+				{
+					const centerY = startRect.y + startRect.height / 2;
+					next.y = centerY - height / 2;
+					next.height = height;
+				}
+				break;
+			case 'w':
+				next.width = width;
+				next.x = startRect.x + startRect.width - width;
+				{
+					const centerY = startRect.y + startRect.height / 2;
+					next.y = centerY - height / 2;
+					next.height = height;
+				}
+				break;
+			case 'n':
+				next.height = height;
+				next.y = startRect.y + startRect.height - height;
+				{
+					const centerX = startRect.x + startRect.width / 2;
+					next.x = centerX - width / 2;
+					next.width = width;
+				}
+				break;
+			case 's':
+				next.height = height;
+				next.y = startRect.y;
+				{
+					const centerX = startRect.x + startRect.width / 2;
+					next.x = centerX - width / 2;
+					next.width = width;
+				}
+				break;
+			case 'ne':
+				next.x = startRect.x;
+				next.y = startRect.y + startRect.height - height;
+				next.width = width;
+				next.height = height;
+				break;
+			case 'nw':
+				next.width = width;
+				next.height = height;
+				next.x = startRect.x + startRect.width - width;
+				next.y = startRect.y + startRect.height - height;
+				break;
+			case 'se':
+				next.x = startRect.x;
+				next.y = startRect.y;
+				next.width = width;
+				next.height = height;
+				break;
+			case 'sw':
+				next.width = width;
+				next.height = height;
+				next.x = startRect.x + startRect.width - width;
+				next.y = startRect.y;
+				break;
+			default:
+				break;
+		}
+
+		return next;
+	}
+
+	function clampRect(rect: CropRect): CropRect {
+		let { x, y, width, height } = rect;
+		if (width < MIN_CROP) width = MIN_CROP;
+		if (height < MIN_CROP) height = MIN_CROP;
+		if (x < 0) x = 0;
+		if (y < 0) y = 0;
+		if (x + width > 1) x = 1 - width;
+		if (y + height > 1) y = 1 - height;
+		return { x, y, width, height };
+	}
+
+	function clamp(value: number, min: number, max: number) {
+		return Math.min(Math.max(value, min), max);
+	}
+
+	function getHandleCursor(handleId: string) {
+		if (handleId === 'n' || handleId === 's') return isSideRotation ? 'ew-resize' : 'ns-resize';
+		if (handleId === 'e' || handleId === 'w') return isSideRotation ? 'ns-resize' : 'ew-resize';
+		if (handleId === 'nw' || handleId === 'se')
+			return isSideRotation ? 'nesw-resize' : 'nwse-resize';
+		if (handleId === 'ne' || handleId === 'sw')
+			return isSideRotation ? 'nwse-resize' : 'nesw-resize';
+		return 'default';
+	}
+
+	function endCropDrag() {
+		detachCropListeners();
+		cropHandle = null;
+		cropDragOrigin = null;
+	}
+
+	function detachCropListeners() {
+		window.removeEventListener('mousemove', handleCropDrag);
+		window.removeEventListener('mouseup', endCropDrag);
+	}
 </script>
 
 <div
 	class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-alpha-100 bg-gray-alpha-100 p-4"
 >
 	<div
-		class="border-gray-alpha-200 relative flex min-h-0 flex-1 items-center justify-center rounded-lg border bg-background"
+		class="border-gray-alpha-200 relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-background"
 		bind:this={containerRef}
+		onclick={() => !cropMode && togglePlay()}
+		role="presentation"
 	>
-		<video
-			bind:this={videoRef}
-			src={videoSrc}
-			class="block overflow-hidden rounded-lg bg-background object-contain"
+		<div
+			class="relative inline-flex max-h-full max-w-full overflow-hidden"
+			bind:this={videoWrapperRef}
 			style={videoStyle}
-			style:transform={transformStyle}
-			onloadedmetadata={handleMetadata}
-			ontimeupdate={handleTimeUpdate}
-			onplay={() => (isPlaying = true)}
-			onpause={() => (isPlaying = false)}
-			onclick={togglePlay}
 		>
-			<track kind="captions" />
-		</video>
+			<div class="origin-center" style={transformStyle}>
+				<video
+					bind:this={videoRef}
+					src={videoSrc}
+					class="block h-full w-full bg-background object-contain"
+					onloadedmetadata={handleMetadata}
+					ontimeupdate={handleTimeUpdate}
+					onplay={() => (isPlaying = true)}
+					onpause={() => (isPlaying = false)}
+				>
+					<track kind="captions" />
+				</video>
 
-		{#if !isPlaying}
+				{#if cropMode && draftCrop}
+					<div class="pointer-events-none absolute inset-0">
+						<div
+							class="absolute top-0 left-0 w-full bg-black/40"
+							style={`height: ${draftCrop.y * 100}%;`}
+						></div>
+						<div
+							class="absolute left-0 bg-black/40"
+							style={`top: ${draftCrop.y * 100}%; height: ${draftCrop.height * 100}%; width: ${
+								draftCrop.x * 100
+							}%;`}
+						></div>
+						<div
+							class="absolute right-0 bg-black/40"
+							style={`top: ${draftCrop.y * 100}%; height: ${draftCrop.height * 100}%; width: ${
+								(1 - draftCrop.x - draftCrop.width) * 100
+							}%;`}
+						></div>
+						<div
+							class="absolute bottom-0 left-0 w-full bg-black/40"
+							style={`height: ${(1 - draftCrop.y - draftCrop.height) * 100}%;`}
+						></div>
+					</div>
+
+					<div
+						class="absolute rounded border border-foreground shadow-xl"
+						style={`left: ${draftCrop.x * 100}%; top: ${draftCrop.y * 100}%; width: ${
+							draftCrop.width * 100
+						}%; height: ${draftCrop.height * 100}%;`}
+						role="presentation"
+						onmousedown={(event) => beginCropDrag('move', event)}
+					>
+						{#each [1, 2] as index (index)}
+							<div
+								class="absolute left-0 h-px w-full bg-foreground/40"
+								style={`top: ${(index / 3) * 100}%`}
+							></div>
+							<div
+								class="absolute top-0 h-full w-px bg-foreground/40"
+								style={`left: ${(index / 3) * 100}%`}
+							></div>
+						{/each}
+
+						{#each [{ id: 'nw', top: 0, left: 0 }, { id: 'n', top: 0, left: 50 }, { id: 'ne', top: 0, left: 100 }, { id: 'e', top: 50, left: 100 }, { id: 'se', top: 100, left: 100 }, { id: 's', top: 100, left: 50 }, { id: 'sw', top: 100, left: 0 }, { id: 'w', top: 50, left: 0 }] as handle (handle.id)}
+							<span
+								onmousedown={(event) => beginCropDrag(handle.id as DragHandle, event)}
+								class="absolute block size-3 rounded-full border border-foreground bg-foreground"
+								style={`cursor: ${getHandleCursor(handle.id)}; top: calc(${handle.top}% - 6px); left: calc(${handle.left}% - 6px);`}
+								role="presentation"
+							></span>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
+		{#if !isPlaying && !cropMode}
 			<div
-				class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-black/60"
+				class="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40"
+				onclick={(e) => {
+					e.stopPropagation();
+					togglePlay();
+				}}
+				role="presentation"
 			>
 				<div
 					class="bg-gray-alpha-200 flex size-16 items-center justify-center rounded-full backdrop-blur-md"
+					style="transform-origin: center;"
 				>
 					<Play size={24} fill="currentColor" class="ml-1" />
 				</div>
 			</div>
 		{/if}
+		{#if cropMode && draftCrop}
+			<div
+				class="border-gray-alpha-200 pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md border bg-background p-1 text-[10px] font-medium uppercase shadow-xl"
+			>
+				{#each ASPECT_OPTIONS as option (option.id)}
+					<Button
+						size="sm"
+						variant={cropAspect === option.id ? 'selected' : 'ghost'}
+						onclick={() => selectAspect(option.id)}
+					>
+						{option.labelKey ? $_(option.labelKey) : option.display}
+					</Button>
+				{/each}
+				<div class="bg-gray-alpha-200 h-4 w-px"></div>
+				<Button size="sm" variant="ghost" onclick={resetCropSelection}>{$_('crop.reset')}</Button>
+				<Button size="sm" onclick={applyCrop} disabled={!draftCrop || !hasCropDimensions}>
+					{$_('crop.apply')}
+				</Button>
+			</div>
+		{/if}
 	</div>
 
-	<div class="mt-4">
+	<div class="mt-4 px-2">
 		<div
-			class="relative mx-2 mb-6 h-8 cursor-pointer select-none"
+			class="relative mb-6 h-8 cursor-pointer select-none"
 			bind:this={sliderRef}
-			onmousedown={(e) => e.target === sliderRef && seekTo(e)}
 			role="presentation"
+			onmousedown={(e) => e.target === sliderRef && seekTo(e)}
 		>
 			<div
 				class="pointer-events-none absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-gray-alpha-100"
@@ -288,8 +929,8 @@
 			<div
 				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-ds-blue-600 bg-background shadow-lg"
 				style="left: {(startValue / duration) * 100}%"
-				onmousedown={(e) => handleMouseDown(e, 'start')}
 				role="presentation"
+				onmousedown={(e) => handleMouseDown(e, 'start')}
 			>
 				<div class="h-1.5 w-1.5 rounded-full bg-ds-blue-600"></div>
 			</div>
@@ -297,8 +938,8 @@
 			<div
 				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-ds-blue-600 bg-background shadow-lg"
 				style="left: {(endValue / duration) * 100}%"
-				onmousedown={(e) => handleMouseDown(e, 'end')}
 				role="presentation"
+				onmousedown={(e) => handleMouseDown(e, 'end')}
 			>
 				<div class="h-1.5 w-1.5 rounded-full bg-ds-blue-600"></div>
 			</div>
@@ -309,6 +950,7 @@
 				<div class="space-y-1.5">
 					<Label>{$_('trim.startTime')}</Label>
 					<TimecodeInput
+						class="w-32"
 						value={startValue}
 						onchange={(val) => {
 							if (val >= 0 && val < endValue) {
@@ -322,6 +964,7 @@
 				<div class="space-y-1.5">
 					<Label>{$_('trim.endTime')}</Label>
 					<TimecodeInput
+						class="w-32"
 						value={endValue}
 						onchange={(val) => {
 							if (val > startValue && val <= duration) {
@@ -334,39 +977,48 @@
 				</div>
 				<div class="space-y-1.5">
 					<Label>{$_('trim.duration')}</Label>
-					<div class="text-gray-alpha-600 py-1.5 font-mono text-[11px] tracking-wide">
+					<div class="py-1.5 font-mono text-[11px] tracking-wide text-foreground">
 						{formatTime(endValue - startValue)}
 					</div>
 				</div>
-				<div class="space-y-1.2 absolute right-0 bottom-0 flex items-end">
-					<Button
-						size="icon"
-						variant="ghost"
-						title={$_('video.rotation')}
-						onclick={handleRotateToggle}
-						disabled={controlsDisabled}
-					>
-						<RotateCw size={14} />
-					</Button>
-					<Button
-						size="icon"
-						variant={flipHorizontal ? 'selected' : 'ghost'}
-						title={$_('video.flipHorizontal')}
-						onclick={() => toggleFlip('horizontal')}
-						disabled={controlsDisabled}
-					>
-						<FlipHorizontalIcon size={14} />
-					</Button>
-					<Button
-						size="icon"
-						variant={flipVertical ? 'selected' : 'ghost'}
-						title={$_('video.flipVertical')}
-						onclick={() => toggleFlip('vertical')}
-						disabled={controlsDisabled}
-					>
-						<FlipVerticalIcon size={14} />
-					</Button>
-				</div>
+			</div>
+			<div class="absolute right-0 bottom-0 flex gap-2">
+				<Button
+					size="icon"
+					variant="ghost"
+					title={$_('video.rotation')}
+					onclick={handleRotateToggle}
+					disabled={controlsDisabled}
+				>
+					<RotateCw size={14} />
+				</Button>
+				<Button
+					size="icon"
+					variant={flipHorizontal ? 'selected' : 'ghost'}
+					title={$_('video.flipHorizontal')}
+					onclick={() => toggleFlip('horizontal')}
+					disabled={controlsDisabled}
+				>
+					<FlipHorizontalIcon size={14} />
+				</Button>
+				<Button
+					size="icon"
+					variant={flipVertical ? 'selected' : 'ghost'}
+					title={$_('video.flipVertical')}
+					onclick={() => toggleFlip('vertical')}
+					disabled={controlsDisabled}
+				>
+					<FlipVerticalIcon size={14} />
+				</Button>
+				<Button
+					size="icon"
+					variant={cropMode ? 'selected' : appliedCrop ? 'selected' : 'ghost'}
+					title={$_('crop.enter')}
+					onclick={toggleCropMode}
+					disabled={controlsDisabled || !hasCropDimensions}
+				>
+					<CropIcon size={14} />
+				</Button>
 			</div>
 		</div>
 	</div>

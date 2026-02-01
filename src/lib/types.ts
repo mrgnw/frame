@@ -17,6 +17,17 @@ export interface AudioTrack {
 	sampleRate?: string;
 }
 
+export interface CropSettings {
+	enabled: boolean;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	sourceWidth: number;
+	sourceHeight: number;
+	aspectRatio?: string | null;
+}
+
 export interface ConversionConfig {
 	container: string;
 	videoCodec: string;
@@ -42,6 +53,7 @@ export interface ConversionConfig {
 	rotation: '0' | '90' | '180' | '270';
 	flipHorizontal: boolean;
 	flipVertical: boolean;
+	crop?: CropSettings | null;
 }
 
 export type MetadataMode = 'preserve' | 'clean' | 'replace';

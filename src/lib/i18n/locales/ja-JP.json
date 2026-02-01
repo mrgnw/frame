@@ -191,6 +191,12 @@
 		"save": "保存",
 		"cancel": "キャンセル"
 	},
+	"crop": {
+		"enter": "トリミング",
+		"apply": "適用",
+		"reset": "リセット",
+		"free": "フリー"
+	},
 	"encodingSpeed": {
 		"ultrafast": "超高速",
 		"ultrafastDesc": "最大ファイル、最速変換",

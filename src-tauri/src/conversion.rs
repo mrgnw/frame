@@ -442,10 +442,28 @@ pub struct ConversionConfig {
     pub flip_horizontal: bool,
     #[serde(default)]
     pub flip_vertical: bool,
+    #[serde(default)]
+    pub crop: Option<CropConfig>,
 }
 
 fn default_rotation() -> String {
     "0".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CropConfig {
+    pub enabled: bool,
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_width: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_height: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aspect_ratio: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -635,6 +653,19 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             "180" => video_filters.push("transpose=1,transpose=1".to_string()),
             "270" => video_filters.push("transpose=2".to_string()),
             _ => {}
+        }
+
+        if let Some(crop) = &config.crop {
+            if crop.enabled {
+                let crop_width = crop.width.max(1.0).round() as i32;
+                let crop_height = crop.height.max(1.0).round() as i32;
+                let crop_x = crop.x.max(0.0).round() as i32;
+                let crop_y = crop.y.max(0.0).round() as i32;
+                video_filters.push(format!(
+                    "crop={}:{}:{}:{}",
+                    crop_width, crop_height, crop_x, crop_y
+                ));
+            }
         }
 
         if config.resolution != "original" || config.resolution == "custom" {
@@ -1162,6 +1193,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         };
 
         let args = build_ffmpeg_args("input.mov", "output.mp4", &config);
@@ -1205,6 +1237,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         };
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
@@ -1239,6 +1272,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         };
 
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
@@ -1274,6 +1308,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         };
         let args = build_ffmpeg_args("raw.mov", "archive.mkv", &config);
 
@@ -1311,6 +1346,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         };
         let args = build_ffmpeg_args("clip.mp4", "web.webm", &config);
 
@@ -1368,6 +1404,7 @@ mod tests {
             rotation: "0".into(),
             flip_horizontal: false,
             flip_vertical: false,
+            crop: None,
         }
     }
 
