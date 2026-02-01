@@ -151,6 +151,10 @@
 		"notSaved": "预设未保存",
 		"saved": "预设已保存",
 		"appliedName": "已应用 {name}",
+		"appliedAll": "已应用到所有项目",
+		"applyToAll": "应用到所有",
+		"confirmApplyAllTitle": "应用到所有？",
+		"confirmApplyAllBody": "这将把“{name}”应用到队列中所有待处理的文件。现有设置将被覆盖。",
 		"unableToDelete": "无法删除",
 		"removed": "预设已删除"
 	},

@@ -151,6 +151,10 @@
 		"notSaved": "Préréglage non enregistré",
 		"saved": "Préréglage enregistré",
 		"appliedName": "Appliqué {name}",
+		"appliedAll": "Appliqué à tous les éléments",
+		"applyToAll": "Appliquer à tous",
+		"confirmApplyAllTitle": "Appliquer à tous ?",
+		"confirmApplyAllBody": "Cela appliquera \"{name}\" à tous les fichiers en attente dans la file. Les paramètres existants seront écrasés.",
 		"unableToDelete": "Impossible de supprimer",
 		"removed": "Préréglage supprimé"
 	},

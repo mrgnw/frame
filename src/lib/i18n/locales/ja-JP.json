@@ -151,6 +151,10 @@
 		"notSaved": "プリセットは保存されていません",
 		"saved": "プリセットを保存しました",
 		"appliedName": "{name} を適用しました",
+		"appliedAll": "すべての項目に適用しました",
+		"applyToAll": "すべてに適用",
+		"confirmApplyAllTitle": "すべてに適用しますか？",
+		"confirmApplyAllBody": "これにより、キュー内のすべての保留中のファイルに「{name}」が適用されます。既存の設定は上書きされます。",
 		"unableToDelete": "削除できません",
 		"removed": "プリセットを削除しました"
 	},

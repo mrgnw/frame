@@ -151,6 +151,10 @@
 		"notSaved": "Preset not saved",
 		"saved": "Preset saved",
 		"appliedName": "Applied {name}",
+		"appliedAll": "Applied to all items",
+		"applyToAll": "Apply to all",
+		"confirmApplyAllTitle": "Apply to all?",
+		"confirmApplyAllBody": "This will apply \"{name}\" to all pending files in the queue. Existing settings will be overwritten.",
 		"unableToDelete": "Unable to delete",
 		"removed": "Preset removed"
 	},

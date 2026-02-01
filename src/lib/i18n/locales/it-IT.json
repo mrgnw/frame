@@ -151,6 +151,10 @@
 		"notSaved": "Preset non salvato",
 		"saved": "Preset salvato",
 		"appliedName": "Applicato {name}",
+		"appliedAll": "Applicato a tutti gli elementi",
+		"applyToAll": "Applica a tutti",
+		"confirmApplyAllTitle": "Applicare a tutti?",
+		"confirmApplyAllBody": "Questo applicherà \"{name}\" a tutti i file in attesa nella coda. Le impostazioni esistenti verranno sovrascritte.",
 		"unableToDelete": "Impossibile eliminare",
 		"removed": "Preset rimosso"
 	},

@@ -151,6 +151,10 @@
 		"notSaved": "Voreinstellung nicht gespeichert",
 		"saved": "Voreinstellung gespeichert",
 		"appliedName": "{name} angewendet",
+		"appliedAll": "Auf alle Elemente angewendet",
+		"applyToAll": "Auf alle anwenden",
+		"confirmApplyAllTitle": "Auf alle anwenden?",
+		"confirmApplyAllBody": "Dadurch wird \"{name}\" auf alle ausstehenden Dateien in der Warteschlange angewendet. Vorhandene Einstellungen werden überschrieben.",
 		"unableToDelete": "Löschen nicht möglich",
 		"removed": "Voreinstellung entfernt"
 	},

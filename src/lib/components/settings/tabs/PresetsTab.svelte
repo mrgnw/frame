@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, ListChecks } from 'lucide-svelte';
+	import { ask } from '@tauri-apps/plugin-dialog';
 	import { cn } from '$lib/utils/cn';
 	import {
 		AUDIO_ONLY_CONTAINERS,
@@ -20,6 +21,7 @@
 		metadata,
 		disabled = false,
 		onApplyPreset,
+		onApplyPresetToAll,
 		onSavePreset,
 		onDeletePreset
 	}: {
@@ -28,6 +30,7 @@
 		metadata?: SourceMetadata;
 		disabled?: boolean;
 		onApplyPreset?: (preset: PresetDefinition) => void;
+		onApplyPresetToAll?: (preset: PresetDefinition) => void;
 		onSavePreset?: (name: string) => Promise<boolean | void> | boolean | void;
 		onDeletePreset?: (id: string) => Promise<boolean | void> | boolean | void;
 	} = $props();
@@ -81,6 +84,25 @@
 		if (disabled) return;
 		onApplyPreset?.(preset);
 		showNotice($_('presets.appliedName', { values: { name: preset.name } }));
+	}
+
+	async function handleApplyToAll(preset: PresetDefinition) {
+		if (disabled || !onApplyPresetToAll) return;
+
+		const confirmed = await ask(
+			$_('presets.confirmApplyAllBody', { values: { name: preset.name } }),
+			{
+				title: $_('presets.confirmApplyAllTitle'),
+				kind: 'warning',
+				okLabel: $_('common.apply'),
+				cancelLabel: $_('common.cancel')
+			}
+		);
+
+		if (confirmed) {
+			onApplyPresetToAll(preset);
+			showNotice($_('presets.appliedAll'));
+		}
 	}
 
 	async function removePreset(preset: PresetDefinition) {
@@ -150,6 +172,23 @@
 							{$_('presets.applied')}
 						{/if}
 					</span>
+					
+					{#if isCompatible}
+						<Button
+							variant="ghost"
+							size="none"
+							class="size-5 shrink-0 opacity-50 hover:opacity-100"
+							title={$_('presets.applyToAll')}
+							onclick={(event) => {
+								event.stopPropagation();
+								handleApplyToAll(preset);
+							}}
+							{disabled}
+						>
+							<ListChecks size={12} />
+						</Button>
+					{/if}
+
 					{#if !preset.builtIn}
 						<Button
 							variant="destructive"

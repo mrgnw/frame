@@ -202,6 +202,13 @@
 		files = files.map((f) => (f.id === selectedFileId ? { ...f, config: nextConfig } : f));
 	}
 
+	function handleApplyPresetToAll(preset: PresetDefinition) {
+		const nextConfig = clonePresetConfig(preset.config);
+		files = files.map((f) =>
+			f.status === FileStatus.IDLE ? { ...f, config: clonePresetConfig(preset.config) } : f
+		);
+	}
+
 	async function handleSavePreset(name: string): Promise<boolean> {
 		if (!selectedFile) return false;
 		const trimmedName = name.trim();
@@ -594,6 +601,7 @@
 								onUpdate={updateSelectedConfig}
 								onUpdateOutputName={updateSelectedOutputName}
 								onApplyPreset={applyPresetToSelection}
+								onApplyPresetToAll={handleApplyPresetToAll}
 								onSavePreset={handleSavePreset}
 								onDeletePreset={handleDeletePreset}
 								disabled={selectedFileLocked}

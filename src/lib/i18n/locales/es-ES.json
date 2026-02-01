@@ -151,6 +151,10 @@
 		"notSaved": "Ajuste no guardado",
 		"saved": "Ajuste guardado",
 		"appliedName": "Aplicado {name}",
+		"appliedAll": "Aplicado a todos los elementos",
+		"applyToAll": "Aplicar a todos",
+		"confirmApplyAllTitle": "¿Aplicar a todos?",
+		"confirmApplyAllBody": "Esto aplicará \"{name}\" a todos los archivos pendientes en la cola. La configuración existente será sobrescrita.",
 		"unableToDelete": "No se puede eliminar",
 		"removed": "Ajuste eliminado"
 	},

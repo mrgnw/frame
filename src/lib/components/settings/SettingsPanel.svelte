@@ -25,6 +25,7 @@
 		disabled,
 		presets = [],
 		onApplyPreset,
+		onApplyPresetToAll,
 		onSavePreset,
 		onDeletePreset,
 		outputName = '',
@@ -38,6 +39,7 @@
 		disabled: boolean;
 		presets?: PresetDefinition[];
 		onApplyPreset?: (preset: PresetDefinition) => void;
+		onApplyPresetToAll?: (preset: PresetDefinition) => void;
 		onSavePreset?: (name: string) => Promise<boolean | void> | boolean | void;
 		onDeletePreset?: (id: string) => Promise<boolean | void> | boolean | void;
 		outputName?: string;
@@ -86,6 +88,7 @@
 				{presets}
 				{metadata}
 				{onApplyPreset}
+				{onApplyPresetToAll}
 				{onSavePreset}
 				{onDeletePreset}
 			/>

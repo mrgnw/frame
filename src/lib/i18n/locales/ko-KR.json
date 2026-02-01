@@ -151,6 +151,10 @@
 		"notSaved": "프리셋 미저장",
 		"saved": "프리셋 저장됨",
 		"appliedName": "{name} 적용됨",
+		"appliedAll": "모든 항목에 적용됨",
+		"applyToAll": "모두 적용",
+		"confirmApplyAllTitle": "모두 적용하시겠습니까?",
+		"confirmApplyAllBody": "이 작업은 대기열의 모든 대기 중인 파일에 \"{name}\"을(를) 적용합니다. 기존 설정은 덮어쓰여집니다.",
 		"unableToDelete": "삭제 불가",
 		"removed": "프리셋 삭제됨"
 	},
