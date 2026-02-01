@@ -191,6 +191,12 @@
 		"save": "保存",
 		"cancel": "取消"
 	},
+	"crop": {
+		"enter": "裁剪",
+		"apply": "应用",
+		"reset": "重置",
+		"free": "自由"
+	},
 	"encodingSpeed": {
 		"ultrafast": "极快",
 		"ultrafastDesc": "最大文件，最快转换",

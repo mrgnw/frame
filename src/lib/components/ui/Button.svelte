@@ -13,7 +13,8 @@
 						'bg-transparent border border-gray-alpha-200 text-gray-alpha-600 hover:bg-gray-alpha-100 hover:text-foreground',
 					secondary:
 						'bg-gray-alpha-100 text-foreground border border-gray-alpha-100 hover:bg-gray-alpha-200',
-					ghost: 'hover:bg-gray-alpha-100 text-gray-alpha-600 hover:text-foreground',
+					ghost:
+						'hover:bg-gray-alpha-100 text-gray-alpha-600 hover:text-foreground border border-transparent',
 					'titlebar-ghost': 'text-gray-alpha-600 hover:text-foreground',
 					selected: 'bg-ds-blue-900/20 text-ds-blue-600 border border-ds-blue-600',
 					destructive: 'hover:text-ds-red-600',

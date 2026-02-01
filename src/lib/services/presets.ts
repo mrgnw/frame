@@ -35,7 +35,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -66,7 +67,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -97,7 +99,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -128,7 +131,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -159,7 +163,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -190,7 +195,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	},
 	{
@@ -221,7 +227,8 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			},
 			rotation: '0',
 			flipHorizontal: false,
-			flipVertical: false
+			flipVertical: false,
+			crop: null
 		}
 	}
 ];

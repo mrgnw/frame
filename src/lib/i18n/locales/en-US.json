@@ -191,6 +191,12 @@
 		"save": "Save Trim",
 		"cancel": "Cancel"
 	},
+	"crop": {
+		"enter": "Crop",
+		"apply": "Apply",
+		"reset": "Reset",
+		"free": "Free"
+	},
 	"encodingSpeed": {
 		"ultrafast": "Ultrafast",
 		"ultrafastDesc": "Largest file, fastest conversion",

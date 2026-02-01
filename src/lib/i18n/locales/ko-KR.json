@@ -191,6 +191,12 @@
 		"save": "저장",
 		"cancel": "취소"
 	},
+	"crop": {
+		"enter": "자르기",
+		"apply": "적용",
+		"reset": "초기화",
+		"free": "자유"
+	},
 	"encodingSpeed": {
 		"ultrafast": "초고속",
 		"ultrafastDesc": "최대 파일, 최고속 변환",

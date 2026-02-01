@@ -551,6 +551,9 @@
 										flipVertical={selectedFile.config.flipVertical}
 										onSave={handleSaveTrim}
 										onUpdateConfig={updateSelectedConfig}
+										initialCrop={selectedFile.config.crop}
+										sourceWidth={selectedFile.metadata?.width}
+										sourceHeight={selectedFile.metadata?.height}
 										controlsDisabled={selectedFileLocked}
 									/>
 								{/key}
