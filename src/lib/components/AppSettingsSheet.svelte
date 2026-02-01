@@ -11,7 +11,8 @@
 	import {
 		loadAutoUpdateCheck,
 		persistAutoUpdateCheck,
-		persistWindowOpacity
+		persistWindowOpacity,
+		persistFontFamily
 	} from '$lib/services/settings';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { onMount } from 'svelte';
@@ -44,11 +45,13 @@
 	let checkStatus = $state('');
 	let autoUpdateCheck = $state(true);
 	let opacity = $state(themeStore.opacity);
+	let fontFamily = $state(themeStore.fontFamily);
 	let currentLocale = $state($locale || 'en-US');
 
 	onMount(async () => {
 		autoUpdateCheck = await loadAutoUpdateCheck();
 		opacity = themeStore.opacity;
+		fontFamily = themeStore.fontFamily;
 	});
 
 	$effect(() => {
@@ -64,6 +67,11 @@
 	$effect(() => {
 		themeStore.opacity = opacity;
 		persistWindowOpacity(opacity);
+	});
+
+	$effect(() => {
+		themeStore.fontFamily = fontFamily;
+		persistFontFamily(fontFamily);
 	});
 
 	async function handleSave() {
@@ -118,7 +126,7 @@
 	</div>
 
 	<div class="space-y-4 p-4">
-		<div class="space-y-4">
+		<div class="space-y-3">
 			<Label for="max-concurrency" variant="section">{$_('settings.maxConcurrency')}</Label>
 			<div class="flex items-center gap-2">
 				<div class="flex-1">
@@ -148,39 +156,38 @@
 			</div>
 		</div>
 
-		<div class="space-y-4">
-			<Label variant="section">{$_('settings.appUpdates')}</Label>
-			<div class="flex flex-col space-y-3">
-				<div class="flex items-center gap-2">
-					<Checkbox id="auto-update-check" bind:checked={autoUpdateCheck} />
-					<Label for="auto-update-check">{$_('settings.checkOnStartup')}</Label>
-				</div>
-				<Button
-					variant="outline"
-					class="w-full justify-start"
-					onclick={handleCheckUpdate}
-					disabled={isCheckingForUpdate}
-				>
-					{isCheckingForUpdate ? $_('settings.checking') : $_('settings.checkForUpdates')}
-				</Button>
-				{#if checkStatus}
-					<span class="text-[10px] text-ds-blue-600">{checkStatus}</span>
-				{/if}
-			</div>
-		</div>
-
-		<div class="space-y-4">
+		<div class="space-y-3 pt-2">
 			<Label variant="section">{$_('settings.visuals')}</Label>
 			<div class="space-y-3">
 				<div class="flex items-center justify-between">
 					<Label for="opacity-slider">{$_('settings.windowTint')}</Label>
-					<span class="text-gray-alpha-600 font-mono text-[10px]">{opacity}%</span>
+					<span class="text-gray-alpha-600 text-[10px]">{opacity}%</span>
 				</div>
 				<Slider id="opacity-slider" min={20} max={100} step={1} bind:value={opacity} />
 			</div>
+
+			<div class="space-y-3 pt-2">
+				<Label>{$_('settings.fontFamily')}</Label>
+				<div class="grid grid-cols-2 gap-2">
+					<Button
+						variant={fontFamily === 'mono' ? 'selected' : 'outline'}
+						onclick={() => (fontFamily = 'mono')}
+						class="w-full"
+					>
+						{$_('settings.fontMono')}
+					</Button>
+					<Button
+						variant={fontFamily === 'sans' ? 'selected' : 'outline'}
+						onclick={() => (fontFamily = 'sans')}
+						class="w-full"
+					>
+						{$_('settings.fontSans')}
+					</Button>
+				</div>
+			</div>
 		</div>
 
-		<div class="space-y-4">
+		<div class="space-y-3 pt-2">
 			<Label variant="section">{$_('settings.language')}</Label>
 			<div class="flex flex-wrap gap-2">
 				{#each supportedLocales as loc (loc.code)}
@@ -201,6 +208,26 @@
 						</span>
 					</Button>
 				{/each}
+			</div>
+		</div>
+		<div class="space-y-3 pt-2">
+			<Label variant="section">{$_('settings.appUpdates')}</Label>
+			<div class="flex flex-col space-y-3">
+				<div class="flex items-center gap-2 py-0.5">
+					<Checkbox id="auto-update-check" bind:checked={autoUpdateCheck} />
+					<Label for="auto-update-check">{$_('settings.checkOnStartup')}</Label>
+				</div>
+				<Button
+					variant="outline"
+					class="w-full justify-start"
+					onclick={handleCheckUpdate}
+					disabled={isCheckingForUpdate}
+				>
+					{isCheckingForUpdate ? $_('settings.checking') : $_('settings.checkForUpdates')}
+				</Button>
+				{#if checkStatus}
+					<span class="text-[10px] text-ds-blue-600">{checkStatus}</span>
+				{/if}
 			</div>
 		</div>
 	</div>

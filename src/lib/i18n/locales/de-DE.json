@@ -182,6 +182,9 @@
 		"errorChecking": "Fehler bei der Update-Prüfung.",
 		"visuals": "Darstellung",
 		"windowTint": "Fenstertönung",
+		"fontFamily": "Schriftart",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Sprache"
 	},
 	"logs": {

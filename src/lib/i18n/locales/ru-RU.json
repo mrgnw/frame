@@ -182,6 +182,9 @@
 		"errorChecking": "Ошибка проверки обновлений.",
 		"visuals": "Внешний вид",
 		"windowTint": "Оттенок окна",
+		"fontFamily": "Шрифт",
+		"fontMono": "Моно",
+		"fontSans": "Санс",
 		"language": "Язык"
 	},
 	"logs": {

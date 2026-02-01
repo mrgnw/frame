@@ -182,6 +182,9 @@
 		"errorChecking": "更新の確認中にエラーが発生しました。",
 		"visuals": "外観",
 		"windowTint": "ウィンドウの色合い",
+		"fontFamily": "フォント",
+		"fontMono": "モノ",
+		"fontSans": "サン",
 		"language": "言語"
 	},
 	"logs": {

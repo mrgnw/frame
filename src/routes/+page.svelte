@@ -529,7 +529,7 @@
 	}
 </script>
 
-<div class="absolute inset-0 flex flex-col overflow-hidden font-mono text-foreground">
+<div class="absolute inset-0 flex flex-col overflow-hidden text-foreground">
 	<Titlebar
 		{totalSize}
 		fileCount={files.length}
@@ -627,7 +627,7 @@
 				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
 				class="flex h-36 w-72 flex-col items-center justify-center rounded-lg border border-dashed border-ds-blue-600 bg-ds-blue-900/20 shadow-2xl backdrop-blur-sm"
 			>
-				<p class="font-mono text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
+				<p class="text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
 					{$_('fileList.importSource')}
 				</p>
 			</div>
@@ -646,7 +646,7 @@
 				<div>
 					<Label variant="section" class="text-foreground">{$_('update.available')}</Label>
 
-					<p class="text-gray-alpha-600 font-mono text-[10px] font-medium tracking-wide uppercase">
+					<p class="text-gray-alpha-600 text-[10px] font-medium tracking-wide uppercase">
 						{$_('update.versionAvailable', { values: { version: updateStore.version } })}
 					</p>
 				</div>

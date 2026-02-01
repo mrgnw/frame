@@ -182,6 +182,9 @@
 		"errorChecking": "检查更新时出错。",
 		"visuals": "视觉效果",
 		"windowTint": "窗口色调",
+		"fontFamily": "字体",
+		"fontMono": "等宽",
+		"fontSans": "无衬线",
 		"language": "语言"
 	},
 	"logs": {

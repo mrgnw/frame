@@ -182,6 +182,9 @@
 		"errorChecking": "Erreur lors de la vérification.",
 		"visuals": "Apparence",
 		"windowTint": "Teinte de fenêtre",
+		"fontFamily": "Police",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Langue"
 	},
 	"logs": {

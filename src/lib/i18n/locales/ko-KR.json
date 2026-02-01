@@ -182,6 +182,9 @@
 		"errorChecking": "업데이트 확인 오류",
 		"visuals": "외관",
 		"windowTint": "창 색조",
+		"fontFamily": "글꼴",
+		"fontMono": "모노",
+		"fontSans": "산스",
 		"language": "언어"
 	},
 	"logs": {

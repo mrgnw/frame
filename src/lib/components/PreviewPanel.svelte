@@ -761,7 +761,7 @@
 				</div>
 				<div class="space-y-1.5">
 					<Label>{$_('trim.duration')}</Label>
-					<div class="py-1.5 font-mono text-[11px] tracking-wide text-foreground">
+					<div class="py-1.5 text-[11px] tracking-wide text-foreground">
 						{formatTime(endValue - startValue)}
 					</div>
 				</div>

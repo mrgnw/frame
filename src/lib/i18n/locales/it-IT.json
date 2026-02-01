@@ -182,6 +182,9 @@
 		"errorChecking": "Errore nel controllo aggiornamenti.",
 		"visuals": "Aspetto",
 		"windowTint": "Tinta finestra",
+		"fontFamily": "Carattere",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Lingua"
 	},
 	"logs": {

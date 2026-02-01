@@ -182,6 +182,9 @@
 		"errorChecking": "Error checking for updates.",
 		"visuals": "Visuals",
 		"windowTint": "Window Tint",
+		"fontFamily": "Font Family",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Language"
 	},
 	"logs": {

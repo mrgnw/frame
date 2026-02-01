@@ -182,6 +182,9 @@
 		"errorChecking": "Error al buscar actualizaciones.",
 		"visuals": "Visuales",
 		"windowTint": "Tinte de ventana",
+		"fontFamily": "Fuente",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Idioma"
 	},
 	"logs": {
