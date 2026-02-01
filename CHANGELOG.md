@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-02-01
+
 ### Added
 
+- **Smart Scaling (Letterbox/Pillarbox):** Implemented intelligent scaling for custom resolutions. When both width and height are specified (e.g., in 4K or Social presets), the application now maintains the original aspect ratio by adding black bars (padding) instead of stretching the video.
 - **Social Media Presets:** Added 6 new built-in presets for YouTube (1080p, 4K), X (Landscape, Portrait), TikTok/Reels, and Discord, optimized according to 2025 platform recommendations.
 - **HEVC Hardware Acceleration:** Added support for H.265 (HEVC) hardware encoding via `hevc_videotoolbox` (Apple Silicon/Intel) and `hevc_nvenc` (NVIDIA).
 - **Smart Encoder Detection:** The application now dynamically scans `ffmpeg` capabilities at startup to only show encoders supported by the user's hardware (e.g., hiding NVENC on macOS or VideoToolbox on Windows), replacing the previous static OS-based filtering.
+
+### Changed
+
+- **Code Architecture:** Refactored the Interactive Crop Tool logic into a dedicated utility module (`crop.ts`), improving maintainability and component readability.
 
 ### Fixed
 
@@ -345,7 +352,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.14.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.15.0...HEAD
+[0.15.0]: https://github.com/66HEX/frame/compare/0.14.0...0.15.0
 [0.14.0]: https://github.com/66HEX/frame/compare/0.13.1...0.14.0
 [0.13.1]: https://github.com/66HEX/frame/compare/0.13.0...0.13.1
 [0.13.0]: https://github.com/66HEX/frame/compare/0.12.0...0.13.0
