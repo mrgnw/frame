@@ -133,6 +133,10 @@ The easiest way to run Frame is to grab a prebuilt package from the [GitHub Rele
 3.  **Execution:** Initiates the conversion process via the Rust backend.
 4.  **Monitoring:** View real-time logs and percentage counters in the UI.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=66HEX/frame&type=timeline&legend=top-left)](https://www.star-history.com/#66HEX/frame&type=timeline&legend=top-left)
+
 ## License
 
 GPLv3 License. See [LICENSE](LICENSE) for details.
