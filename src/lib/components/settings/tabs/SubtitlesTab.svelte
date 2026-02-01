@@ -4,7 +4,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import { _ } from '$lib/i18n';
-	import { open } from '@tauri-apps/plugin-dialog';
+	import { openNativeFileDialog } from '$lib/services/dialog';
 	import { X } from 'lucide-svelte';
 
 	let {
@@ -33,7 +33,7 @@
 
 	async function selectExternalSubtitle() {
 		if (disabled) return;
-		const selected = await open({
+		const selected = await openNativeFileDialog({
 			multiple: false,
 			filters: [
 				{

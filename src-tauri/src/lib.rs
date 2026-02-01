@@ -1,8 +1,11 @@
 mod capabilities;
 mod conversion;
+mod dialog;
+use std::time::Duration;
 use tauri::window::{Color, EffectState};
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_store::Builder as StoreBuilder;
+use tokio::time::sleep;
 
 #[tauri::command]
 async fn close_splash(window: tauri::Window) {
@@ -61,6 +64,18 @@ pub fn run() {
             let window = builder.build().unwrap();
 
             apply_window_effect(&window);
+            {
+                let event_window = window.clone();
+                window.on_window_event(move |event| {
+                    if matches!(event, WindowEvent::Focused(_)) {
+                        let target = event_window.clone();
+                        tauri::async_runtime::spawn(async move {
+                            sleep(Duration::from_millis(10)).await;
+                            apply_window_effect(&target);
+                        });
+                    }
+                });
+            }
 
             let splash = WebviewWindowBuilder::new(app, "splash", WebviewUrl::App("splash".into()))
                 .title("Splash")
@@ -75,6 +90,28 @@ pub fn run() {
                 .unwrap();
 
             apply_window_effect(&splash);
+
+            #[cfg(target_os = "macos")]
+            {
+                use tauri::LogicalSize;
+
+                let dialog_host = WebviewWindowBuilder::new(
+                    app,
+                    "dialog-host",
+                    WebviewUrl::App("dialog-host.html".into()),
+                )
+                .title("Dialog Host")
+                .inner_size(10.0, 10.0)
+                .resizable(false)
+                .decorations(false)
+                .fullscreen(false)
+                .visible(false)
+                .skip_taskbar(true)
+                .build()
+                .unwrap();
+
+                let _ = dialog_host.set_size(LogicalSize::new(10.0, 10.0));
+            }
 
             app.manage(conversion::ConversionManager::new(app.handle().clone()));
 
@@ -96,6 +133,7 @@ pub fn run() {
             conversion::get_max_concurrency,
             conversion::set_max_concurrency,
             capabilities::get_available_encoders,
+            dialog::open_native_file_dialog,
             close_splash
         ])
         .run(tauri::generate_context!())

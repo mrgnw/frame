@@ -685,7 +685,6 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         if let Some(burn_path) = &config.subtitle_burn_path {
             if !burn_path.is_empty() {
                 // FFmpeg subtitles filter needs specific escaping for paths, especially on Windows
-                // We use forward slashes and escape the colon after the drive letter if present
                 let escaped_path = burn_path.replace('\\', "/").replace(':', "\\:");
                 video_filters.push(format!("subtitles='{}'", escaped_path));
             }
@@ -764,7 +763,12 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         args.push("0:s?".to_string());
     }
 
-    if config.subtitle_burn_path.is_none() || config.subtitle_burn_path.as_ref().map_or(true, |p| p.is_empty()) {
+    if config.subtitle_burn_path.is_none()
+        || config
+            .subtitle_burn_path
+            .as_ref()
+            .map_or(true, |p| p.is_empty())
+    {
         args.push("-c:s".to_string());
         args.push("copy".to_string());
     }
@@ -1541,7 +1545,6 @@ mod tests {
         assert!(contains_args(&args, &["-cq:v", "27"]));
         assert!(!args.iter().any(|a| a == "-crf"));
 
-        // Test HEVC NVENC
         config.video_codec = "hevc_nvenc".into();
         let args_hevc = build_ffmpeg_args("in.mp4", "out.mp4", &config);
         assert!(contains_args(&args_hevc, &["-c:v", "hevc_nvenc"]));

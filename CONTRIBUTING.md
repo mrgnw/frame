@@ -22,18 +22,21 @@ To build and run Frame locally, you will need:
 ### Local Setup
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/66HEX/frame.git
     cd frame
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     bun install
     ```
 
 3.  **Setup FFmpeg binaries:**
     The application requires FFmpeg/FFprobe sidecars in `src-tauri/binaries/`. We provide a script to fetch them:
+
     ```bash
     bun run setup:binaries
     ```
@@ -61,12 +64,13 @@ To build and run Frame locally, you will need:
 ### Testing & Quality Control
 
 Before submitting a PR, please ensure:
+
 1.  **Build:** The project builds correctly: `bun tauri build --no-bundle`.
 2.  **Rust Tests:** All backend tests pass: `cd src-tauri && cargo test`.
 3.  **Type Check & Lint:** Run `bun run check` and `bun run lint` to catch frontend issues.
 4.  **Formatting:** Ensure all code is properly formatted:
-    -   For Rust: `cd src-tauri && cargo fmt`
-    -   For Frontend: `bun run format`
+    - For Rust: `cd src-tauri && cargo fmt`
+    - For Frontend: `bun run format`
 
 ## Pull Request Process
 

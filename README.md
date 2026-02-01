@@ -101,30 +101,33 @@ brew install --cask frame
 
 Even when using the **AppImage**, Frame relies on the system's **WebKitGTK** and **GStreamer** libraries for rendering the UI and handling media playback. If the application crashes upon adding a source or the video preview remains blank, you likely need to install the missing GStreamer plugins.
 
-*   **Ubuntu / Debian:**
-    ```bash
-    sudo apt update
-    sudo apt install libwebkit2gtk-4.1-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav
-    ```
+- **Ubuntu / Debian:**
 
-*   **Arch Linux:**
-    ```bash
-    sudo pacman -S --needed webkit2gtk-4.1 gst-plugins-base gst-plugins-good gst-libav
-    ```
+  ```bash
+  sudo apt update
+  sudo apt install libwebkit2gtk-4.1-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav
+  ```
 
-*   **Fedora:**
-    ```bash
-    sudo dnf install webkit2gtk4.1 gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-libav
-    ```
+- **Arch Linux:**
+
+  ```bash
+  sudo pacman -S --needed webkit2gtk-4.1 gst-plugins-base gst-plugins-good gst-libav
+  ```
+
+- **Fedora:**
+  ```bash
+  sudo dnf install webkit2gtk4.1 gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-libav
+  ```
 
 ### Build from Source
 
 If you prefer to build the application yourself or want to contribute, follow these steps.
 
 **1. Prerequisites**
-*   **Rust:** [Install Rust](https://www.rust-lang.org/tools/install)
-*   **Bun (or Node.js):** [Install Bun](https://bun.sh/)
-*   **OS Dependencies:** Follow the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system.
+
+- **Rust:** [Install Rust](https://www.rust-lang.org/tools/install)
+- **Bun (or Node.js):** [Install Bun](https://bun.sh/)
+- **OS Dependencies:** Follow the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system.
 
 **2. Setup Project**
 
@@ -146,15 +149,16 @@ bun run setup:binaries
 
 **4. Build or Run**
 
-*   **Development:**
-    ```bash
-    bun tauri dev
-    ```
+- **Development:**
 
-*   **Production Build:**
-    ```bash
-    bun tauri build
-    ```
+  ```bash
+  bun tauri dev
+  ```
+
+- **Production Build:**
+  ```bash
+  bun tauri build
+  ```
 
 ## Usage
 

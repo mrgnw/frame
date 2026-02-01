@@ -499,7 +499,7 @@
 			return;
 		const normalizedDx = (event.clientX - cropDragOrigin.startX) / videoBounds.width;
 		const normalizedDy = (event.clientY - cropDragOrigin.startY) / videoBounds.height;
-		
+
 		const { dx, dy } = remapDragDeltas(
 			normalizedDx,
 			normalizedDy,
@@ -548,15 +548,7 @@
 			if (ratio) {
 				const w = sourceWidth ?? naturalVideoWidth;
 				const h = sourceHeight ?? naturalVideoHeight;
-				nextRect = enforceAspect(
-					nextRect,
-					cropHandle,
-					startRect,
-					ratio,
-					w,
-					h,
-					isSideRotation
-				);
+				nextRect = enforceAspect(nextRect, cropHandle, startRect, ratio, w, h, isSideRotation);
 			}
 		}
 

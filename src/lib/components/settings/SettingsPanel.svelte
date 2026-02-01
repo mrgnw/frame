@@ -12,7 +12,7 @@
 	import SourceTab from './tabs/SourceTab.svelte';
 	import OutputTab from './tabs/OutputTab.svelte';
 	import PresetsTab from './tabs/PresetsTab.svelte';
-		import VideoTab from './tabs/VideoTab.svelte';
+	import VideoTab from './tabs/VideoTab.svelte';
 	import AudioTab from './tabs/AudioTab.svelte';
 	import SubtitlesTab from './tabs/SubtitlesTab.svelte';
 	import MetadataTab from './tabs/MetadataTab.svelte';

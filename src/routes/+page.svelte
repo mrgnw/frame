@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { v4 as uuidv4 } from 'uuid';
-	import { open } from '@tauri-apps/plugin-dialog';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { invoke } from '@tauri-apps/api/core';
 	import { listen } from '@tauri-apps/api/event';
@@ -52,6 +51,7 @@
 	import { initCapabilities } from '$lib/stores/capabilities.svelte';
 	import { checkForAppUpdate, installAppUpdate } from '$lib/services/update';
 	import { marked } from 'marked';
+	import { openNativeFileDialog } from '$lib/services/dialog';
 
 	let files = $state<FileItem[]>([]);
 	let selectedFileId = $state<string | null>(null);
@@ -347,7 +347,7 @@
 	}
 
 	async function handleAddFile() {
-		const selected = await open({
+		const selected = await openNativeFileDialog({
 			multiple: true,
 			filters: [
 				{

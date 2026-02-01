@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **UI:** Replaced text-based setting tabs with intuitive icon-based buttons (Source, Output, Video, Audio, Metadata, Presets) for a cleaner and more compact interface.
 - **Documentation:** Updated README with Linux system requirements for AppImage users.
 
+### Fixed
+
+- **macOS Dialog Reparenting:** Native file dialogs are now spawned from an invisible helper window so the main HUD window keeps its rounded corners while the picker is open, eliminating the rectangular flash that previously appeared when the dialog borrowed the app window.
+
 ## [0.15.0] - 2026-02-01
 
 ### Added
