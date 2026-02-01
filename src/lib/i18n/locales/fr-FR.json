@@ -46,8 +46,19 @@
 		"output": "Sortie",
 		"video": "Vidéo",
 		"audio": "Audio",
+		"subtitles": "Sous-titres",
 		"metadata": "Métadonnées",
 		"presets": "Préréglages"
+	},
+	"subtitles": {
+		"burnIn": "Incruster les sous-titres",
+		"externalFile": "Fichier de sous-titres externe",
+		"selectFile": "Sélectionner un fichier .srt ou .ass",
+		"clearFile": "Effacer",
+		"sourceTracks": "Pistes source",
+		"none": "Aucun sous-titre",
+		"copyAll": "Copier tous les sous-titres",
+		"burnInHint": "L'incrustation des sous-titres forcera le ré-encodage de la vidéo."
 	},
 	"metadata": {
 		"mode": "Mode métadonnées",
@@ -171,6 +182,9 @@
 		"errorChecking": "Erreur lors de la vérification.",
 		"visuals": "Apparence",
 		"windowTint": "Teinte de fenêtre",
+		"fontFamily": "Police",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Langue"
 	},
 	"logs": {

@@ -1,4 +1,3 @@
-
 export type CropRect = { x: number; y: number; width: number; height: number };
 export type DragHandle = 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -171,12 +170,7 @@ export function enforceAspect(
 	sourceHeight: number,
 	isSideRotation: boolean
 ): CropRect {
-	const effectiveRatio = getEffectiveAspectRatio(
-		ratio,
-		sourceWidth,
-		sourceHeight,
-		isSideRotation
-	);
+	const effectiveRatio = getEffectiveAspectRatio(ratio, sourceWidth, sourceHeight, isSideRotation);
 
 	let width = rect.width;
 	let height = rect.height;
@@ -258,9 +252,7 @@ export function enforceAspect(
 export function getHandleCursor(handleId: string, isSideRotation: boolean): string {
 	if (handleId === 'n' || handleId === 's') return isSideRotation ? 'ew-resize' : 'ns-resize';
 	if (handleId === 'e' || handleId === 'w') return isSideRotation ? 'ns-resize' : 'ew-resize';
-	if (handleId === 'nw' || handleId === 'se')
-		return isSideRotation ? 'nesw-resize' : 'nwse-resize';
-	if (handleId === 'ne' || handleId === 'sw')
-		return isSideRotation ? 'nwse-resize' : 'nesw-resize';
+	if (handleId === 'nw' || handleId === 'se') return isSideRotation ? 'nesw-resize' : 'nwse-resize';
+	if (handleId === 'ne' || handleId === 'sw') return isSideRotation ? 'nwse-resize' : 'nesw-resize';
 	return 'default';
 }

@@ -46,8 +46,19 @@
 		"output": "Ausgabe",
 		"video": "Video",
 		"audio": "Audio",
+		"subtitles": "Untertitel",
 		"metadata": "Metadaten",
 		"presets": "Voreinstellungen"
+	},
+	"subtitles": {
+		"burnIn": "Untertitel einbrennen",
+		"externalFile": "Externe Untertiteldatei",
+		"selectFile": ".srt oder .ass Datei auswählen",
+		"clearFile": "Löschen",
+		"sourceTracks": "Quellspuren",
+		"none": "Keine Untertitel",
+		"copyAll": "Alle Untertitel kopieren",
+		"burnInHint": "Das Einbrennen von Untertiteln erzwingt eine erneute Videokodierung."
 	},
 	"metadata": {
 		"mode": "Metadaten-Modus",
@@ -171,6 +182,9 @@
 		"errorChecking": "Fehler bei der Update-Prüfung.",
 		"visuals": "Darstellung",
 		"windowTint": "Fenstertönung",
+		"fontFamily": "Schriftart",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Sprache"
 	},
 	"logs": {

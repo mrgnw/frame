@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { v4 as uuidv4 } from 'uuid';
-	import { open } from '@tauri-apps/plugin-dialog';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { invoke } from '@tauri-apps/api/core';
 	import { listen } from '@tauri-apps/api/event';
@@ -52,6 +51,7 @@
 	import { initCapabilities } from '$lib/stores/capabilities.svelte';
 	import { checkForAppUpdate, installAppUpdate } from '$lib/services/update';
 	import { marked } from 'marked';
+	import { openNativeFileDialog } from '$lib/services/dialog';
 
 	let files = $state<FileItem[]>([]);
 	let selectedFileId = $state<string | null>(null);
@@ -68,8 +68,8 @@
 	let selectedFileLocked = $derived(
 		selectedFile
 			? selectedFile.status === FileStatus.CONVERTING ||
-				selectedFile.status === FileStatus.QUEUED ||
-				selectedFile.status === FileStatus.COMPLETED
+					selectedFile.status === FileStatus.QUEUED ||
+					selectedFile.status === FileStatus.COMPLETED
 			: false
 	);
 	let totalSize = $derived(files.reduce((acc, curr) => acc + curr.size, 0));
@@ -347,7 +347,7 @@
 	}
 
 	async function handleAddFile() {
-		const selected = await open({
+		const selected = await openNativeFileDialog({
 			multiple: true,
 			filters: [
 				{
@@ -529,7 +529,7 @@
 	}
 </script>
 
-<div class="absolute inset-0 flex flex-col overflow-hidden font-mono text-foreground">
+<div class="absolute inset-0 flex flex-col overflow-hidden text-foreground">
 	<Titlebar
 		{totalSize}
 		fileCount={files.length}
@@ -545,7 +545,7 @@
 	<div class="relative flex-1 overflow-hidden p-4">
 		{#if activeView === 'dashboard'}
 			<div class="grid h-full grid-cols-12 gap-4">
-				<div class="col-span-12 h-full min-h-0 lg:col-span-8">
+				<div class="col-span-8 h-full min-h-0">
 					<div class="grid h-full grid-rows-12 gap-4">
 						<div class="row-span-8 min-h-0">
 							{#if selectedFile}
@@ -587,13 +587,13 @@
 					</div>
 				</div>
 
-				<div class="col-span-12 h-full min-h-0 lg:col-span-4">
+				<div class="col-span-4 h-full min-h-0">
 					<div
 						class="custom-scrollbar h-full min-h-0 overflow-y-auto rounded-lg border border-gray-alpha-100 bg-gray-alpha-100"
 					>
-								{#if selectedFile}
-									<SettingsPanel
-										config={selectedFile.config}
+						{#if selectedFile}
+							<SettingsPanel
+								config={selectedFile.config}
 								outputName={selectedFile.outputName}
 								metadata={selectedFile.metadata}
 								metadataStatus={selectedFile.metadataStatus}
@@ -627,7 +627,7 @@
 				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
 				class="flex h-36 w-72 flex-col items-center justify-center rounded-lg border border-dashed border-ds-blue-600 bg-ds-blue-900/20 shadow-2xl backdrop-blur-sm"
 			>
-				<p class="font-mono text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
+				<p class="text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
 					{$_('fileList.importSource')}
 				</p>
 			</div>
@@ -646,7 +646,7 @@
 				<div>
 					<Label variant="section" class="text-foreground">{$_('update.available')}</Label>
 
-					<p class="text-gray-alpha-600 font-mono text-[10px] font-medium tracking-wide uppercase">
+					<p class="text-gray-alpha-600 text-[10px] font-medium tracking-wide uppercase">
 						{$_('update.versionAvailable', { values: { version: updateStore.version } })}
 					</p>
 				</div>

@@ -46,8 +46,19 @@
 		"output": "Output",
 		"video": "Video",
 		"audio": "Audio",
+		"subtitles": "Subtitles",
 		"metadata": "Metadata",
 		"presets": "Presets"
+	},
+	"subtitles": {
+		"burnIn": "Burn-in Subtitles",
+		"externalFile": "External Subtitle File",
+		"selectFile": "Select .srt or .ass file",
+		"clearFile": "Clear",
+		"sourceTracks": "Source Tracks",
+		"none": "No subtitles",
+		"copyAll": "Copy all subtitles",
+		"burnInHint": "Burning in subtitles will force video re-encoding."
 	},
 	"metadata": {
 		"mode": "Metadata Mode",
@@ -171,6 +182,9 @@
 		"errorChecking": "Error checking for updates.",
 		"visuals": "Visuals",
 		"windowTint": "Window Tint",
+		"fontFamily": "Font Family",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Language"
 	},
 	"logs": {

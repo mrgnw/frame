@@ -45,6 +45,15 @@ pub struct AudioTrack {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct SubtitleTrack {
+    pub index: u32,
+    pub codec: String,
+    pub language: Option<String>,
+    pub label: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProbeMetadata {
     pub duration: Option<String>,
     pub bitrate: Option<String>,
@@ -60,6 +69,7 @@ pub struct ProbeMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_bitrate_kbps: Option<f64>,
     pub audio_tracks: Vec<AudioTrack>,
+    pub subtitle_tracks: Vec<SubtitleTrack>,
     #[serde(default)]
     pub tags: Option<FfprobeTags>,
     pub pixel_format: Option<String>,
@@ -423,6 +433,8 @@ pub struct ConversionConfig {
     #[serde(default)]
     pub audio_normalize: bool,
     pub selected_audio_tracks: Vec<u32>,
+    pub selected_subtitle_tracks: Vec<u32>,
+    pub subtitle_burn_path: Option<String>,
     pub resolution: String,
     pub custom_width: Option<String>,
     pub custom_height: Option<String>,
@@ -670,6 +682,14 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             }
         }
 
+        if let Some(burn_path) = &config.subtitle_burn_path {
+            if !burn_path.is_empty() {
+                // FFmpeg subtitles filter needs specific escaping for paths, especially on Windows
+                let escaped_path = burn_path.replace('\\', "/").replace(':', "\\:");
+                video_filters.push(format!("subtitles='{}'", escaped_path));
+            }
+        }
+
         if config.resolution != "original" || config.resolution == "custom" {
             let algorithm = match config.scaling_algorithm.as_str() {
                 "lanczos" => ":flags=lanczos",
@@ -718,7 +738,9 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         }
     }
 
-    if !config.selected_audio_tracks.is_empty() && !is_audio_only {
+    if (!config.selected_audio_tracks.is_empty() || !config.selected_subtitle_tracks.is_empty())
+        && !is_audio_only
+    {
         args.push("-map".to_string());
         args.push("0:v:0".to_string());
     }
@@ -728,6 +750,27 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             args.push("-map".to_string());
             args.push(format!("0:{}", track_index));
         }
+    }
+
+    if !config.selected_subtitle_tracks.is_empty() {
+        for track_index in &config.selected_subtitle_tracks {
+            args.push("-map".to_string());
+            args.push(format!("0:{}", track_index));
+        }
+    } else if !is_audio_only {
+        // By default, copy all subtitles if none are explicitly selected
+        args.push("-map".to_string());
+        args.push("0:s?".to_string());
+    }
+
+    if config.subtitle_burn_path.is_none()
+        || config
+            .subtitle_burn_path
+            .as_ref()
+            .map_or(true, |p| p.is_empty())
+    {
+        args.push("-c:s".to_string());
+        args.push("copy".to_string());
     }
 
     args.push("-c:a".to_string());
@@ -1133,6 +1176,22 @@ pub async fn probe_media(
         });
     }
 
+    for stream in probe_data
+        .streams
+        .iter()
+        .filter(|s| s.codec_type == "subtitle")
+    {
+        let label = stream.tags.as_ref().and_then(|t| t.title.clone());
+        let language = stream.tags.as_ref().and_then(|t| t.language.clone());
+
+        metadata.subtitle_tracks.push(SubtitleTrack {
+            index: stream.index,
+            codec: stream.codec_name.clone().unwrap_or("unknown".to_string()),
+            language,
+            label,
+        });
+    }
+
     if let Some(first_audio) = metadata.audio_tracks.first() {
         metadata.audio_codec = Some(first_audio.codec.clone());
     }
@@ -1188,6 +1247,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -1232,6 +1293,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "1080p".into(),
             custom_width: None,
             custom_height: None,
@@ -1267,6 +1330,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "720p".into(),
             custom_width: None,
             custom_height: None,
@@ -1303,6 +1368,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -1341,6 +1408,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -1399,6 +1468,8 @@ mod tests {
             audio_channels: "original".into(),
             audio_volume: 100.0,
             selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
             resolution: "original".into(),
             custom_width: None,
             custom_height: None,
@@ -1474,7 +1545,6 @@ mod tests {
         assert!(contains_args(&args, &["-cq:v", "27"]));
         assert!(!args.iter().any(|a| a == "-crf"));
 
-        // Test HEVC NVENC
         config.video_codec = "hevc_nvenc".into();
         let args_hevc = build_ffmpeg_args("in.mp4", "out.mp4", &config);
         assert!(contains_args(&args_hevc, &["-c:v", "hevc_nvenc"]));

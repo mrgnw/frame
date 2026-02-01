@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Dynamic Font Switching:** Added the ability to toggle between Geist Mono and Geist Sans fonts across the entire application.
+  - **New Visual Setting:** Added a font family selector in the App Settings under the Visuals section.
+  - **Persistence:** The chosen font preference is saved and automatically applied on subsequent launches.
+- **Subtitle Support:** Comprehensive handling of subtitle tracks within the application.
+  - **Soft-subs:** Added ability to select and passthrough existing subtitle tracks from the source file. By default, all tracks are preserved if none are explicitly selected.
+  - **Hard-subs (Burn-in):** Support for burning in external subtitle files (`.srt`, `.ass`, `.vtt`) directly into the video stream. The process includes automatic path escaping for cross-platform compatibility.
+
+### Changed
+
+- **UI:** Replaced text-based setting tabs with intuitive icon-based buttons (Source, Output, Video, Audio, Metadata, Presets) for a cleaner and more compact interface.
+- **Documentation:** Updated README with Linux system requirements for AppImage users.
+
+### Fixed
+
+- **macOS Dialog Reparenting:** Native file dialogs are now spawned from an invisible helper window so the main HUD window keeps its rounded corners while the picker is open, eliminating the rectangular flash that previously appeared when the dialog borrowed the app window.
+
 ## [0.15.0] - 2026-02-01
 
 ### Added

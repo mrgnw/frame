@@ -14,9 +14,12 @@
 	import PresetsTab from './tabs/PresetsTab.svelte';
 	import VideoTab from './tabs/VideoTab.svelte';
 	import AudioTab from './tabs/AudioTab.svelte';
+	import SubtitlesTab from './tabs/SubtitlesTab.svelte';
 	import MetadataTab from './tabs/MetadataTab.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import { FileUp, FileDown, Film, Music, Captions, Tags, Bookmark } from 'lucide-svelte';
 
-	const TABS = ['source', 'output', 'video', 'audio', 'metadata', 'presets'] as const;
+	const TABS = ['source', 'output', 'video', 'audio', 'subtitles', 'metadata', 'presets'] as const;
 	type TabId = (typeof TABS)[number];
 
 	let {
@@ -52,26 +55,36 @@
 	let activeTab = $state<TabId>('source');
 
 	const isSourceAudioOnly = $derived(!!metadata && !metadata.videoCodec);
+
+	const icons: Record<TabId, typeof FileUp> = {
+		source: FileUp,
+		output: FileDown,
+		video: Film,
+		audio: Music,
+		subtitles: Captions,
+		metadata: Tags,
+		presets: Bookmark
+	};
 </script>
 
 <div class="flex h-full flex-col">
 	<div class="flex h-10 items-center justify-between border-b border-gray-alpha-100 px-4">
-		<div class="flex w-full items-center justify-start gap-4">
+		<div class="flex w-full items-center justify-start gap-1">
 			{#each TABS as tabId (tabId)}
 				{@const isVideoDisabled =
-					tabId === 'video' &&
+					(tabId === 'video' || tabId === 'subtitles') &&
 					(AUDIO_ONLY_CONTAINERS.includes(config.container) || isSourceAudioOnly)}
-				<button
-					disabled={isVideoDisabled}
-					class={cn(
-						'text-[10px] font-medium tracking-widest uppercase transition-all',
-						activeTab === tabId ? 'text-ds-blue-600' : 'text-gray-alpha-600 hover:text-foreground',
-						isVideoDisabled && 'pointer-events-none opacity-50'
-					)}
+				{@const Icon = icons[tabId]}
+				<Button
+					{disabled}
+					variant={activeTab === tabId ? 'selected' : 'ghost'}
+					size="icon"
+					title={$_(`tabs.${tabId}`)}
+					class={cn('size-6 transition-all', isVideoDisabled && 'pointer-events-none opacity-50')}
 					onclick={() => (activeTab = tabId)}
 				>
-					{$_(`tabs.${tabId}`)}
-				</button>
+					<Icon size={14} />
+				</Button>
 			{/each}
 		</div>
 	</div>
@@ -94,10 +107,12 @@
 			/>
 		{:else if activeTab === 'video'}
 			<VideoTab {config} {disabled} {onUpdate} />
-		{:else if activeTab === 'metadata'}
-			<MetadataTab {config} {disabled} {onUpdate} {metadata} />
-		{:else}
+		{:else if activeTab === 'audio'}
 			<AudioTab {config} {disabled} {onUpdate} {metadata} />
+		{:else if activeTab === 'subtitles'}
+			<SubtitlesTab {config} {disabled} {onUpdate} {metadata} />
+		{:else}
+			<MetadataTab {config} {disabled} {onUpdate} {metadata} />
 		{/if}
 	</div>
 </div>

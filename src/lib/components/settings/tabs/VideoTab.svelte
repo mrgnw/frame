@@ -151,7 +151,7 @@
 
 	<div class="space-y-3 pt-2">
 		<Label variant="section">{$_('video.encoder')}</Label>
-		<div class="grid grid-cols-1 gap-1.5">
+		<div class="grid grid-cols-1">
 			{#each availableCodecs as codec (codec.id)}
 				<ListItem
 					selected={config.videoCodec === codec.id}
@@ -167,7 +167,7 @@
 
 	<div class="space-y-3 pt-2">
 		<Label variant="section">{$_('video.encodingSpeed')}</Label>
-		<div class="grid grid-cols-1 gap-1.5">
+		<div class="grid grid-cols-1">
 			{#each PRESETS as preset (preset)}
 				<ListItem
 					selected={config.preset === preset}

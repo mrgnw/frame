@@ -46,8 +46,19 @@
 		"output": "Выход",
 		"video": "Видео",
 		"audio": "Аудио",
+		"subtitles": "Субтитры",
 		"metadata": "Метаданные",
 		"presets": "Пресеты"
+	},
+	"subtitles": {
+		"burnIn": "Вшивание субтитров",
+		"externalFile": "Внешний файл субтитров",
+		"selectFile": "Выберите файл .srt или .ass",
+		"clearFile": "Очистить",
+		"sourceTracks": "Исходные дорожки",
+		"none": "Нет субтитров",
+		"copyAll": "Копировать все субтитры",
+		"burnInHint": "Вшивание субтитров потребует перекодирования видео."
 	},
 	"metadata": {
 		"mode": "Режим метаданных",
@@ -171,6 +182,9 @@
 		"errorChecking": "Ошибка проверки обновлений.",
 		"visuals": "Внешний вид",
 		"windowTint": "Оттенок окна",
+		"fontFamily": "Шрифт",
+		"fontMono": "Моно",
+		"fontSans": "Санс",
 		"language": "Язык"
 	},
 	"logs": {

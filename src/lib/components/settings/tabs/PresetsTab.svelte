@@ -160,7 +160,7 @@
 		</Button>
 	</div>
 
-	<div class="grid grid-cols-1 gap-1.5">
+	<div class="grid grid-cols-1">
 		{#each presets as preset (preset.id)}
 			{@const isCompatible =
 				!isSourceAudioOnly || AUDIO_ONLY_CONTAINERS.includes(preset.config.container)}

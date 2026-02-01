@@ -4,7 +4,7 @@
 	import './layout.css';
 	import { type } from '@tauri-apps/plugin-os';
 	import { themeStore } from '$lib/stores/theme.svelte';
-	import { loadWindowOpacity } from '$lib/services/settings';
+	import { loadWindowOpacity, loadFontFamily } from '$lib/services/settings';
 	import { initI18n } from '$lib/i18n';
 
 	let platform = $state<string | null>(null);
@@ -24,8 +24,21 @@
 			themeStore.opacity = val;
 		});
 
+		loadFontFamily().then((val) => {
+			themeStore.fontFamily = val;
+		});
+
 		window.addEventListener('keydown', handleKeydown);
 		return () => window.removeEventListener('keydown', handleKeydown);
+	});
+
+	$effect(() => {
+		const root = document.documentElement;
+		if (themeStore.fontFamily === 'sans') {
+			root.style.setProperty('--app-font-family', 'var(--font-geist-sans)');
+		} else {
+			root.style.setProperty('--app-font-family', 'var(--font-geist-mono)');
+		}
 	});
 </script>
 

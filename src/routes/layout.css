@@ -8,6 +8,14 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'GeistSans';
+	src: url('../lib/assets/fonts/Geist.ttf') format('truetype');
+	font-weight: 200 800;
+	font-style: normal;
+	font-display: swap;
+}
+
 * {
 	box-sizing: border-box;
 	min-width: 0;
@@ -25,7 +33,7 @@ html {
 body {
 	background: transparent;
 	color: var(--foreground);
-	font-family: var(--font-mono), ui-monospace, monospace;
+	font-family: var(--app-font-family), ui-sans-serif, system-ui, sans-serif;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
@@ -43,6 +51,8 @@ select {
 	--foreground: #ffffff;
 
 	--font-geist-mono: 'GeistMono', monospace;
+	--font-geist-sans: 'GeistSans', sans-serif;
+	--app-font-family: var(--font-geist-mono);
 
 	--ds-gray-alpha-100: rgba(255, 255, 255, 0.05);
 	--ds-gray-alpha-200: rgba(255, 255, 255, 0.1);

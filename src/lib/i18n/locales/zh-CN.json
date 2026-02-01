@@ -46,8 +46,19 @@
 		"output": "输出",
 		"video": "视频",
 		"audio": "音频",
+		"subtitles": "字幕",
 		"metadata": "元数据",
 		"presets": "预设"
+	},
+	"subtitles": {
+		"burnIn": "内嵌字幕",
+		"externalFile": "外部字幕文件",
+		"selectFile": "选择 .srt 或 .ass 文件",
+		"clearFile": "清除",
+		"sourceTracks": "源轨道",
+		"none": "无字幕",
+		"copyAll": "复制所有字幕",
+		"burnInHint": "内嵌字幕将强制视频重新编码。"
 	},
 	"metadata": {
 		"mode": "元数据模式",
@@ -171,6 +182,9 @@
 		"errorChecking": "检查更新时出错。",
 		"visuals": "视觉效果",
 		"windowTint": "窗口色调",
+		"fontFamily": "字体",
+		"fontMono": "等宽",
+		"fontSans": "无衬线",
 		"language": "语言"
 	},
 	"logs": {

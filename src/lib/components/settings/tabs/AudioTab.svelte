@@ -171,7 +171,7 @@
 								<span class="text-[10px] opacity-70">
 									#{track.index}
 								</span>
-								<span class="text-[10px] font-bold tracking-wide uppercase">
+								<span class="text-[10px] font-medium tracking-wide uppercase">
 									{track.codec}
 								</span>
 								<div class="text-[9px] tracking-wide uppercase">
@@ -195,12 +195,12 @@
 
 						<div
 							class={cn(
-								'flex h-3 w-3 items-center justify-center rounded-full border transition-all duration-200',
+								'flex h-3 w-3 items-center justify-center rounded-full border transition-all',
 								isSelected ? 'border-ds-blue-600' : 'border-gray-alpha-200'
 							)}
 						>
 							<div
-								class="h-1.5 w-1.5 rounded-full bg-ds-blue-600 transition-all duration-200"
+								class="h-1.5 w-1.5 rounded-full bg-ds-blue-600 transition-all"
 								style="opacity: {isSelected ? 1 : 0}; transform: scale({isSelected ? 1 : 0.5});"
 							></div>
 						</div>

@@ -51,7 +51,7 @@
 			placeholder={$_('output.placeholder')}
 			{disabled}
 		/>
-		<p class="text-gray-alpha-600 text-[10px] tracking-wide uppercase">
+		<p class="text-gray-alpha-600 text-[9px] tracking-wide uppercase">
 			{$_('output.hint')}
 		</p>
 	</div>

@@ -17,14 +17,21 @@ export interface AudioTrack {
 	sampleRate?: string;
 }
 
+export interface SubtitleTrack {
+	index: number;
+	codec: string;
+	language?: string;
+	label?: string;
+}
+
 export interface CropSettings {
 	enabled: boolean;
 	x: number;
 	y: number;
 	width: number;
 	height: number;
-	sourceWidth: number;
-	sourceHeight: number;
+	sourceWidth?: number;
+	sourceHeight?: number;
 	aspectRatio?: string | null;
 }
 
@@ -35,10 +42,12 @@ export interface ConversionConfig {
 	videoBitrate: string;
 	audioCodec: string;
 	audioBitrate: string;
-	audioChannels: 'original' | 'stereo' | 'mono';
+	audioChannels: string;
 	audioVolume: number;
 	audioNormalize: boolean;
 	selectedAudioTracks: number[];
+	selectedSubtitleTracks: number[];
+	subtitleBurnPath?: string;
 	resolution: string;
 	customWidth?: string;
 	customHeight?: string;
@@ -79,6 +88,7 @@ export interface SourceMetadata {
 	height?: number;
 	videoBitrateKbps?: number;
 	audioTracks?: AudioTrack[];
+	subtitleTracks?: SubtitleTrack[];
 	tags?: Record<string, string>;
 	pixelFormat?: string;
 	colorSpace?: string;

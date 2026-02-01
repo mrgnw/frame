@@ -46,8 +46,19 @@
 		"output": "Output",
 		"video": "Video",
 		"audio": "Audio",
+		"subtitles": "Sottotitoli",
 		"metadata": "Metadati",
-		"presets": "Preset"
+		"presets": "Predefiniti"
+	},
+	"subtitles": {
+		"burnIn": "Sottotitoli impressi",
+		"externalFile": "File sottotitoli esterno",
+		"selectFile": "Seleziona file .srt o .ass",
+		"clearFile": "Cancella",
+		"sourceTracks": "Tracce sorgente",
+		"none": "Nessun sottotitolo",
+		"copyAll": "Copia tutti i sottotitoli",
+		"burnInHint": "L'impressione dei sottotitoli forzerà la ricodifica del video."
 	},
 	"metadata": {
 		"mode": "Modalità metadati",
@@ -171,6 +182,9 @@
 		"errorChecking": "Errore nel controllo aggiornamenti.",
 		"visuals": "Aspetto",
 		"windowTint": "Tinta finestra",
+		"fontFamily": "Carattere",
+		"fontMono": "Mono",
+		"fontSans": "Sans",
 		"language": "Lingua"
 	},
 	"logs": {
