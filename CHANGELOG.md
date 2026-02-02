@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-02-02
+
 ### Added
 
 - **Preview Panel:** Enhanced the video playback overlay with interactive behavior.
@@ -390,7 +392,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.16.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.17.0...HEAD
+[0.17.0]: https://github.com/66HEX/frame/compare/0.16.0...0.17.0
 [0.16.0]: https://github.com/66HEX/frame/compare/0.15.0...0.16.0
 [0.15.0]: https://github.com/66HEX/frame/compare/0.14.0...0.15.0
 [0.14.0]: https://github.com/66HEX/frame/compare/0.13.1...0.14.0
