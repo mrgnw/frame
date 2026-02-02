@@ -80,7 +80,8 @@
 	let previousInitialEnd: string | undefined;
 
 	let sliderRef: HTMLDivElement | undefined = $state();
-	let dragging: 'start' | 'end' | null = null;
+	let dragging: 'start' | 'end' | 'scrub' | null = null;
+	let wasPlayingBeforeScrub = false;
 	let isHovering = $state(false);
 
 	let cropMode = $state(false);
@@ -325,10 +326,16 @@
 		const percent = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
 		const time = percent * duration;
 
+		if (dragging === 'scrub') {
+			currentTime = time;
+			if (videoRef) videoRef.currentTime = currentTime;
+			return;
+		}
+
 		if (dragging === 'start') {
 			startValue = Math.min(time, endValue - 1);
 			if (videoRef) videoRef.currentTime = startValue;
-		} else {
+		} else if (dragging === 'end') {
 			endValue = Math.max(time, startValue + 1);
 			if (videoRef) videoRef.currentTime = endValue;
 		}
@@ -336,7 +343,11 @@
 	}
 
 	function handleMouseUp() {
-		if (dragging) {
+		if (dragging === 'scrub') {
+			if (wasPlayingBeforeScrub && videoRef) {
+				videoRef.play();
+			}
+		} else if (dragging) {
 			commitTrimValues();
 		}
 		dragging = null;
@@ -353,6 +364,14 @@
 			videoRef.currentTime = time;
 			currentTime = time;
 		}
+
+		dragging = 'scrub';
+		wasPlayingBeforeScrub = isPlaying;
+		if (isPlaying && videoRef) {
+			videoRef.pause();
+		}
+		window.addEventListener('mousemove', handleMouseMove);
+		window.addEventListener('mouseup', handleMouseUp);
 	}
 
 	function updateVideoBounds() {

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Dynamic Overlay:** The play/pause overlay now automatically appears on hover during playback and remains visible when paused.
   - **Animated Transitions:** Implemented smooth Svelte fade transitions for the overlay and playback controls.
   - **Contextual Icons:** The overlay button now dynamically toggles between Play and Pause icons based on the current playback state.
+  - **Interactive Scrubbing:** Implemented full drag-to-seek (scrubbing) on the timeline slider, allowing users to precisely navigate through the video by dragging the playback indicator.
 
 ### Changed
 
