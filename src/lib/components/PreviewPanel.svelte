@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { convertFileSrc } from '@tauri-apps/api/core';
 	import {
-		Crop as CropIcon,
-		FlipHorizontal as FlipHorizontalIcon,
-		FlipVertical as FlipVerticalIcon,
-		Play,
-		RotateCw
-	} from 'lucide-svelte';
+		IconCrop as CropIcon,
+		IconFlipHorizontal as FlipHorizontalIcon,
+		IconFlipVertical as FlipVerticalIcon,
+		IconPlay,
+		IconPause2,
+		IconRotateCw
+	} from '$lib/icons';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import TimecodeInput from '$lib/components/ui/TimecodeInput.svelte';
@@ -78,7 +80,9 @@
 	let previousInitialEnd: string | undefined;
 
 	let sliderRef: HTMLDivElement | undefined = $state();
-	let dragging: 'start' | 'end' | null = null;
+	let dragging: 'start' | 'end' | 'scrub' | null = null;
+	let wasPlayingBeforeScrub = false;
+	let isHovering = $state(false);
 
 	let cropMode = $state(false);
 	let appliedCrop: CropRect | null = $state(null);
@@ -280,6 +284,8 @@
 	function handleTimeUpdate() {
 		if (videoRef) {
 			currentTime = videoRef.currentTime;
+			if (dragging) return;
+
 			if (currentTime >= endValue) {
 				videoRef.pause();
 				isPlaying = false;
@@ -322,10 +328,16 @@
 		const percent = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
 		const time = percent * duration;
 
+		if (dragging === 'scrub') {
+			currentTime = time;
+			if (videoRef) videoRef.currentTime = currentTime;
+			return;
+		}
+
 		if (dragging === 'start') {
 			startValue = Math.min(time, endValue - 1);
 			if (videoRef) videoRef.currentTime = startValue;
-		} else {
+		} else if (dragging === 'end') {
 			endValue = Math.max(time, startValue + 1);
 			if (videoRef) videoRef.currentTime = endValue;
 		}
@@ -333,7 +345,11 @@
 	}
 
 	function handleMouseUp() {
-		if (dragging) {
+		if (dragging === 'scrub') {
+			if (wasPlayingBeforeScrub && videoRef) {
+				videoRef.play();
+			}
+		} else if (dragging) {
 			commitTrimValues();
 		}
 		dragging = null;
@@ -350,6 +366,14 @@
 			videoRef.currentTime = time;
 			currentTime = time;
 		}
+
+		dragging = 'scrub';
+		wasPlayingBeforeScrub = isPlaying;
+		if (isPlaying && videoRef) {
+			videoRef.pause();
+		}
+		window.addEventListener('mousemove', handleMouseMove);
+		window.addEventListener('mouseup', handleMouseUp);
 	}
 
 	function updateVideoBounds() {
@@ -571,9 +595,11 @@
 	class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-alpha-100 bg-gray-alpha-100 p-4"
 >
 	<div
-		class="border-gray-alpha-200 relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-background"
+		class="border-gray-alpha-200 relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-black"
 		bind:this={containerRef}
 		onclick={() => !cropMode && togglePlay()}
+		onmouseenter={() => (isHovering = true)}
+		onmouseleave={() => (isHovering = false)}
 		role="presentation"
 	>
 		<div
@@ -585,7 +611,7 @@
 				<video
 					bind:this={videoRef}
 					src={videoSrc}
-					class="block h-full w-full bg-background object-contain"
+					class="block h-full w-full bg-black object-contain"
 					onloadedmetadata={handleMetadata}
 					ontimeupdate={handleTimeUpdate}
 					onplay={() => (isPlaying = true)}
@@ -649,20 +675,26 @@
 				{/if}
 			</div>
 		</div>
-		{#if !isPlaying && !cropMode}
+		{#if !cropMode && (!isPlaying || isHovering)}
 			<div
-				class="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40"
+				class="absolute inset-0 z-10 flex cursor-pointer items-center justify-center"
 				onclick={(e) => {
 					e.stopPropagation();
 					togglePlay();
 				}}
 				role="presentation"
 			>
+				<div class="absolute inset-0 bg-black/40" transition:fade={{ duration: 100 }}></div>
 				<div
-					class="bg-gray-alpha-200 flex size-16 items-center justify-center rounded-full backdrop-blur-md"
-					style="transform-origin: center;"
+					class="bg-gray-alpha-200 relative flex size-16 items-center justify-center rounded-full text-foreground shadow-sm backdrop-blur-md"
+					style="transform-origin: center; will-change: opacity; transform: translateZ(0);"
+					transition:fade={{ duration: 100 }}
 				>
-					<Play size={24} fill="currentColor" class="ml-1" />
+					{#if isPlaying}
+						<IconPause2 size={24} />
+					{:else}
+						<IconPlay size={24} />
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -774,7 +806,7 @@
 					onclick={handleRotateToggle}
 					disabled={controlsDisabled}
 				>
-					<RotateCw size={14} />
+					<IconRotateCw size={16} />
 				</Button>
 				<Button
 					size="icon"
@@ -783,7 +815,7 @@
 					onclick={() => toggleFlip('horizontal')}
 					disabled={controlsDisabled}
 				>
-					<FlipHorizontalIcon size={14} />
+					<FlipHorizontalIcon size={16} />
 				</Button>
 				<Button
 					size="icon"
@@ -792,7 +824,7 @@
 					onclick={() => toggleFlip('vertical')}
 					disabled={controlsDisabled}
 				>
-					<FlipVerticalIcon size={14} />
+					<FlipVerticalIcon size={16} />
 				</Button>
 				<Button
 					size="icon"
@@ -801,7 +833,7 @@
 					onclick={toggleCropMode}
 					disabled={controlsDisabled || !hasCropDimensions}
 				>
-					<CropIcon size={14} />
+					<CropIcon size={16} />
 				</Button>
 			</div>
 		</div>
