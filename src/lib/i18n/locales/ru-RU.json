@@ -134,7 +134,16 @@
 		"bestQuality": "Лучшее качество",
 		"lossless": "Без потерь",
 		"smallest": "Минимальный",
-		"targetBitrateKbps": "Целевой битрейт (kbps)"
+		"targetBitrateKbps": "Целевой битрейт (kbps)",
+		"nvencOptions": "Настройки NVENC",
+		"nvencSpatialAq": "Пространственный AQ",
+		"nvencSpatialAqHint": "Улучшает детализацию в сложных сценах",
+		"nvencTemporalAq": "Временной AQ",
+		"nvencTemporalAqHint": "Стабилизирует качество между кадрами",
+		"presetIncompatible": "Несовместимый кодер",
+		"videotoolboxOptions": "Настройки VideoToolbox",
+		"videotoolboxAllowSw": "Разрешить программный фолбек",
+		"videotoolboxAllowSwHint": "Переключиться на ЦП при сбое оборудования"
 	},
 	"audio": {
 		"channelsBitrate": "Каналы и битрейт",

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-02-02
+
+### Added
+
+- **AV1 Hardware Acceleration:** Added support for NVIDIA's AV1 hardware encoder (`av1_nvenc`) for compatible RTX 40-series GPUs. Integrated with the existing quality slider for consistent VBR control.
+- **Hardware Encoder Controls:** The video panel now exposes NVENC-specific AQ toggles (spatial and temporal) and a software-fallback switch for VideoToolbox, mirroring the new ffmpeg flag support.
+
+### Changed
+
+- **Preset Awareness:** Hardware encoders now only show presets they actually accept, and NVENC selections are automatically mapped to valid ffmpeg preset names to prevent failed launches with legacy user presets.
+- **FFmpeg Argument Builder:** Updated to emit the correct hardware flags (`-cq:v`/AQ options for NVENC, `-allow_sw` for VideoToolbox) and to skip unsupported parameters like `-preset` for VideoToolbox, ensuring conversions no longer fail when switching between software and hardware encoders.
+
 ## [0.17.0] - 2026-02-02
 
 ### Added
@@ -15,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Dynamic Overlay:** The play/pause overlay now automatically appears on hover during playback and remains visible when paused.
   - **Animated Transitions:** Implemented smooth Svelte fade transitions for the overlay and playback controls.
   - **Contextual Icons:** The overlay button now dynamically toggles between Play and Pause icons based on the current playback state.
+
 ### Fixed
 
 - **Preview Panel:** Resolved a frame flickering issue where the video would jump back to the start frame while adjusting the trim handles. The playback loop logic is now suppressed during active dragging to ensure a smooth frame preview.
@@ -24,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Icon System:** Migrated the entire application icon set from `lucide-svelte` to Phosphor Icons.
 - **Icon Architecture:** Implemented a central icon management system in `src/lib/icons` using a standardized "internal naming" convention (e.g., `IconPlay`, `IconTrash`, `IconClose`). This decouples UI components from specific libraries and simplifies future icon set swaps.
 - **Performance:** Converted all raw SVG icons into native Svelte 5 components with support for reactive `size` and `class` properties.
-
 
 ## [0.16.0] - 2026-02-01
 
@@ -392,7 +404,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.17.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.18.0...HEAD
+[0.18.0]: https://github.com/66HEX/frame/compare/0.17.0...0.18.0
 [0.17.0]: https://github.com/66HEX/frame/compare/0.16.0...0.17.0
 [0.16.0]: https://github.com/66HEX/frame/compare/0.15.0...0.16.0
 [0.15.0]: https://github.com/66HEX/frame/compare/0.14.0...0.15.0

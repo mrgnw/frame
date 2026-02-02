@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { ConversionConfig } from '$lib/types';
+	import { cn } from '$lib/utils/cn';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ListItem from '$lib/components/ui/ListItem.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import Slider from '$lib/components/ui/Slider.svelte';
+	import Checkbox from '$lib/components/ui/Checkbox.svelte';
 	import { capabilities } from '$lib/stores/capabilities.svelte';
 	import { _ } from '$lib/i18n';
 
@@ -18,7 +20,8 @@
 		{ id: 'h264_videotoolbox', label: 'H.264 (Apple Silicon)' },
 		{ id: 'h264_nvenc', label: 'H.264 (NVIDIA)' },
 		{ id: 'hevc_videotoolbox', label: 'H.265 (Apple Silicon)' },
-		{ id: 'hevc_nvenc', label: 'H.265 (NVIDIA)' }
+		{ id: 'hevc_nvenc', label: 'H.265 (NVIDIA)' },
+		{ id: 'av1_nvenc', label: 'AV1 (NVIDIA)' }
 	] as const;
 
 	const availableCodecs = $derived(
@@ -27,6 +30,7 @@
 			if (codec.id === 'h264_nvenc') return capabilities.encoders.h264_nvenc;
 			if (codec.id === 'hevc_videotoolbox') return capabilities.encoders.hevc_videotoolbox;
 			if (codec.id === 'hevc_nvenc') return capabilities.encoders.hevc_nvenc;
+			if (codec.id === 'av1_nvenc') return capabilities.encoders.av1_nvenc;
 			return true;
 		})
 	);
@@ -42,6 +46,9 @@
 		'slower',
 		'veryslow'
 	] as const;
+	const NVENC_ALLOWED_PRESETS = new Set(['fast', 'medium', 'slow']);
+	const NVENC_ENCODERS = new Set(['h264_nvenc', 'hevc_nvenc', 'av1_nvenc']);
+	const VIDEOTOOLBOX_ENCODERS = new Set(['h264_videotoolbox', 'hevc_videotoolbox']);
 
 	const SCALING_ALGOS = ['bicubic', 'lanczos', 'bilinear', 'nearest'] as const;
 
@@ -57,12 +64,44 @@
 		onUpdate: (config: Partial<ConversionConfig>) => void;
 	} = $props();
 
-	const isHardwareEncoder = $derived(
-		config.videoCodec === 'h264_videotoolbox' ||
-			config.videoCodec === 'h264_nvenc' ||
-			config.videoCodec === 'hevc_videotoolbox' ||
-			config.videoCodec === 'hevc_nvenc'
-	);
+	const isNvencEncoder = $derived(NVENC_ENCODERS.has(config.videoCodec));
+	const isVideotoolboxEncoder = $derived(VIDEOTOOLBOX_ENCODERS.has(config.videoCodec));
+	const isHardwareEncoder = $derived(isNvencEncoder || isVideotoolboxEncoder);
+	const presetOptions = PRESETS;
+
+	function isPresetAllowed(codec: string, preset: (typeof PRESETS)[number]) {
+		if (VIDEOTOOLBOX_ENCODERS.has(codec)) {
+			return false;
+		}
+		if (NVENC_ENCODERS.has(codec)) {
+			return NVENC_ALLOWED_PRESETS.has(preset);
+		}
+		return true;
+	}
+
+	function firstAllowedPreset(codec: string) {
+		return PRESETS.find((preset) => isPresetAllowed(codec, preset));
+	}
+
+	$effect(() => {
+		const fallback = firstAllowedPreset(config.videoCodec);
+		if (!fallback) return;
+		if (!isPresetAllowed(config.videoCodec, config.preset as (typeof PRESETS)[number])) {
+			onUpdate({ preset: fallback });
+		}
+	});
+
+	function toggleNvencOption(
+		field: keyof Pick<ConversionConfig, 'nvencSpatialAq' | 'nvencTemporalAq'>
+	) {
+		if (disabled) return;
+		onUpdate({ [field]: !config[field] } as Partial<ConversionConfig>);
+	}
+
+	function toggleVideotoolboxAllowSw() {
+		if (disabled) return;
+		onUpdate({ videotoolboxAllowSw: !config.videotoolboxAllowSw });
+	}
 </script>
 
 <div class="space-y-4">
@@ -168,14 +207,22 @@
 	<div class="space-y-3 pt-2">
 		<Label variant="section">{$_('video.encodingSpeed')}</Label>
 		<div class="grid grid-cols-1">
-			{#each PRESETS as preset (preset)}
+			{#each presetOptions as preset (preset)}
+				{@const allowed = isPresetAllowed(config.videoCodec, preset)}
 				<ListItem
-					selected={config.preset === preset}
-					onclick={() => onUpdate({ preset: preset })}
-					{disabled}
+					selected={allowed && config.preset === preset}
+					onclick={() => allowed && onUpdate({ preset })}
+					disabled={disabled || !allowed}
+					class={cn(!allowed && 'pointer-events-none opacity-50')}
 				>
 					<span>{$_(`encodingSpeed.${preset}`)}</span>
-					<span class="text-[9px] opacity-50">{$_(`encodingSpeed.${preset}Desc`)}</span>
+					<span class="text-[9px] opacity-50">
+						{#if allowed}
+							{$_(`encodingSpeed.${preset}Desc`)}
+						{:else}
+							{$_('video.presetIncompatible')}
+						{/if}
+					</span>
 				</ListItem>
 			{/each}
 		</div>
@@ -272,6 +319,64 @@
 					}}
 					{disabled}
 				/>
+			</div>
+		</div>
+	{/if}
+
+	{#if isNvencEncoder}
+		<div class="space-y-3 pt-2">
+			<Label variant="section">{$_('video.nvencOptions')}</Label>
+			<div class="space-y-2">
+				<div class="flex items-start gap-2">
+					<Checkbox
+						id="nvenc-spatial-aq"
+						checked={config.nvencSpatialAq}
+						onchange={() => toggleNvencOption('nvencSpatialAq')}
+						{disabled}
+					/>
+					<div class="space-y-0.5">
+						<Label for="nvenc-spatial-aq">{$_('video.nvencSpatialAq')}</Label>
+						<p class="text-gray-alpha-600 text-[9px] uppercase">
+							{$_('video.nvencSpatialAqHint')}
+						</p>
+					</div>
+				</div>
+				<div class="flex items-start gap-2">
+					<Checkbox
+						id="nvenc-temporal-aq"
+						checked={config.nvencTemporalAq}
+						onchange={() => toggleNvencOption('nvencTemporalAq')}
+						{disabled}
+					/>
+					<div class="space-y-0.5">
+						<Label for="nvenc-temporal-aq">{$_('video.nvencTemporalAq')}</Label>
+						<p class="text-gray-alpha-600 text-[9px] uppercase">
+							{$_('video.nvencTemporalAqHint')}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if isVideotoolboxEncoder}
+		<div class="space-y-3 pt-2">
+			<Label variant="section">{$_('video.videotoolboxOptions')}</Label>
+			<div class="space-y-2">
+				<div class="flex items-start gap-2">
+					<Checkbox
+						id="videotoolbox-allow-sw"
+						checked={config.videotoolboxAllowSw}
+						onchange={toggleVideotoolboxAllowSw}
+						{disabled}
+					/>
+					<div class="space-y-0.5">
+						<Label for="videotoolbox-allow-sw">{$_('video.videotoolboxAllowSw')}</Label>
+						<p class="text-gray-alpha-600 text-[9px] uppercase">
+							{$_('video.videotoolboxAllowSwHint')}
+						</p>
+					</div>
+				</div>
 			</div>
 		</div>
 	{/if}

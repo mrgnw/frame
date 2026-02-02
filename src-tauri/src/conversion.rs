@@ -116,6 +116,25 @@ pub(crate) fn is_audio_only_container(container: &str) -> bool {
     )
 }
 
+fn is_nvenc_codec(codec: &str) -> bool {
+    matches!(codec, "h264_nvenc" | "hevc_nvenc" | "av1_nvenc")
+}
+
+fn is_videotoolbox_codec(codec: &str) -> bool {
+    matches!(codec, "h264_videotoolbox" | "hevc_videotoolbox")
+}
+
+fn map_nvenc_preset(preset: &str) -> String {
+    match preset {
+        "fast" | "medium" | "slow" => preset.to_string(),
+        "default" => "default".to_string(),
+        "p1" | "p2" | "p3" | "p4" | "p5" | "p6" | "p7" => preset.to_string(),
+        "ultrafast" | "superfast" | "veryfast" | "faster" => "fast".to_string(),
+        "slower" | "veryslow" => "slow".to_string(),
+        _ => "medium".to_string(),
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum ConversionError {
     #[error("Shell command failed: {0}")]
@@ -456,6 +475,12 @@ pub struct ConversionConfig {
     pub flip_vertical: bool,
     #[serde(default)]
     pub crop: Option<CropConfig>,
+    #[serde(default)]
+    pub nvenc_spatial_aq: bool,
+    #[serde(default)]
+    pub nvenc_temporal_aq: bool,
+    #[serde(default)]
+    pub videotoolbox_allow_sw: bool,
 }
 
 fn default_rotation() -> String {
@@ -618,6 +643,8 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
     }
 
     let is_audio_only = is_audio_only_container(&config.container);
+    let is_nvenc = is_nvenc_codec(&config.video_codec);
+    let is_videotoolbox = is_videotoolbox_codec(&config.video_codec);
 
     if is_audio_only {
         args.push("-vn".to_string());
@@ -628,7 +655,7 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
         if config.video_bitrate_mode == "bitrate" {
             args.push("-b:v".to_string());
             args.push(format!("{}k", config.video_bitrate));
-        } else if config.video_codec == "h264_nvenc" || config.video_codec == "hevc_nvenc" {
+        } else if is_nvenc {
             // NVENC uses -rc:v vbr and -cq:v (1-51), where 1 is best.
             // Map Quality (1-100, 100 best) to CQ (51-1).
             let cq = (52.0 - (config.quality as f64 / 2.0))
@@ -638,9 +665,7 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             args.push("vbr".to_string());
             args.push("-cq:v".to_string());
             args.push(cq.to_string());
-        } else if config.video_codec == "h264_videotoolbox"
-            || config.video_codec == "hevc_videotoolbox"
-        {
+        } else if is_videotoolbox {
             // VideoToolbox uses -q:v (1-100), where 100 is best.
             args.push("-q:v".to_string());
             args.push(config.quality.to_string());
@@ -649,8 +674,33 @@ pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -
             args.push(config.crf.to_string());
         }
 
-        args.push("-preset".to_string());
-        args.push(config.preset.clone());
+        if !is_videotoolbox {
+            args.push("-preset".to_string());
+            let preset_value = if is_nvenc {
+                map_nvenc_preset(&config.preset)
+            } else {
+                config.preset.clone()
+            };
+            args.push(preset_value);
+        }
+
+        if is_nvenc {
+            if config.nvenc_spatial_aq {
+                args.push("-spatial_aq".to_string());
+                args.push("1".to_string());
+            }
+            if config.nvenc_temporal_aq {
+                args.push("-temporal_aq".to_string());
+                args.push("1".to_string());
+            }
+        }
+
+        if is_videotoolbox {
+            if config.videotoolbox_allow_sw {
+                args.push("-allow_sw".to_string());
+                args.push("1".to_string());
+            }
+        }
 
         let mut video_filters = Vec::new();
 
@@ -1265,6 +1315,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         };
 
         let args = build_ffmpeg_args("input.mov", "output.mp4", &config);
@@ -1311,6 +1364,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         };
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
 
@@ -1348,6 +1404,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         };
 
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
@@ -1386,6 +1445,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         };
         let args = build_ffmpeg_args("raw.mov", "archive.mkv", &config);
 
@@ -1426,6 +1488,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         };
         let args = build_ffmpeg_args("clip.mp4", "web.webm", &config);
 
@@ -1486,6 +1551,9 @@ mod tests {
             flip_horizontal: false,
             flip_vertical: false,
             crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
         }
     }
 
@@ -1543,12 +1611,17 @@ mod tests {
         assert!(contains_args(&args, &["-c:v", "h264_nvenc"]));
         assert!(contains_args(&args, &["-rc:v", "vbr"]));
         assert!(contains_args(&args, &["-cq:v", "27"]));
+        assert!(contains_args(&args, &["-preset", "medium"]));
         assert!(!args.iter().any(|a| a == "-crf"));
 
         config.video_codec = "hevc_nvenc".into();
         let args_hevc = build_ffmpeg_args("in.mp4", "out.mp4", &config);
         assert!(contains_args(&args_hevc, &["-c:v", "hevc_nvenc"]));
         assert!(contains_args(&args_hevc, &["-cq:v", "27"]));
+
+        config.preset = "veryslow".into();
+        let args_remapped = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+        assert!(contains_args(&args_remapped, &["-preset", "slow"]));
     }
 
     #[test]
@@ -1562,11 +1635,34 @@ mod tests {
         assert!(contains_args(&args, &["-c:v", "h264_videotoolbox"]));
         assert!(contains_args(&args, &["-q:v", "55"]));
         assert!(!args.iter().any(|a| a == "-crf"));
+        assert!(!args.iter().any(|a| a == "-preset"));
 
         config.video_codec = "hevc_videotoolbox".into();
         let args_hevc = build_ffmpeg_args("in.mov", "out.mov", &config);
         assert!(contains_args(&args_hevc, &["-c:v", "hevc_videotoolbox"]));
         assert!(contains_args(&args_hevc, &["-q:v", "55"]));
+    }
+
+    #[test]
+    fn test_nvenc_option_flags() {
+        let mut config = sample_config("mp4");
+        config.video_codec = "h264_nvenc".into();
+        config.nvenc_spatial_aq = true;
+        config.nvenc_temporal_aq = true;
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+        assert!(contains_args(&args, &["-spatial_aq", "1"]));
+        assert!(contains_args(&args, &["-temporal_aq", "1"]));
+    }
+
+    #[test]
+    fn test_videotoolbox_option_flags() {
+        let mut config = sample_config("mov");
+        config.video_codec = "h264_videotoolbox".into();
+        config.videotoolbox_allow_sw = true;
+
+        let args = build_ffmpeg_args("in.mov", "out.mov", &config);
+        assert!(contains_args(&args, &["-allow_sw", "1"]));
     }
 
     #[test]

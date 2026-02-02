@@ -134,7 +134,16 @@
 		"bestQuality": "Beste Qualität",
 		"lossless": "Verlustfrei",
 		"smallest": "Kleinste",
-		"targetBitrateKbps": "Ziel-Bitrate (kbps)"
+		"targetBitrateKbps": "Ziel-Bitrate (kbps)",
+		"nvencOptions": "NVENC-Optionen",
+		"nvencSpatialAq": "Räumliche AQ",
+		"nvencSpatialAqHint": "Verbessert Details in Szenen mit hoher Komplexität",
+		"nvencTemporalAq": "Zeitliche AQ",
+		"nvencTemporalAqHint": "Stabilisiert die Qualität zwischen Frames",
+		"presetIncompatible": "Inkompatibler Encoder",
+		"videotoolboxOptions": "VideoToolbox-Optionen",
+		"videotoolboxAllowSw": "Software-Fallback erlauben",
+		"videotoolboxAllowSwHint": "Zurück zur CPU-Kodierung, falls Hardware ausfällt"
 	},
 	"audio": {
 		"channelsBitrate": "Kanäle & Bitrate",

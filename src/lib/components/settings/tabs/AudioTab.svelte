@@ -34,6 +34,8 @@
 		metadata?: SourceMetadata;
 	} = $props();
 
+	const isLossless = $derived(['flac', 'alac', 'pcm_s16le'].includes(config.audioCodec));
+
 	function toggleTrack(index: number) {
 		if (disabled) return;
 		const current = config.selectedAudioTracks || [];
@@ -80,18 +82,14 @@
 					id="audio-bitrate"
 					type="text"
 					inputmode="numeric"
-					value={config.audioBitrate}
+					value={isLossless ? '' : config.audioBitrate}
+					placeholder={isLossless ? $_('audio.bitrateIgnored') : ''}
 					oninput={(e) => {
 						const value = e.currentTarget.value.replace(/[^0-9]/g, '');
 						onUpdate({ audioBitrate: value });
 					}}
-					disabled={disabled || ['flac', 'alac', 'pcm_s16le'].includes(config.audioCodec)}
+					disabled={disabled || isLossless}
 				/>
-				{#if ['flac', 'alac', 'pcm_s16le'].includes(config.audioCodec)}
-					<p class="text-gray-alpha-600 text-[9px] uppercase">
-						{$_('audio.bitrateIgnored')}
-					</p>
-				{/if}
 			</div>
 
 			<div class="space-y-2 pt-1">

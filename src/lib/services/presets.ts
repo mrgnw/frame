@@ -38,7 +38,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -72,7 +75,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -106,7 +112,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -140,7 +149,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -174,7 +186,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -208,7 +223,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -242,7 +260,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -278,7 +299,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -312,7 +336,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -348,7 +375,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -382,7 +412,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -418,7 +451,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	},
 	{
@@ -452,7 +488,10 @@ export const DEFAULT_PRESETS: PresetDefinition[] = [
 			rotation: '0',
 			flipHorizontal: false,
 			flipVertical: false,
-			crop: null
+			crop: null,
+			nvencSpatialAq: false,
+			nvencTemporalAq: false,
+			videotoolboxAllowSw: false
 		}
 	}
 ];

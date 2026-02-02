@@ -134,7 +134,16 @@
 		"bestQuality": "Migliore qualità",
 		"lossless": "Lossless",
 		"smallest": "Più piccolo",
-		"targetBitrateKbps": "Bitrate target (kbps)"
+		"targetBitrateKbps": "Bitrate target (kbps)",
+		"nvencOptions": "Opzioni NVENC",
+		"nvencSpatialAq": "AQ Spaziale",
+		"nvencSpatialAqHint": "Migliora i dettagli nelle scene complesse",
+		"nvencTemporalAq": "AQ Temporale",
+		"nvencTemporalAqHint": "Stabilizza la qualità tra i fotogrammi",
+		"presetIncompatible": "Encoder incompatibile",
+		"videotoolboxOptions": "Opzioni VideoToolbox",
+		"videotoolboxAllowSw": "Consenti fallback software",
+		"videotoolboxAllowSwHint": "Passa alla codifica CPU se l'hardware fallisce"
 	},
 	"audio": {
 		"channelsBitrate": "Canali e bitrate",

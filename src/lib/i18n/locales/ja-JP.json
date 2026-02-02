@@ -134,7 +134,16 @@
 		"bestQuality": "最高品質",
 		"lossless": "ロスレス",
 		"smallest": "最小",
-		"targetBitrateKbps": "目標ビットレート (kbps)"
+		"targetBitrateKbps": "目標ビットレート (kbps)",
+		"nvencOptions": "NVENCオプション",
+		"nvencSpatialAq": "空間AQ",
+		"nvencSpatialAqHint": "複雑なシーンの細部を改善します",
+		"nvencTemporalAq": "時間AQ",
+		"nvencTemporalAqHint": "フレーム間の品質を安定させます",
+		"presetIncompatible": "互換性のないエンコーダー",
+		"videotoolboxOptions": "VideoToolboxオプション",
+		"videotoolboxAllowSw": "ソフトウェアフォールバックを許可",
+		"videotoolboxAllowSwHint": "ハードウェアが失敗した場合にCPUエンコードに戻ります"
 	},
 	"audio": {
 		"channelsBitrate": "チャンネルとビットレート",

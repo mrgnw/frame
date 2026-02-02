@@ -134,7 +134,16 @@
 		"bestQuality": "최고 품질",
 		"lossless": "무손실",
 		"smallest": "최소",
-		"targetBitrateKbps": "목표 비트레이트 (kbps)"
+		"targetBitrateKbps": "목표 비트레이트 (kbps)",
+		"nvencOptions": "NVENC 옵션",
+		"nvencSpatialAq": "공간 AQ",
+		"nvencSpatialAqHint": "복잡한 장면의 디테일 향상",
+		"nvencTemporalAq": "시간 AQ",
+		"nvencTemporalAqHint": "프레임 간 품질 안정화",
+		"presetIncompatible": "호환되지 않는 인코더",
+		"videotoolboxOptions": "VideoToolbox 옵션",
+		"videotoolboxAllowSw": "소프트웨어 폴백 허용",
+		"videotoolboxAllowSwHint": "하드웨어 실패 시 CPU 인코딩으로 전환"
 	},
 	"audio": {
 		"channelsBitrate": "채널 및 비트레이트",

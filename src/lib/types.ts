@@ -63,6 +63,9 @@ export interface ConversionConfig {
 	flipHorizontal: boolean;
 	flipVertical: boolean;
 	crop?: CropSettings | null;
+	nvencSpatialAq: boolean;
+	nvencTemporalAq: boolean;
+	videotoolboxAllowSw: boolean;
 }
 
 export type MetadataMode = 'preserve' | 'clean' | 'replace';
