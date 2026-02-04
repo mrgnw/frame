@@ -595,7 +595,7 @@
 	class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-alpha-100 bg-gray-alpha-100 p-4"
 >
 	<div
-		class="border-gray-alpha-200 relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-black"
+		class="relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-alpha-200 bg-black"
 		bind:this={containerRef}
 		onclick={() => !cropMode && togglePlay()}
 		onmouseenter={() => (isHovering = true)}
@@ -686,7 +686,7 @@
 			>
 				<div class="absolute inset-0 bg-black/40" transition:fade={{ duration: 100 }}></div>
 				<div
-					class="bg-gray-alpha-200 relative flex size-16 items-center justify-center rounded-full text-foreground shadow-sm backdrop-blur-md"
+					class="relative flex size-16 items-center justify-center rounded-full bg-gray-alpha-200 text-foreground shadow-sm backdrop-blur-md"
 					style="transform-origin: center; will-change: opacity; transform: translateZ(0);"
 					transition:fade={{ duration: 100 }}
 				>
@@ -700,7 +700,7 @@
 		{/if}
 		{#if cropMode && draftCrop}
 			<div
-				class="border-gray-alpha-200 pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md border bg-background p-1 text-[10px] font-medium uppercase shadow-xl"
+				class="pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md border border-gray-alpha-200 bg-background p-1 text-[10px] font-medium uppercase shadow-xl"
 			>
 				{#each ASPECT_OPTIONS as option (option.id)}
 					<Button
@@ -711,7 +711,7 @@
 						{option.labelKey ? $_(option.labelKey) : option.display}
 					</Button>
 				{/each}
-				<div class="bg-gray-alpha-200 h-4 w-px"></div>
+				<div class="h-4 w-px bg-gray-alpha-200"></div>
 				<Button size="sm" variant="ghost" onclick={resetCropSelection}>{$_('crop.reset')}</Button>
 				<Button size="sm" onclick={applyCrop} disabled={!draftCrop || !hasCropDimensions}>
 					{$_('crop.apply')}
@@ -734,35 +734,35 @@
 				class="pointer-events-none absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-gray-alpha-100"
 			>
 				<div
-					class="bg-gray-alpha-200 absolute h-full"
+					class="absolute h-full bg-gray-alpha-200"
 					style="left: {(startValue / duration) * 100}%; right: {100 -
 						(endValue / duration) * 100}%;"
 				></div>
 			</div>
 
 			<div
-				class="bg-gray-alpha-600 pointer-events-none absolute top-1/2 z-10 h-4 w-0.5 -translate-y-1/2"
+				class="pointer-events-none absolute top-1/2 z-10 h-4 w-0.5 -translate-y-1/2 bg-gray-alpha-600"
 				style="left: {(currentTime / duration) * 100}%"
 			></div>
 
 			<div
-				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full border border-ds-blue-600 bg-background shadow-lg"
+				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full border border-blue-600 bg-background shadow-lg"
 				class:cursor-ew-resize={!controlsDisabled}
 				style="left: {(startValue / duration) * 100}%"
 				role="presentation"
 				onmousedown={(e) => !controlsDisabled && handleMouseDown(e, 'start')}
 			>
-				<div class="h-1.5 w-1.5 rounded-full bg-ds-blue-600"></div>
+				<div class="h-1.5 w-1.5 rounded-full bg-blue-600"></div>
 			</div>
 
 			<div
-				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full border border-ds-blue-600 bg-background shadow-lg"
+				class="absolute top-1/2 z-20 -ml-2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full border border-blue-600 bg-background shadow-lg"
 				class:cursor-ew-resize={!controlsDisabled}
 				style="left: {(endValue / duration) * 100}%"
 				role="presentation"
 				onmousedown={(e) => !controlsDisabled && handleMouseDown(e, 'end')}
 			>
-				<div class="h-1.5 w-1.5 rounded-full bg-ds-blue-600"></div>
+				<div class="h-1.5 w-1.5 rounded-full bg-blue-600"></div>
 			</div>
 		</div>
 

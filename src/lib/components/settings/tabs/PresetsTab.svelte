@@ -137,7 +137,7 @@
 			<span
 				class={cn(
 					'absolute top-0 right-0 text-[9px] tracking-wide uppercase',
-					notice.tone === 'error' ? 'text-ds-red-700' : 'text-ds-blue-600'
+					notice.tone === 'error' ? 'text-red-700' : 'text-blue-600'
 				)}
 			>
 				{notice.text}

@@ -94,14 +94,14 @@
 
 <div class="space-y-6">
 	{#if status === 'loading'}
-		<div class="text-gray-alpha-600 text-[11px] tracking-wide uppercase">
+		<div class="text-[11px] tracking-wide text-gray-alpha-600 uppercase">
 			{$_('source.analyzing')}
 		</div>
 	{:else if status === 'error'}
-		<div class="space-y-1 text-[11px] tracking-wide text-ds-red-700 uppercase">
+		<div class="space-y-1 text-[11px] tracking-wide text-red-700 uppercase">
 			<p>{$_('source.failedToRead')}</p>
 			{#if error}
-				<p class="text-gray-alpha-600 text-[10px] normal-case">
+				<p class="text-[10px] text-gray-alpha-600 normal-case">
 					{error}
 				</p>
 			{/if}
@@ -164,7 +164,7 @@
 					{#each metadata.audioTracks as track, i (track.index)}
 						<div class="space-y-2">
 							<div class="flex items-center gap-2">
-								<span class="text-[9px] font-bold tracking-widest text-ds-blue-600 uppercase"
+								<span class="text-[9px] font-bold tracking-widest text-blue-600 uppercase"
 									>{$_('source.track')} #{i + 1}</span
 								>
 								<div class="h-px flex-1 bg-gray-alpha-100"></div>
@@ -197,7 +197,7 @@
 			</div>
 		{/if}
 	{:else}
-		<div class="text-gray-alpha-600 text-[11px] tracking-wide uppercase">
+		<div class="text-[11px] tracking-wide text-gray-alpha-600 uppercase">
 			{$_('source.unavailable')}
 		</div>
 	{/if}

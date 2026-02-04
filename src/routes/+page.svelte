@@ -625,9 +625,9 @@
 		>
 			<div
 				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
-				class="flex h-36 w-72 flex-col items-center justify-center rounded-lg border border-dashed border-ds-blue-600 bg-ds-blue-900/20 shadow-2xl backdrop-blur-sm"
+				class="flex h-36 w-72 flex-col items-center justify-center rounded-lg border border-dashed border-blue-600 bg-blue-900/20 shadow-2xl backdrop-blur-sm"
 			>
-				<p class="text-[10px] font-medium tracking-widest text-ds-blue-500 uppercase">
+				<p class="text-[10px] font-medium tracking-widest text-blue-500 uppercase">
 					{$_('fileList.importSource')}
 				</p>
 			</div>
@@ -641,19 +641,19 @@
 		>
 			<div
 				transition:scale={{ start: 1.05, duration: 100, opacity: 1 }}
-				class="flex w-100 flex-col gap-4 rounded-lg border border-ds-blue-600 bg-ds-blue-900/20 p-3 shadow-2xl backdrop-blur-sm"
+				class="flex w-100 flex-col gap-4 rounded-lg border border-blue-600 bg-blue-900/20 p-3 shadow-2xl backdrop-blur-sm"
 			>
 				<div>
 					<Label variant="section" class="text-foreground">{$_('update.available')}</Label>
 
-					<p class="text-gray-alpha-600 text-[10px] font-medium tracking-wide uppercase">
+					<p class="text-[10px] font-medium tracking-wide text-gray-alpha-600 uppercase">
 						{$_('update.versionAvailable', { values: { version: updateStore.version } })}
 					</p>
 				</div>
 
 				{#if updateStore.body}
 					<div
-						class="markdown-content text-gray-alpha-600 max-h-35 overflow-y-auto rounded bg-gray-alpha-100 p-3 text-xs tracking-wide uppercase"
+						class="markdown-content max-h-35 overflow-y-auto rounded bg-gray-alpha-100 p-3 text-xs tracking-wide text-gray-alpha-600 uppercase"
 					>
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html marked.parse(updateStore.body)}
@@ -661,20 +661,20 @@
 				{/if}
 
 				{#if updateStore.error}
-					<div class="text-xs text-ds-red-600">
+					<div class="text-xs text-red-600">
 						{updateStore.error}
 					</div>
 				{/if}
 
 				{#if updateStore.isInstalling}
 					<div class="space-y-1">
-						<div class="bg-gray-alpha-200 h-1 w-full overflow-hidden rounded-full">
+						<div class="h-1 w-full overflow-hidden rounded-full bg-gray-alpha-200">
 							<div
-								class="h-full bg-ds-blue-600 transition-all duration-300"
+								class="h-full bg-blue-600 transition-all duration-300"
 								style="width: {updateStore.progress}%"
 							></div>
 						</div>
-						<p class="text-gray-alpha-600 text-right text-[10px]">
+						<p class="text-right text-[10px] text-gray-alpha-600">
 							{Math.round(updateStore.progress)}%
 						</p>
 					</div>

@@ -58,11 +58,11 @@
 		</div>
 
 		<div class="col-span-2 text-right">
-			<span class="text-gray-alpha-600 text-[13px]">{formatSize(item.size)}</span>
+			<span class="text-[13px] text-gray-alpha-600">{formatSize(item.size)}</span>
 		</div>
 
 		<div class="col-span-2 text-right">
-			<span class="text-gray-alpha-600 text-[13px] uppercase">{item.originalFormat}</span>
+			<span class="text-[13px] text-gray-alpha-600 uppercase">{item.originalFormat}</span>
 		</div>
 
 		<div class="col-span-2 text-right">
@@ -70,17 +70,17 @@
 				<span
 					class={cn(
 						'text-[13px]',
-						item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-ds-amber-800'
+						item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-amber-800'
 					)}>{Math.round(item.progress)}%</span
 				>
 			{:else if item.status === FileStatus.COMPLETED}
-				<span class="text-[13px] text-ds-blue-600">{$_('fileStatus.ready')}</span>
+				<span class="text-[13px] text-blue-600">{$_('fileStatus.ready')}</span>
 			{:else if item.status === FileStatus.QUEUED}
-				<span class="text-gray-alpha-600 text-[13px]">{$_('fileStatus.queued')}</span>
+				<span class="text-[13px] text-gray-alpha-600">{$_('fileStatus.queued')}</span>
 			{:else if item.status === FileStatus.ERROR}
-				<span class="text-[13px] text-ds-red-600">{$_('fileStatus.error')}</span>
+				<span class="text-[13px] text-red-600">{$_('fileStatus.error')}</span>
 			{:else}
-				<span class="text-gray-alpha-600 text-[13px]">{$_('fileStatus.idle')}</span>
+				<span class="text-[13px] text-gray-alpha-600">{$_('fileStatus.idle')}</span>
 			{/if}
 		</div>
 	</div>
@@ -117,7 +117,7 @@
 				variant="destructive"
 				size="none"
 				disabled={item.status === FileStatus.CONVERTING}
-				class="text-gray-alpha-600 h-4 w-4 hover:bg-transparent hover:text-ds-red-600 disabled:pointer-events-none disabled:opacity-50"
+				class="h-4 w-4 text-gray-alpha-600 hover:bg-transparent hover:text-red-600 disabled:pointer-events-none disabled:opacity-50"
 			>
 				<IconTrash size={16} />
 			</Button>
