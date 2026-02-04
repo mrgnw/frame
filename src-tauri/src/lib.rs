@@ -125,13 +125,13 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(StoreBuilder::new().build())
         .invoke_handler(tauri::generate_handler![
-            conversion::queue_conversion,
-            conversion::pause_conversion,
-            conversion::resume_conversion,
-            conversion::cancel_conversion,
-            conversion::probe_media,
-            conversion::get_max_concurrency,
-            conversion::set_max_concurrency,
+            conversion::commands::queue_conversion,
+            conversion::commands::pause_conversion,
+            conversion::commands::resume_conversion,
+            conversion::commands::cancel_conversion,
+            conversion::commands::probe_media,
+            conversion::commands::get_max_concurrency,
+            conversion::commands::set_max_concurrency,
             capabilities::get_available_encoders,
             dialog::open_native_file_dialog,
             close_splash
