@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Features Architecture:** Introduced a new modular architecture in `src/lib/features/` to separate business logic from UI components.
+  - `conversion`: Logic for queue management, presets, and conversion progress.
+  - `files`: Logic for file list management and drag-and-drop operations.
+  - `update`: Logic for app update checks and installation.
+- **Component Reorganization:** Improved project structure by organizing components into logical subdirectories (`file-list`, `layout`, `logs`).
+- **Unified Exports:** Implemented index files for feature modules and component groups to simplify imports and improve maintainability.
+
+### Fixed
+- **UI Contrast:** Fixed text contrast in `LogsView` to improve readability.
+
 ## [0.18.1] - 2026-02-05
 
 ### Added
