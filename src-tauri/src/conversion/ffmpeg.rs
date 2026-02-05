@@ -8,10 +8,9 @@ use tokio::sync::mpsc;
 use crate::conversion::error::ConversionError;
 use crate::conversion::manager::ManagerMessage;
 use crate::conversion::types::{
-    CompletedPayload, ConversionConfig, ConversionTask, ErrorPayload, LogPayload,
-    MetadataConfig, MetadataMode, ProgressPayload, VOLUME_EPSILON,
+    CompletedPayload, ConversionConfig, ConversionTask, ErrorPayload, LogPayload, MetadataConfig,
+    MetadataMode, ProgressPayload, VOLUME_EPSILON,
 };
-
 
 pub(crate) fn parse_frame_rate_string(value: Option<&str>) -> Option<f64> {
     let value = value?.trim();
@@ -79,7 +78,6 @@ fn parse_time(time_str: &str) -> Option<f64> {
     let s: f64 = parts[2].parse().ok()?;
     Some(h * 3600.0 + m * 60.0 + s)
 }
-
 
 pub fn build_ffmpeg_args(input: &str, output: &str, config: &ConversionConfig) -> Vec<String> {
     let mut args = Vec::new();
@@ -379,7 +377,6 @@ fn add_metadata_flags(args: &mut Vec<String>, metadata: &MetadataConfig) {
     }
 }
 
-
 pub fn build_output_path(file_path: &str, container: &str, output_name: Option<String>) -> String {
     if let Some(custom) = output_name.and_then(|name| {
         let trimmed = name.trim();
@@ -404,8 +401,10 @@ pub fn build_output_path(file_path: &str, container: &str, output_name: Option<S
     }
 }
 
-
-pub fn validate_task_input(file_path: &str, config: &ConversionConfig) -> Result<(), ConversionError> {
+pub fn validate_task_input(
+    file_path: &str,
+    config: &ConversionConfig,
+) -> Result<(), ConversionError> {
     let input_path = Path::new(file_path);
     if !input_path.exists() {
         return Err(ConversionError::InvalidInput(format!(
@@ -460,7 +459,6 @@ pub fn validate_task_input(file_path: &str, config: &ConversionConfig) -> Result
 
     Ok(())
 }
-
 
 pub async fn run_ffmpeg_worker(
     app: AppHandle,

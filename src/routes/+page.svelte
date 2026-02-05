@@ -97,7 +97,7 @@
 
 	// Error dialog handler - needs to stay here for i18n context
 	$effect(() => {
-		const files = fileListManager.files;
+		void fileListManager.files;
 		// This effect set up separately to show error dialogs
 	});
 

@@ -195,8 +195,9 @@ pub async fn ask_native_dialog<R: Runtime>(
 
     match (options.ok_label, options.cancel_label) {
         (Some(ok), Some(cancel)) => {
-            dialog_builder = dialog_builder
-                .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(ok, cancel));
+            dialog_builder = dialog_builder.buttons(
+                tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(ok, cancel),
+            );
         }
         (Some(ok), None) => {
             dialog_builder =
