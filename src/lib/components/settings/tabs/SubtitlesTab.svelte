@@ -68,7 +68,7 @@
 					<span
 						class={cn(
 							'truncate uppercase',
-							config.subtitleBurnPath ? 'text-foreground' : 'text-gray-alpha-400'
+							config.subtitleBurnPath ? 'text-foreground' : 'text-gray-alpha-600'
 						)}
 					>
 						{config.subtitleBurnPath
@@ -82,7 +82,7 @@
 						<Button
 							variant="destructive"
 							size="none"
-							class="text-gray-alpha-600 h-4 w-4 hover:bg-transparent hover:text-ds-red-600 disabled:pointer-events-none disabled:opacity-50"
+							class="h-4 w-4 text-gray-alpha-600 hover:bg-transparent hover:text-red-600 disabled:pointer-events-none disabled:opacity-50"
 							onclick={(e) => {
 								e.stopPropagation();
 								clearExternalSubtitle();
@@ -95,7 +95,7 @@
 					</div>
 				{/if}
 			</div>
-			<p class="text-gray-alpha-600 text-[9px] uppercase">
+			<p class="text-[9px] text-gray-alpha-600 uppercase">
 				{$_('subtitles.burnInHint')}
 			</p>
 		</div>
@@ -135,11 +135,11 @@
 						<div
 							class={cn(
 								'flex h-3 w-3 items-center justify-center rounded-full border transition-all',
-								isSelected ? 'border-ds-blue-600' : 'border-gray-alpha-200'
+								isSelected ? 'border-blue-600' : 'border-gray-alpha-200'
 							)}
 						>
 							<div
-								class="h-1.5 w-1.5 rounded-full bg-ds-blue-600 transition-all"
+								class="h-1.5 w-1.5 rounded-full bg-blue-600 transition-all"
 								style="opacity: {isSelected ? 1 : 0}; transform: scale({isSelected ? 1 : 0.5});"
 							></div>
 						</div>
@@ -150,7 +150,7 @@
 	{:else}
 		<div class="space-y-3 pt-2">
 			<Label variant="section">{$_('subtitles.sourceTracks')}</Label>
-			<p class="text-gray-alpha-600 text-[9px] uppercase">
+			<p class="text-[9px] text-gray-alpha-600 uppercase">
 				{$_('subtitles.none')}
 			</p>
 		</div>

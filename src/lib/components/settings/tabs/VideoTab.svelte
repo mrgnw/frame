@@ -261,7 +261,7 @@
 					{/if}
 				</Label>
 				<div
-					class="rounded border border-ds-blue-600 bg-ds-blue-900/20 px-1.5 text-[10px] font-medium text-ds-blue-600"
+					class="rounded border border-blue-600 bg-blue-900/20 px-1.5 text-[10px] font-medium text-blue-600"
 				>
 					{#if isHardwareEncoder}
 						Q {config.quality}
@@ -292,7 +292,7 @@
 					/>
 				{/if}
 			</div>
-			<div class="text-gray-alpha-600 flex justify-between text-[9px] uppercase">
+			<div class="flex justify-between text-[9px] text-gray-alpha-600 uppercase">
 				{#if isHardwareEncoder}
 					<span>{$_('video.lowQuality')}</span>
 					<span>{$_('video.bestQuality')}</span>
@@ -336,7 +336,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="nvenc-spatial-aq">{$_('video.nvencSpatialAq')}</Label>
-						<p class="text-gray-alpha-600 text-[9px] uppercase">
+						<p class="text-[9px] text-gray-alpha-600 uppercase">
 							{$_('video.nvencSpatialAqHint')}
 						</p>
 					</div>
@@ -350,7 +350,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="nvenc-temporal-aq">{$_('video.nvencTemporalAq')}</Label>
-						<p class="text-gray-alpha-600 text-[9px] uppercase">
+						<p class="text-[9px] text-gray-alpha-600 uppercase">
 							{$_('video.nvencTemporalAqHint')}
 						</p>
 					</div>
@@ -372,7 +372,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="videotoolbox-allow-sw">{$_('video.videotoolboxAllowSw')}</Label>
-						<p class="text-gray-alpha-600 text-[9px] uppercase">
+						<p class="text-[9px] text-gray-alpha-600 uppercase">
 							{$_('video.videotoolboxAllowSwHint')}
 						</p>
 					</div>

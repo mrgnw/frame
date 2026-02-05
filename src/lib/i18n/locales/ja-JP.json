@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "キュー完了",
 		"conversionFinishedBody": "{count} ファイルを処理しました ({errors} エラー)"
 	},
+	"errors": {
+		"conversionFailed": "変換に失敗しました"
+	},
 	"trim": {
 		"startTime": "開始時間",
 		"endTime": "終了時間",

@@ -16,9 +16,9 @@
 					ghost:
 						'hover:bg-gray-alpha-100 text-gray-alpha-600 hover:text-foreground border border-transparent',
 					'titlebar-ghost': 'text-gray-alpha-600 hover:text-foreground',
-					selected: 'bg-ds-blue-900/20 text-ds-blue-600 border border-ds-blue-600',
-					destructive: 'hover:text-ds-red-600',
-					'titlebar-destructive': 'text-gray-alpha-600 hover:bg-ds-red-600 hover:text-foreground'
+					selected: 'bg-blue-900/20 text-blue-600 border border-blue-600',
+					destructive: 'hover:text-red-600',
+					'titlebar-destructive': 'text-gray-alpha-600 hover:bg-red-600 hover:text-foreground'
 				},
 				size: {
 					default: 'h-7.5 px-3 py-1.5',

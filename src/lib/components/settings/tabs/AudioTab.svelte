@@ -96,7 +96,7 @@
 				<div class="flex items-center justify-between">
 					<Label for="audio-volume">{$_('audio.volume')}</Label>
 					<span
-						class="rounded border border-ds-blue-600 bg-ds-blue-900/20 px-1.5 text-[10px] font-medium text-ds-blue-600"
+						class="rounded border border-blue-600 bg-blue-900/20 px-1.5 text-[10px] font-medium text-blue-600"
 						>{config.audioVolume}%</span
 					>
 				</div>
@@ -109,7 +109,7 @@
 					oninput={(e) => onUpdate({ audioVolume: Number(e.currentTarget.value) })}
 					{disabled}
 				/>
-				<div class="text-gray-alpha-600 flex justify-between text-[9px] uppercase">
+				<div class="flex justify-between text-[9px] text-gray-alpha-600 uppercase">
 					<span>{$_('audio.muted')}</span>
 					<span>{$_('audio.maxVolume')}</span>
 				</div>
@@ -124,7 +124,7 @@
 				/>
 				<div class="space-y-0.5">
 					<Label for="audio-normalize">{$_('audio.normalize')}</Label>
-					<p class="text-gray-alpha-600 text-[9px] uppercase">
+					<p class="text-[9px] text-gray-alpha-600 uppercase">
 						{$_('audio.normalizeHint')}
 					</p>
 				</div>
@@ -194,11 +194,11 @@
 						<div
 							class={cn(
 								'flex h-3 w-3 items-center justify-center rounded-full border transition-all',
-								isSelected ? 'border-ds-blue-600' : 'border-gray-alpha-200'
+								isSelected ? 'border-blue-600' : 'border-gray-alpha-200'
 							)}
 						>
 							<div
-								class="h-1.5 w-1.5 rounded-full bg-ds-blue-600 transition-all"
+								class="h-1.5 w-1.5 rounded-full bg-blue-600 transition-all"
 								style="opacity: {isSelected ? 1 : 0}; transform: scale({isSelected ? 1 : 0.5});"
 							></div>
 						</div>

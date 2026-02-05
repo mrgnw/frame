@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "Очередь завершена",
 		"conversionFinishedBody": "Обработано {count} файлов с {errors} ошибками."
 	},
+	"errors": {
+		"conversionFailed": "Ошибка конвертации"
+	},
 	"trim": {
 		"startTime": "Начало",
 		"endTime": "Конец",

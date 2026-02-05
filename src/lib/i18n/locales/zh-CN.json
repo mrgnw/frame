@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "队列已完成",
 		"conversionFinishedBody": "已处理 {count} 个文件，包含 {errors} 个错误。"
 	},
+	"errors": {
+		"conversionFailed": "转换失败"
+	},
 	"trim": {
 		"startTime": "开始时间",
 		"endTime": "结束时间",

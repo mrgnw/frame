@@ -113,7 +113,7 @@
 ></button>
 
 <div
-	class="border-gray-alpha-200 absolute top-0 right-0 bottom-0 z-70 w-80 rounded-l-xl border-l bg-background/60 shadow-2xl backdrop-blur-md"
+	class="absolute top-0 right-0 bottom-0 z-70 w-80 rounded-l-xl border-l border-gray-alpha-200 bg-background/60 shadow-2xl backdrop-blur-md"
 	transition:fly={{ x: 320, duration: 300, opacity: 1 }}
 >
 	<div class="flex items-center justify-between border-b border-gray-alpha-100 px-4 py-3">
@@ -161,7 +161,7 @@
 			<div class="space-y-3">
 				<div class="flex items-center justify-between">
 					<Label for="opacity-slider">{$_('settings.windowTint')}</Label>
-					<span class="text-gray-alpha-600 text-[10px]">{opacity}%</span>
+					<span class="text-[10px] text-gray-alpha-600">{opacity}%</span>
 				</div>
 				<Slider id="opacity-slider" min={20} max={100} step={1} bind:value={opacity} />
 			</div>
@@ -226,7 +226,7 @@
 					{isCheckingForUpdate ? $_('settings.checking') : $_('settings.checkForUpdates')}
 				</Button>
 				{#if checkStatus}
-					<span class="text-[10px] text-ds-blue-600">{checkStatus}</span>
+					<span class="text-[10px] text-blue-600">{checkStatus}</span>
 				{/if}
 			</div>
 		</div>

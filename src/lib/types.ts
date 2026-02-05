@@ -114,6 +114,7 @@ export interface FileItem {
 	metadataError?: string;
 	path: string;
 	isSelectedForConversion: boolean;
+	conversionError?: string;
 }
 
 export interface PresetDefinition {

@@ -55,7 +55,7 @@
 				class={cn(
 					'shrink-0  text-[10px] font-medium tracking-widest uppercase transition-all',
 					selectedLogFileId === file.id
-						? 'text-ds-blue-600'
+						? 'text-blue-600'
 						: 'text-gray-alpha-600 hover:text-foreground'
 				)}
 			>
@@ -64,7 +64,7 @@
 		{/each}
 
 		{#if activeFiles.length === 0}
-			<span class="text-gray-alpha-600 text-[10px] font-medium tracking-widest uppercase">
+			<span class="text-[10px] font-medium tracking-widest text-gray-alpha-600 uppercase">
 				{$_('logs.noActiveProcesses')}
 			</span>
 		{/if}
@@ -82,16 +82,16 @@
 						{#each currentLogs as line, i (i)}
 							<div class="group -mx-1 flex rounded px-1 py-1 text-[10px] hover:bg-gray-alpha-100">
 								<span
-									class="text-gray-alpha-600 mr-3 w-8 shrink-0 pt-[0.5px] text-right text-[10px] select-none"
+									class="mr-3 w-8 shrink-0 pt-[0.5px] text-right text-[10px] text-gray-alpha-600 select-none"
 									>{i + 1}</span
 								>
-								<span class="text-gray-alpha-400 break-all whitespace-nowrap">{line}</span>
+								<span class="break-all whitespace-nowrap text-gray-alpha-400">{line}</span>
 							</div>
 						{/each}
 					</div>
 				{:else}
 					<div
-						class="text-gray-alpha-600 flex h-full flex-col items-center justify-center space-y-2 select-none"
+						class="flex h-full flex-col items-center justify-center space-y-2 text-gray-alpha-600 select-none"
 					>
 						<div class="text-[10px] font-medium tracking-widest uppercase">
 							Process started, waiting for output...
@@ -101,7 +101,7 @@
 			</div>
 		{:else}
 			<div
-				class="text-gray-alpha-600 flex h-full flex-col items-center justify-center space-y-2 select-none"
+				class="flex h-full flex-col items-center justify-center space-y-2 text-gray-alpha-600 select-none"
 			>
 				<div class="text-[10px] font-medium tracking-widest uppercase">
 					{$_('logs.selectTask')}

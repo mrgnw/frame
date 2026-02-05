@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "Cola finalizada",
 		"conversionFinishedBody": "Procesados {count} archivos con {errors} errores."
 	},
+	"errors": {
+		"conversionFailed": "Conversión fallida"
+	},
 	"trim": {
 		"startTime": "Tiempo inicial",
 		"endTime": "Tiempo final",

@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "Coda terminata",
 		"conversionFinishedBody": "Elaborati {count} file con {errors} errori."
 	},
+	"errors": {
+		"conversionFailed": "Conversione fallita"
+	},
 	"trim": {
 		"startTime": "Tempo inizio",
 		"endTime": "Tempo fine",

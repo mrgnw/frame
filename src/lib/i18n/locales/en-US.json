@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "Queue Finished",
 		"conversionFinishedBody": "Processed {count} files with {errors} errors."
 	},
+	"errors": {
+		"conversionFailed": "Conversion Failed"
+	},
 	"trim": {
 		"startTime": "Start Time",
 		"endTime": "End Time",

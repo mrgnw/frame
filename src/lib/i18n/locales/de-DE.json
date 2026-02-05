@@ -211,6 +211,9 @@
 		"conversionFinishedTitle": "Warteschlange beendet",
 		"conversionFinishedBody": "{count} Dateien verarbeitet mit {errors} Fehlern."
 	},
+	"errors": {
+		"conversionFailed": "Konvertierung fehlgeschlagen"
+	},
 	"trim": {
 		"startTime": "Startzeit",
 		"endTime": "Endzeit",

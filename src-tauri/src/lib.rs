@@ -101,16 +101,19 @@ pub fn run() {
                     WebviewUrl::App("dialog-host.html".into()),
                 )
                 .title("Dialog Host")
-                .inner_size(10.0, 10.0)
+                .inner_size(1.0, 1.0)
                 .resizable(false)
                 .decorations(false)
                 .fullscreen(false)
                 .visible(false)
+                .parent(&window)
+                .expect("Failed to set parent window")
+                .transparent(true)
                 .skip_taskbar(true)
                 .build()
                 .unwrap();
 
-                let _ = dialog_host.set_size(LogicalSize::new(10.0, 10.0));
+                let _ = dialog_host.set_size(LogicalSize::new(1.0, 1.0));
             }
 
             app.manage(conversion::ConversionManager::new(app.handle().clone()));
@@ -125,16 +128,17 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(StoreBuilder::new().build())
         .invoke_handler(tauri::generate_handler![
-            conversion::queue_conversion,
-            conversion::pause_conversion,
-            conversion::resume_conversion,
-            conversion::cancel_conversion,
-            conversion::probe_media,
-            conversion::get_max_concurrency,
-            conversion::set_max_concurrency,
+            conversion::commands::queue_conversion,
+            conversion::commands::pause_conversion,
+            conversion::commands::resume_conversion,
+            conversion::commands::cancel_conversion,
+            conversion::commands::probe_media,
+            conversion::commands::get_max_concurrency,
+            conversion::commands::set_max_concurrency,
             capabilities::get_available_encoders,
             dialog::open_native_file_dialog,
-            close_splash
+            dialog::ask_native_dialog,
+            close_splash,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

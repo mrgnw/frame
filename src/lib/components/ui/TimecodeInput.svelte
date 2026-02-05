@@ -5,10 +5,12 @@
 	let {
 		value = 0,
 		onchange,
+		disabled = false,
 		class: className
 	}: {
 		value: number;
 		onchange: (newValue: number) => void;
+		disabled?: boolean;
 		class?: string;
 	} = $props();
 
@@ -47,6 +49,10 @@
 	});
 
 	async function handleKeyDown(e: KeyboardEvent) {
+		if (disabled) {
+			e.preventDefault();
+			return;
+		}
 		const input = e.target as HTMLInputElement;
 		let cursor = input.selectionStart || 0;
 		const key = e.key;
@@ -145,8 +151,9 @@
 	bind:this={inputRef}
 	type="text"
 	value={displayValue}
+	{disabled}
 	class={cn(
-		'border-gray-alpha-200 placeholder:text-gray-alpha-400 flex h-7.5 w-full rounded-sm border bg-transparent px-3 py-1.5 text-[11px] tracking-wide transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:uppercase focus-visible:border-ds-blue-600! focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+		'flex h-7.5 w-full rounded-sm border border-gray-alpha-200 bg-transparent px-3 py-1.5 text-[11px] tracking-wide transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-alpha-400 placeholder:uppercase focus-visible:border-blue-600! focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
 		className
 	)}
 	onkeydown={handleKeyDown}

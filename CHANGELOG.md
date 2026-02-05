@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.10] - 2026-02-05
+
+### Added
+
+- **Native Dialogs:** Implemented a unified `askNativeDialog` system for cross-platform confirmation messages. Includes specialized macOS support via a hidden `always_on_top` helper window to ensure dialogs stay above the main HUD window without breaking visual effects or passing clicks to background applications.
+- **Visual Feedback:** Added a global background overlay with backdrop blur that automatically activates whenever a native file or message dialog is open, blocking interactions with the main window while the dialog is active.
+- **Error Reporting:** Conversion failures (e.g., hardware encoder issues) now display a native error dialog with the failure reason instead of silently failing. Error messages are also logged to the conversion log panel.
+
+### Changed
+
+- **Code Architecture:** Refactored the monolithic `conversion.rs` (1712 lines) into a modular structure with dedicated files for types, error handling, manager logic, FFmpeg argument building, media probing, and Tauri commands. Improves maintainability without changing public API.
+- **Styling:** Cleaned up `src/routes/layout.css` by removing unused CSS classes and optimizing the global stylesheet.
+
+### Fixed
+
+- **Preview Panel:** Trim slider and timecode inputs are now disabled after conversion completes, preventing pointless edits to already-processed files.
+
 ## [0.18.0] - 2026-02-02
 
 ### Added
@@ -404,7 +421,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.18.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.18.1...HEAD
+[0.18.1]: https://github.com/66HEX/frame/compare/0.18.0...0.18.1
 [0.18.0]: https://github.com/66HEX/frame/compare/0.17.0...0.18.0
 [0.17.0]: https://github.com/66HEX/frame/compare/0.16.0...0.17.0
 [0.16.0]: https://github.com/66HEX/frame/compare/0.15.0...0.16.0
