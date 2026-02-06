@@ -144,7 +144,7 @@ bun install
 Frame requires FFmpeg and FFprobe sidecar binaries. We provide a script to fetch the correct version for your platform automatically:
 
 ```bash
-bun run setup:binaries
+bun run setup:ffmpeg
 ```
 
 **4. Build or Run**

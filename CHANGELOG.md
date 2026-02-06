@@ -228,7 +228,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Containers:** Added `.flac`, `.wav`, and `.m4a` to the output container options.
 - **Presets:** Added dedicated built-in presets for "Audio FLAC" and "Audio WAV" (Lossless).
 - **Distribution:** Added official Homebrew Tap support. Users can now install via `brew tap 66HEX/frame && brew install --cask frame`.
-- **Developer Experience:** Added `bun run setup:binaries` to pull platform-specific FFmpeg/FFprobe binaries into `src-tauri/binaries`, mirroring the CI release workflow.
+- **Developer Experience:** Added `bun run setup:ffmpeg` to pull platform-specific FFmpeg/FFprobe binaries into `src-tauri/binaries`, mirroring the CI release workflow.
 
 ### Changed
 

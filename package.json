@@ -12,7 +12,8 @@
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"tauri": "tauri",
-		"setup:binaries": "node scripts/setup-binaries.cjs"
+		"setup:ffmpeg": "node scripts/setup-ffmpeg.cjs",
+		"setup:upscaler": "node scripts/setup-upscaler.cjs"
 	},
 	"license": "GPL-3.0-or-later",
 	"dependencies": {
