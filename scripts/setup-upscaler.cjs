@@ -22,7 +22,6 @@ const repoRoot = path.resolve(__dirname, '..');
 const BIN_DIR = path.join(repoRoot, 'src-tauri', 'binaries');
 const TMP_ROOT_PREFIX = path.join(os.tmpdir(), 'frame-upscaler-');
 
-// Using v0.2.5.0 release (assets dated 20220424) from official repo
 const REPO_BASE = 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0';
 
 const TARGETS = {
@@ -33,11 +32,6 @@ const TARGETS = {
 			dest: 'realesrgan-ncnn-vulkan-x86_64-apple-darwin'
 		},
 		arm64: {
-			// macOS release contains universal binary or compatible via Rosetta, 
-			// but strictly speaking v0.2.0 macos zip has a binary that works on Apple Silicon.
-			// However, typically we want native. The v0.2.0 macos binary is x86_64 but works on arm64 via Rosetta.
-			// If a native build is required, user must build from source.
-			// For now, we reuse the macos release which is widely compatible.
 			url: `${REPO_BASE}/realesrgan-ncnn-vulkan-20220424-macos.zip`,
 			zipEntryName: 'realesrgan-ncnn-vulkan',
 			dest: 'realesrgan-ncnn-vulkan-aarch64-apple-darwin'
@@ -75,11 +69,10 @@ async function main() {
 
 	if (target.manualBuild) {
 		console.warn(`
-⚠️  No prebuilt binary available for ${platform}/${arch}.`);
+No prebuilt binary available for ${platform}/${arch}.`);
 		console.warn(`You must build 'realesrgan-ncnn-vulkan' from source manually and place it at:`);
 		console.warn(`  src-tauri/binaries/realesrgan-ncnn-vulkan-aarch64-unknown-linux-gnu
 `);
-		// We don't exit with error to allow CI to proceed to a build step if configured
 		return;
 	}
 
@@ -97,26 +90,23 @@ async function main() {
 	try {
 		console.log(`Downloading upscaler from ${target.url}...`);
 		await downloadFile(target.url, zipPath);
-		
+
 		console.log('Extracting...');
 		await extract(zipPath, { dir: tmpDir });
 
-		// Finding the binary file. The zip structure usually puts it in a root folder.
-		// e.g. "realesrgan-ncnn-vulkan-v0.2.0-macos/realesrgan-ncnn-vulkan"
 		const binaryPath = await findFile(tmpDir, target.zipEntryName);
-		
+
 		if (!binaryPath) {
 			throw new Error(`Could not locate ${target.zipEntryName} in downloaded archive.`);
 		}
 
 		await fsp.copyFile(binaryPath, destination);
-		
+
 		if (process.platform !== 'win32') {
 			await fsp.chmod(destination, 0o755);
 		}
-		
-		console.log(`Placed ${path.basename(destination)}.`);
 
+		console.log(`Placed ${path.basename(destination)}.`);
 	} finally {
 		await safeRm(tmpDir);
 	}
