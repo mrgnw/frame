@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-02-07
+
 ### Added
 - **AI Upscaling:** Integrated AI-powered video upscaling using Real-ESRGAN models (x2, x4) for high-quality resolution enhancement.
 - **Features Architecture:** Introduced a new modular architecture in `src/lib/features/` to separate business logic from UI components.
@@ -441,7 +443,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.18.1...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.19.0...HEAD
+[0.19.0]: https://github.com/66HEX/frame/compare/0.18.1...0.19.0
 [0.18.1]: https://github.com/66HEX/frame/compare/0.18.0...0.18.1
 [0.18.0]: https://github.com/66HEX/frame/compare/0.17.0...0.18.0
 [0.17.0]: https://github.com/66HEX/frame/compare/0.16.0...0.17.0
