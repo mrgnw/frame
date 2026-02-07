@@ -73,7 +73,15 @@
 	const isNvencEncoder = $derived(NVENC_ENCODERS.has(config.videoCodec));
 	const isVideotoolboxEncoder = $derived(VIDEOTOOLBOX_ENCODERS.has(config.videoCodec));
 	const isHardwareEncoder = $derived(isNvencEncoder || isVideotoolboxEncoder);
+	const isMlUpscaleActive = $derived(config.mlUpscale && config.mlUpscale !== 'none');
+	const effectiveResolution = $derived(isMlUpscaleActive ? 'original' : config.resolution);
 	const presetOptions = PRESETS;
+
+	$effect(() => {
+		if (isMlUpscaleActive && config.resolution !== 'original') {
+			onUpdate({ resolution: 'original' });
+		}
+	});
 
 	function isPresetAllowed(codec: string, preset: (typeof PRESETS)[number]) {
 		if (VIDEOTOOLBOX_ENCODERS.has(codec)) {
@@ -116,9 +124,9 @@
 		<div class="mb-2 grid grid-cols-2 gap-2">
 			{#each RESOLUTIONS as res (res)}
 				<Button
-					variant={config.resolution === res ? 'selected' : 'outline'}
+					variant={effectiveResolution === res ? 'selected' : 'outline'}
 					onclick={() => onUpdate({ resolution: res })}
-					{disabled}
+					disabled={disabled || isMlUpscaleActive}
 					class="w-full"
 				>
 					{res}
@@ -191,9 +199,6 @@
 					</Button>
 				{/each}
 			</div>
-			<p class="text-[9px] text-gray-alpha-600 uppercase">
-				{$_('video.mlUpscalingHint')}
-			</p>
 		</div>
 
 		<div class="space-y-3 pt-2">

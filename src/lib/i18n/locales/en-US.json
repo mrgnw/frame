@@ -144,8 +144,7 @@
 		"videotoolboxOptions": "VideoToolbox Options",
 		"videotoolboxAllowSw": "Allow software fallback",
 		"videotoolboxAllowSwHint": "Drop back to CPU encoding if hardware fails",
-		"mlUpscaling": "ML Upscaling",
-		"mlUpscalingHint": "Upscale using ESRGAN models (ONNX). Very intensive."
+		"mlUpscaling": "ML Upscaling"
 	},
 	"audio": {
 		"channelsBitrate": "Channels & Bitrate",
