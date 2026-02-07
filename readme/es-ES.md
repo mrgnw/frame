@@ -52,6 +52,7 @@
 - **Control de bitrate:** Factor de calidad constante (CRF) o bitrate objetivo (kbps)
 - **Escalado:** Bicúbico, Lanczos, Bilineal, Vecino más cercano
 - **Análisis de metadatos:** Extracción automática de información de streams vía `ffprobe`
+- **Escalado por IA:** Integración de `Real-ESRGAN` para escalado de video de alta calidad (x2, x4)
 
 ### Arquitectura y flujo de trabajo
 

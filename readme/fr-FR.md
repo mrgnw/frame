@@ -52,6 +52,7 @@
 - **Contrôle du débit :** Qualité constante (CRF) ou débit cible (kbps)
 - **Mise à l'échelle :** Bicubique, Lanczos, Bilinéaire, Plus proche voisin
 - **Analyse des métadonnées :** Extraction automatique des informations de flux via `ffprobe`
+- **Mise à l'échelle IA :** Support intégré de `Real-ESRGAN` pour la mise à l'échelle vidéo haute qualité (x2, x4)
 
 ### Architecture et workflow
 

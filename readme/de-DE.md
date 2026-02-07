@@ -52,6 +52,7 @@
 - **Bitratenkontrolle:** Konstante Qualität (CRF) oder Ziel-Bitrate (kbps)
 - **Skalierung:** Bikubisch, Lanczos, Bilinear, Nächster Nachbar
 - **Metadaten-Analyse:** Automatische Extraktion von Stream-Informationen via `ffprobe`
+- **AI-Upscaling:** Integrierte `Real-ESRGAN`-Unterstützung für hochwertige Video-Skalierung (x2, x4)
 
 ### Architektur und Workflow
 
