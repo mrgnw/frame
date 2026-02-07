@@ -97,6 +97,9 @@ jobs:
            sudo apt-get update
            sudo apt-get install -y cmake libvulkan-dev glslang-dev glslang-tools libgomp1
 
+           # Force git to use HTTPS instead of SSH for submodules
+           git config --global url."https://github.com/".insteadOf "git@github.com:"
+
            # Clone repo with submodules
            git clone --recursive https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan.git
            cd Real-ESRGAN-ncnn-vulkan
