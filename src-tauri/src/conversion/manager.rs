@@ -24,7 +24,7 @@ use windows::{
 };
 
 use crate::conversion::error::ConversionError;
-use crate::conversion::ffmpeg::run_ffmpeg_worker;
+use crate::conversion::worker::run_ffmpeg_worker;
 use crate::conversion::types::{ConversionTask, DEFAULT_MAX_CONCURRENCY};
 
 pub enum ManagerMessage {
@@ -253,9 +253,20 @@ impl ConversionManager {
                 let _ = CloseHandle(process_handle);
             }
 
+            // Cleanup temp directory for ML upscale tasks
+            let temp_dir = std::env::temp_dir().join(format!("frame_upscale_{}", id));
+            if temp_dir.exists() {
+                let _ = std::fs::remove_dir_all(&temp_dir);
+            }
+
             Ok(())
         } else {
             // Task might not be running yet or already finished, which is fine for cancel
+            // Still try to cleanup temp dir in case it exists
+            let temp_dir = std::env::temp_dir().join(format!("frame_upscale_{}", id));
+            if temp_dir.exists() {
+                let _ = std::fs::remove_dir_all(&temp_dir);
+            }
             Ok(())
         }
     }

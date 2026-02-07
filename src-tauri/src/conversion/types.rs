@@ -156,6 +156,11 @@ pub struct ProgressPayload {
 }
 
 #[derive(Clone, Serialize)]
+pub struct StartedPayload {
+    pub id: String,
+}
+
+#[derive(Clone, Serialize)]
 pub struct CompletedPayload {
     pub id: String,
     pub output_path: String,
@@ -209,19 +214,23 @@ pub struct FfprobeFormat {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct FfprobeTags {
+    #[serde(alias = "TITLE")]
     pub title: Option<String>,
+    #[serde(alias = "ARTIST")]
     pub artist: Option<String>,
+    #[serde(alias = "ALBUM")]
     pub album: Option<String>,
+    #[serde(alias = "GENRE")]
     pub genre: Option<String>,
+    #[serde(alias = "DATE")]
     pub date: Option<String>,
     #[serde(rename = "creation_time")]
     pub creation_time: Option<String>,
     pub language: Option<String>,
+    #[serde(alias = "COMMENT")]
     pub comment: Option<String>,
     #[serde(rename = "DESCRIPTION")]
     pub description_upper: Option<String>,
-    #[serde(rename = "DATE")]
-    pub date_upper: Option<String>,
 }
 
 #[derive(Debug, Clone)]

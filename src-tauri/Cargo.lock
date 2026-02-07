@@ -1005,9 +1005,10 @@ dependencies = [
 
 [[package]]
 name = "frame"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "libc",
+ "once_cell",
  "regex",
  "serde",
  "serde_json",

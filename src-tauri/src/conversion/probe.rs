@@ -2,7 +2,7 @@ use tauri::AppHandle;
 use tauri_plugin_shell::ShellExt;
 
 use crate::conversion::error::ConversionError;
-use crate::conversion::ffmpeg::{parse_frame_rate_string, parse_probe_bitrate};
+use crate::conversion::utils::{parse_frame_rate_string, parse_probe_bitrate};
 use crate::conversion::types::{AudioTrack, FfprobeOutput, ProbeMetadata, SubtitleTrack};
 
 pub async fn probe_media_file(

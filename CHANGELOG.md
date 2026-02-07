@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-02-08
+
+### Added
+- **Codec-Container Compatibility:** Video encoders are now automatically filtered and disabled based on the selected output container (e.g., WebM only shows VP9/AV1 codecs). Incompatible encoders display an "Incompatible container" message and switch to a compatible codec automatically.
+
+### Changed
+- **Backend Refactoring:** Split monolithic `ffmpeg.rs` (1048 lines) into focused modules: `utils.rs`, `args.rs`, `upscale.rs`, `worker.rs`. Improves maintainability without changing functionality.
+
+### Fixed
+- **MKV Metadata Parsing:** Fixed metadata tags (Artist, Album, Genre, Date, Comment) not being read from MKV files. The parser now correctly handles both uppercase (MKV) and lowercase (MP4) tag variants.
+- **Progress Display:** Resolved an issue where the UI would remain stuck on "Queued" status during the ML upscaling decode phase. A new `conversion-started` event now immediately updates the status to "Converting" when processing begins.
+- **Windows Progress Indicator:** Fixed progress percentage not updating for h264 and h264_nvenc codecs on Windows. The FFmpeg stderr parser now correctly handles Windows-style carriage return (`\r`) line separators.
+- **ML Upscale Parameter Parity:** The AI upscaling pipeline now supports all parameters from the standard conversion: rotation, flip, subtitle burn, FPS change, NVENC/VideoToolbox options, audio processing (codec, bitrate, volume, normalize, channels), metadata handling, and subtitle track selection.
+- **ML Upscale Temp Cleanup:** Temporary PNG frame files are now properly deleted when an upscaling task fails or is cancelled from the UI.
+- **Progress Reporting:** Fixed an issue where progress would remain at 0% for some files due to strict time parsing. The parser now correctly handles FFmpeg output with raw seconds or flexible time formats.
+
 ## [0.19.0] - 2026-02-07
 
 ### Added
@@ -443,7 +459,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.19.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.20.0...HEAD
+[0.20.0]: https://github.com/66HEX/frame/compare/0.19.0...0.20.0
 [0.19.0]: https://github.com/66HEX/frame/compare/0.18.1...0.19.0
 [0.18.1]: https://github.com/66HEX/frame/compare/0.18.0...0.18.1
 [0.18.0]: https://github.com/66HEX/frame/compare/0.17.0...0.18.0

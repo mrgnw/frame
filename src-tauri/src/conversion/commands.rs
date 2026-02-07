@@ -1,7 +1,7 @@
 use tauri::{AppHandle, command};
 
 use crate::conversion::error::ConversionError;
-use crate::conversion::ffmpeg::validate_task_input;
+use crate::conversion::args::validate_task_input;
 use crate::conversion::manager::{ConversionManager, ManagerMessage};
 use crate::conversion::probe::probe_media_file;
 use crate::conversion::types::{ConversionConfig, ConversionTask, ProbeMetadata};
