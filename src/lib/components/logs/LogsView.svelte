@@ -147,13 +147,13 @@
 									class="mr-3 w-8 shrink-0 pt-[0.5px] text-right text-[10px] text-gray-alpha-400 select-none"
 									>{item.index}</span
 								>
-									<span class="log-line break-all whitespace-nowrap">
-										{#if highlighter}
-											<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-											{@html highlightLogLineSync(highlighter, item.line)}
-										{:else}
-											{item.line}
-										{/if}
+								<span class="log-line break-all whitespace-nowrap">
+									{#if highlighter}
+										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+										{@html highlightLogLineSync(highlighter, item.line)}
+									{:else}
+										{item.line}
+									{/if}
 								</span>
 							</div>
 						{/snippet}

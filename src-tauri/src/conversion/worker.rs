@@ -10,7 +10,7 @@ use crate::conversion::types::{
     CompletedPayload, ConversionTask, ErrorPayload, LogPayload, ProgressPayload, StartedPayload,
 };
 use crate::conversion::upscale::run_upscale_worker;
-use crate::conversion::utils::{parse_time, DURATION_REGEX, TIME_REGEX};
+use crate::conversion::utils::{DURATION_REGEX, TIME_REGEX, parse_time};
 
 pub async fn run_ffmpeg_worker(
     app: AppHandle,
@@ -23,7 +23,11 @@ pub async fn run_ffmpeg_worker(
         }
     }
 
-    let output_path = build_output_path(&task.file_path, &task.config.container, task.output_name.clone());
+    let output_path = build_output_path(
+        &task.file_path,
+        &task.config.container,
+        task.output_name.clone(),
+    );
     let args = build_ffmpeg_args(&task.file_path, &output_path, &task.config);
 
     let sidecar_command = app
@@ -42,10 +46,7 @@ pub async fn run_ffmpeg_worker(
         .send(ManagerMessage::TaskStarted(id.clone(), child.pid()))
         .await;
 
-    let _ = app.emit(
-        "conversion-started",
-        StartedPayload { id: id.clone() },
-    );
+    let _ = app.emit("conversion-started", StartedPayload { id: id.clone() });
 
     let _ = app.emit(
         "conversion-progress",

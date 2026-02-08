@@ -14,7 +14,7 @@ use crate::conversion::manager::ManagerMessage;
 use crate::conversion::types::{
     CompletedPayload, ConversionTask, LogPayload, MetadataMode, ProgressPayload, StartedPayload,
 };
-use crate::conversion::utils::{parse_time, FRAME_REGEX};
+use crate::conversion::utils::{FRAME_REGEX, parse_time};
 
 pub async fn run_upscale_worker(
     app: AppHandle,

@@ -28,7 +28,10 @@ export function createPresetsManager(callbacks: PresetsCallbacks) {
 		const selectedFile = callbacks.getSelectedFile();
 		if (!selectedFileId) return;
 
-		const nextConfig = normalizeConversionConfig(clonePresetConfig(preset.config), selectedFile?.metadata);
+		const nextConfig = normalizeConversionConfig(
+			clonePresetConfig(preset.config),
+			selectedFile?.metadata
+		);
 		callbacks.onFilesUpdate((files) =>
 			files.map((f) => (f.id === selectedFileId ? { ...f, config: nextConfig } : f))
 		);

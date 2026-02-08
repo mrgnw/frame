@@ -39,7 +39,13 @@ const TARGETS = {
 		x64: createMartinTarget('macOS (Intel)', 'macos', 'amd64', 'x86_64', 'apple-darwin'),
 		arm64: createMartinTarget('macOS (Apple Silicon)', 'macos', 'arm64', 'aarch64', 'apple-darwin'),
 		x86_64: createMartinTarget('macOS (Intel)', 'macos', 'amd64', 'x86_64', 'apple-darwin'),
-		aarch64: createMartinTarget('macOS (Apple Silicon)', 'macos', 'arm64', 'aarch64', 'apple-darwin')
+		aarch64: createMartinTarget(
+			'macOS (Apple Silicon)',
+			'macos',
+			'arm64',
+			'aarch64',
+			'apple-darwin'
+		)
 	},
 	linux: {
 		x64: createMartinTarget('Linux x86_64', 'linux', 'amd64', 'x86_64', 'unknown-linux-gnu'),

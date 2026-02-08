@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use crate::conversion::codec::{add_audio_codec_args, add_fps_args, add_subtitle_codec_args, add_video_codec_args};
+use crate::conversion::codec::{
+    add_audio_codec_args, add_fps_args, add_subtitle_codec_args, add_video_codec_args,
+};
 use crate::conversion::error::ConversionError;
 use crate::conversion::filters::{build_audio_filters, build_video_filters};
 use crate::conversion::types::{ConversionConfig, MetadataConfig, MetadataMode};

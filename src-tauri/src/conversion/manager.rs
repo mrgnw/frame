@@ -24,8 +24,8 @@ use windows::{
 };
 
 use crate::conversion::error::ConversionError;
-use crate::conversion::worker::run_ffmpeg_worker;
 use crate::conversion::types::{ConversionTask, DEFAULT_MAX_CONCURRENCY};
+use crate::conversion::worker::run_ffmpeg_worker;
 
 pub enum ManagerMessage {
     Enqueue(ConversionTask),
