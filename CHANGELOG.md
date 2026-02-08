@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Runtime Log Highlighting Dependencies:** Moved `shiki` from `devDependencies` to `dependencies` and added direct runtime dependency on `@shikijs/themes`, so packaged builds include required log-highlighting modules.
+
 ## [0.21.1] - 2026-02-08
 
 ### Fixed
