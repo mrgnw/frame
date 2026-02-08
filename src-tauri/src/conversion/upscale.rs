@@ -72,10 +72,6 @@ pub async fn run_upscale_worker(
     let app_clone = app.clone();
     let id_clone = task.id.clone();
 
-    let _ = tx
-        .send(ManagerMessage::TaskStarted(task.id.clone(), 0))
-        .await;
-
     let _ = app_clone.emit(
         "conversion-started",
         StartedPayload {
@@ -489,5 +485,8 @@ pub async fn run_upscale_worker(
         }
     }
 
-    Ok(())
+    let _ = std::fs::remove_dir_all(&temp_dir);
+    Err(ConversionError::Worker(
+        "Encoder terminated unexpectedly before reporting exit status".to_string(),
+    ))
 }

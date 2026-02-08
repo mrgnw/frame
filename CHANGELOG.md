@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Queue Cancellation Semantics:** Canceling a queued conversion now prevents it from starting later in the background. Queue state now tracks canceled IDs, avoids duplicate task IDs, and removes canceled items before worker launch.
+- **Process Signal Safety:** Pause/resume/cancel controls now ignore invalid PID `0` placeholders, preventing unsafe Unix signal targeting. ML upscale startup no longer publishes a fake PID, and unexpected encoder shutdowns now return an explicit worker error instead of reporting silent success.
 - **FFmpeg Stream Mapping:** Standard conversions now always map streams deterministically (`0:v:0`, `0:a?`, `0:s?`) when track overrides are not selected, eliminating ambiguous defaults and missing-stream edge cases.
 - **Audio Config Application:** Audio codec and bitrate settings are now applied consistently even when no explicit source audio tracks are selected.
 - **Cross-Tab Config Consistency:** Configuration normalization now runs in the shared state layer (including preset application), so container/codec/preset/upscale compatibility is enforced even if the Video tab was never opened.

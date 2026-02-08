@@ -108,8 +108,10 @@ export function createConversionQueue(callbacks: ConversionCallbacks) {
 				f.isSelectedForConversion &&
 				f.status !== FileStatus.CONVERTING &&
 				f.status !== FileStatus.QUEUED &&
-				f.status !== FileStatus.COMPLETED
+				f.status !== FileStatus.COMPLETED &&
+				f.status !== FileStatus.PAUSED
 		);
+		const pendingIds = pendingFiles.map((f) => f.id);
 
 		if (pendingFiles.length === 0) return;
 
@@ -127,10 +129,7 @@ export function createConversionQueue(callbacks: ConversionCallbacks) {
 
 		callbacks.onFilesUpdate((files) =>
 			files.map((f) => {
-				const isPending =
-					f.isSelectedForConversion &&
-					f.status !== FileStatus.CONVERTING &&
-					f.status !== FileStatus.QUEUED;
+				const isPending = pendingIds.includes(f.id);
 				return isPending ? { ...f, status: FileStatus.QUEUED, progress: 0 } : f;
 			})
 		);

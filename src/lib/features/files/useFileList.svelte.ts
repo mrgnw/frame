@@ -110,7 +110,12 @@ export function createFileListManager() {
 
 	async function handleRemoveFile(id: string, cancelTask?: (id: string) => Promise<void>) {
 		const file = files.find((f) => f.id === id);
-		if (file && (file.status === FileStatus.CONVERTING || file.status === FileStatus.PAUSED)) {
+		if (
+			file &&
+			(file.status === FileStatus.CONVERTING ||
+				file.status === FileStatus.PAUSED ||
+				file.status === FileStatus.QUEUED)
+		) {
 			try {
 				if (cancelTask) {
 					await cancelTask(id);
