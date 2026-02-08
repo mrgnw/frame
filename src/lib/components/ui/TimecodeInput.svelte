@@ -39,6 +39,46 @@
 		return parts[0] * 3600 + parts[1] * 60 + parts[2] + ms / 1000;
 	}
 
+	function parsePastedTimecode(raw: string): number | null {
+		const value = raw.trim().replace(',', '.');
+		if (!value) return null;
+
+		const directSeconds = Number(value);
+		if (Number.isFinite(directSeconds) && directSeconds >= 0) {
+			return directSeconds;
+		}
+
+		const [hms, msPart = '0'] = value.split('.');
+		const parts = hms.split(':');
+		if (parts.length < 1 || parts.length > 3) return null;
+		if (!parts.every((p) => /^\d+$/.test(p))) return null;
+		if (!/^\d+$/.test(msPart)) return null;
+
+		let hours = 0;
+		let minutes = 0;
+		let seconds = 0;
+
+		if (parts.length === 3) {
+			hours = Number(parts[0]);
+			minutes = Number(parts[1]);
+			seconds = Number(parts[2]);
+		} else if (parts.length === 2) {
+			minutes = Number(parts[0]);
+			seconds = Number(parts[1]);
+		} else {
+			seconds = Number(parts[0]);
+		}
+
+		if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+			return null;
+		}
+		if (minutes > 59 || seconds > 59) return null;
+
+		const milliseconds = Number(msPart);
+		const fractional = milliseconds / Math.pow(10, msPart.length);
+		return hours * 3600 + minutes * 60 + seconds + fractional;
+	}
+
 	let displayValue = $state(untrack(() => secondsToTimecode(value)));
 	let inputRef: HTMLInputElement | undefined = $state();
 
@@ -143,7 +183,13 @@
 
 	function handlePaste(e: ClipboardEvent) {
 		e.preventDefault();
-		// TODO:Allow pasting valid timecode
+		if (disabled) return;
+		const pasted = e.clipboardData?.getData('text') ?? '';
+		const seconds = parsePastedTimecode(pasted);
+		if (seconds === null) return;
+		const normalized = Math.max(0, seconds);
+		displayValue = secondsToTimecode(normalized);
+		onchange(normalized);
 	}
 </script>
 

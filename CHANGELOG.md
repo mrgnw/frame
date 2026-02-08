@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Input Validation Hardening:** Backend validation now rejects incompatible codec/container combinations and blocks ML upscaling with audio-only outputs before task enqueue.
 - **Subtitle Container Handling:** Subtitle stream behavior is now container-aware (`mov_text` for MP4/MOV, `webvtt` for WebM, `copy` for MKV) and no longer auto-maps subtitle tracks when only burn-in subtitles are requested.
 - **Queue Startup Recovery:** Conversion queue startup now handles per-file enqueue failures gracefully, marking only failed items as errors while continuing with valid tasks and keeping processing state in sync.
+- **Timecode Input UX:** Trim timecode fields now support pasting valid values (`HH:MM:SS.mmm`, `MM:SS`, or seconds), reducing manual editing friction.
 - **Queue Logic:** Resolved an issue where completed files would be re-queued for conversion when restarting the batch. The queue now explicitly ignores files with a "Completed" status.
 - **Titlebar UX:** The "Start Conversion" button is now disabled when all selected files have already been successfully processed, providing better visual feedback and preventing accidental re-runs.
 
