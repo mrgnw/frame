@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(parse_time("00:01:05.10"), Some(65.1));
 
         assert_eq!(parse_time("invalid"), None);
-        assert_eq!(parse_time("00:10"), None);
+        assert_eq!(parse_time("00:10"), Some(10.0));
     }
 
     #[test]
