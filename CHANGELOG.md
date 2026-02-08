@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Hardware Decoding Support:** Integrated GPU-accelerated video decoding for input files using NVIDIA CUDA and Apple VideoToolbox. This reduces CPU load and improves conversion speed by offloading the decoding phase to the hardware.
 - **Log Syntax Highlighting:** Integrated Shiki highlighting engine into `LogsView` for improved readability of FFmpeg output.
 - **Custom Log Language:** Developed a comprehensive TextMate grammar for FFmpeg logs, featuring specialized highlighting for codecs, timestamps, file paths, CPU capabilities, and conversion phases (DECODE/ENCODE/UPSCALE).
 
