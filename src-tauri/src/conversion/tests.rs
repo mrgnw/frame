@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::conversion::args::{build_ffmpeg_args, build_output_path};
+    use crate::conversion::args::{build_ffmpeg_args, build_output_path, validate_task_input};
     use crate::conversion::types::{ConversionConfig, MetadataConfig};
     use crate::conversion::utils::parse_time;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     fn contains_args(args: &[String], expected: &[&str]) -> bool {
         expected.iter().all(|e| args.iter().any(|a| a == e))
@@ -41,6 +43,7 @@ mod tests {
             nvenc_spatial_aq: false,
             nvenc_temporal_aq: false,
             videotoolbox_allow_sw: false,
+            hw_decode: false,
         }
     }
 
@@ -134,7 +137,7 @@ mod tests {
         assert_eq!(parse_time("00:01:05.10"), Some(65.1));
 
         assert_eq!(parse_time("invalid"), None);
-        assert_eq!(parse_time("00:10"), None);
+        assert_eq!(parse_time("00:10"), Some(10.0));
     }
 
     #[test]
@@ -301,11 +304,57 @@ mod tests {
         let af_index = args_boosted.iter().position(|r| r == "-af").unwrap();
         assert_eq!(args_boosted[af_index + 1], "volume=1.50");
     }
+
+    #[test]
+    fn test_default_stream_mapping_when_tracks_not_selected() {
+        let mut config = sample_config("mp4");
+        config.selected_audio_tracks = vec![];
+        config.selected_subtitle_tracks = vec![];
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        assert!(contains_args(&args, &["-map", "0:v:0"]));
+        assert!(contains_args(&args, &["-map", "0:a?"]));
+        assert!(contains_args(&args, &["-map", "0:s?"]));
+        assert!(contains_args(&args, &["-c:a", "aac"]));
+        assert!(contains_args(&args, &["-b:a", "128k"]));
+        assert!(contains_args(&args, &["-c:s", "mov_text"]));
+    }
+
+    #[test]
+    fn test_subtitle_stream_not_mapped_when_burn_in_used_without_track_selection() {
+        let mut config = sample_config("mp4");
+        config.selected_subtitle_tracks = vec![];
+        config.subtitle_burn_path = Some("/tmp/captions.srt".into());
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        assert!(!contains_args(&args, &["-map", "0:s?"]));
+        assert!(!contains_args(&args, &["-c:s", "mov_text"]));
+    }
+
+    #[test]
+    fn test_validate_rejects_ml_upscale_for_audio_only_container() {
+        let mut config = sample_config("mp3");
+        config.ml_upscale = Some("esrgan-2x".into());
+
+        let ts = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("frame-validate-{}.tmp", ts));
+        fs::write(&path, b"test").unwrap();
+
+        let result = validate_task_input(path.to_str().unwrap(), &config);
+        let _ = fs::remove_file(&path);
+
+        assert!(result.is_err());
+    }
 }
 
 #[cfg(test)]
 mod parsing_tests {
-    use crate::conversion::utils::{parse_time, DURATION_REGEX, FRAME_REGEX, TIME_REGEX};
+    use crate::conversion::utils::{DURATION_REGEX, FRAME_REGEX, TIME_REGEX, parse_time};
 
     #[test]
     fn time_regex_extracts_progress_time() {
@@ -325,13 +374,13 @@ mod parsing_tests {
 
     #[test]
     fn time_regex_no_match_on_invalid() {
-        let invalid_outputs = [
-            "frame=100 fps=30 q=23.0",
-            "time=invalid",
-            "",
-        ];
+        let invalid_outputs = ["frame=100 fps=30 q=23.0", "time=invalid", ""];
         for output in invalid_outputs {
-            assert!(TIME_REGEX.captures(output).is_none(), "Should not match: {}", output);
+            assert!(
+                TIME_REGEX.captures(output).is_none(),
+                "Should not match: {}",
+                output
+            );
         }
     }
 
@@ -366,7 +415,8 @@ mod parsing_tests {
 
     #[test]
     fn frame_regex_upscale_pipeline_output() {
-        let decode_output = "frame=  450 fps=120 q=-0.0 Lsize=N/A time=00:00:15.00 bitrate=N/A speed=4.00x";
+        let decode_output =
+            "frame=  450 fps=120 q=-0.0 Lsize=N/A time=00:00:15.00 bitrate=N/A speed=4.00x";
         let caps = FRAME_REGEX.captures(decode_output).unwrap();
         assert_eq!(caps.get(1).unwrap().as_str(), "450");
     }
@@ -376,7 +426,7 @@ mod parsing_tests {
         // Raw seconds
         assert_eq!(parse_time("30.5"), Some(30.5));
         assert_eq!(parse_time("120"), Some(120.0));
-        
+
         // MM:SS
         assert_eq!(parse_time("01:30"), Some(90.0));
         assert_eq!(parse_time("10:05.5"), Some(605.5));
@@ -398,12 +448,14 @@ mod parsing_tests {
         let duration_line = "Duration: 00:10:00.00, start: 0.000000";
         let progress_line = "frame=  900 fps=30 time=00:00:30.00 bitrate=2048kbits/s";
 
-        let total = DURATION_REGEX.captures(duration_line)
+        let total = DURATION_REGEX
+            .captures(duration_line)
             .and_then(|c| c.get(1))
             .and_then(|m| parse_time(m.as_str()))
             .unwrap();
 
-        let current = TIME_REGEX.captures(progress_line)
+        let current = TIME_REGEX
+            .captures(progress_line)
             .and_then(|c| c.get(1))
             .and_then(|m| parse_time(m.as_str()))
             .unwrap();
@@ -416,14 +468,20 @@ mod parsing_tests {
 #[cfg(test)]
 mod utils_tests {
     use crate::conversion::utils::{
-        is_audio_only_container, is_nvenc_codec, is_videotoolbox_codec,
-        map_nvenc_preset, parse_frame_rate_string, parse_probe_bitrate,
+        is_audio_only_container, is_nvenc_codec, is_videotoolbox_codec, map_nvenc_preset,
+        parse_frame_rate_string, parse_probe_bitrate,
     };
 
     #[test]
     fn frame_rate_fractional() {
-        assert_eq!(parse_frame_rate_string(Some("30000/1001")), Some(29.97002997002997));
-        assert_eq!(parse_frame_rate_string(Some("24000/1001")), Some(23.976023976023978));
+        assert_eq!(
+            parse_frame_rate_string(Some("30000/1001")),
+            Some(29.97002997002997)
+        );
+        assert_eq!(
+            parse_frame_rate_string(Some("24000/1001")),
+            Some(23.976023976023978)
+        );
         assert_eq!(parse_frame_rate_string(Some("60/1")), Some(60.0));
         assert_eq!(parse_frame_rate_string(Some("25/1")), Some(25.0));
     }
@@ -470,7 +528,11 @@ mod utils_tests {
             assert!(is_audio_only_container(c), "{} should be audio-only", c);
         }
         for c in video_containers {
-            assert!(!is_audio_only_container(c), "{} should not be audio-only", c);
+            assert!(
+                !is_audio_only_container(c),
+                "{} should not be audio-only",
+                c
+            );
         }
     }
 
@@ -545,6 +607,7 @@ mod scenario_tests {
             nvenc_spatial_aq: false,
             nvenc_temporal_aq: false,
             videotoolbox_allow_sw: false,
+            hw_decode: false,
         }
     }
 
@@ -758,7 +821,8 @@ mod scenario_tests {
 
         let args = build_ffmpeg_args("multi_audio.mkv", "output.mp4", &config);
 
-        let map_positions: Vec<usize> = args.iter()
+        let map_positions: Vec<usize> = args
+            .iter()
             .enumerate()
             .filter(|(_, a)| *a == "-map")
             .map(|(i, _)| i)
@@ -790,5 +854,119 @@ mod scenario_tests {
 
         assert!(args.contains(&"libsvtav1".to_string()));
         assert!(args.contains(&"28".to_string()));
+    }
+}
+
+#[cfg(test)]
+mod hwaccel_tests {
+    use crate::conversion::args::build_ffmpeg_args;
+    use crate::conversion::types::{ConversionConfig, MetadataConfig};
+    use crate::conversion::utils::get_hwaccel_args;
+
+    fn hwaccel_config(codec: &str) -> ConversionConfig {
+        ConversionConfig {
+            container: "mp4".into(),
+            video_codec: codec.into(),
+            video_bitrate_mode: "crf".into(),
+            video_bitrate: "5000".into(),
+            audio_codec: "aac".into(),
+            audio_bitrate: "128".into(),
+            audio_channels: "original".into(),
+            audio_volume: 100.0,
+            selected_audio_tracks: vec![],
+            selected_subtitle_tracks: vec![],
+            subtitle_burn_path: None,
+            resolution: "original".into(),
+            custom_width: None,
+            custom_height: None,
+            scaling_algorithm: "bicubic".into(),
+            fps: "original".into(),
+            crf: 23,
+            quality: 50,
+            preset: "medium".into(),
+            start_time: None,
+            end_time: None,
+            audio_normalize: false,
+            metadata: MetadataConfig::default(),
+            rotation: "0".into(),
+            flip_horizontal: false,
+            flip_vertical: false,
+            ml_upscale: None,
+            crop: None,
+            nvenc_spatial_aq: false,
+            nvenc_temporal_aq: false,
+            videotoolbox_allow_sw: false,
+            hw_decode: true,
+        }
+    }
+
+    #[test]
+    fn get_hwaccel_args_nvenc_codecs() {
+        for codec in ["h264_nvenc", "hevc_nvenc", "av1_nvenc"] {
+            let args = get_hwaccel_args(codec);
+            assert_eq!(args.len(), 4);
+            assert_eq!(args[0], "-hwaccel");
+            assert_eq!(args[1], "cuda");
+            assert_eq!(args[2], "-hwaccel_output_format");
+            assert_eq!(args[3], "cuda");
+        }
+    }
+
+    #[test]
+    fn get_hwaccel_args_videotoolbox_codecs() {
+        for codec in ["h264_videotoolbox", "hevc_videotoolbox"] {
+            let args = get_hwaccel_args(codec);
+            assert_eq!(args.len(), 2);
+            assert_eq!(args[0], "-hwaccel");
+            assert_eq!(args[1], "videotoolbox");
+        }
+    }
+
+    #[test]
+    fn get_hwaccel_args_software_codecs() {
+        for codec in ["libx264", "libx265", "libsvtav1", "libvpx-vp9"] {
+            let args = get_hwaccel_args(codec);
+            assert!(args.is_empty());
+        }
+    }
+
+    #[test]
+    fn hwaccel_cuda_in_ffmpeg_args() {
+        let config = hwaccel_config("h264_nvenc");
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+
+        // hwaccel args must come BEFORE -i
+        let hwaccel_idx = args.iter().position(|a| a == "-hwaccel").unwrap();
+        let i_idx = args.iter().position(|a| a == "-i").unwrap();
+        assert!(hwaccel_idx < i_idx, "hwaccel must come before -i");
+        assert!(args.contains(&"cuda".to_string()));
+        assert!(args.contains(&"-hwaccel_output_format".to_string()));
+    }
+
+    #[test]
+    fn hwaccel_videotoolbox_in_ffmpeg_args() {
+        let config = hwaccel_config("hevc_videotoolbox");
+        let args = build_ffmpeg_args("in.mov", "out.mov", &config);
+
+        let hwaccel_idx = args.iter().position(|a| a == "-hwaccel").unwrap();
+        let i_idx = args.iter().position(|a| a == "-i").unwrap();
+        assert!(hwaccel_idx < i_idx);
+        assert!(args.contains(&"videotoolbox".to_string()));
+    }
+
+    #[test]
+    fn hwaccel_disabled() {
+        let mut config = hwaccel_config("h264_nvenc");
+        config.hw_decode = false;
+
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+        assert!(!args.contains(&"-hwaccel".to_string()));
+    }
+
+    #[test]
+    fn hwaccel_ignored_for_software_encoder() {
+        let config = hwaccel_config("libx264");
+        let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
+        assert!(!args.contains(&"-hwaccel".to_string()));
     }
 }

@@ -55,15 +55,13 @@ pub fn add_video_codec_args(args: &mut Vec<String>, config: &ConversionConfig) {
 }
 
 pub fn add_audio_codec_args(args: &mut Vec<String>, config: &ConversionConfig) {
-    if !config.selected_audio_tracks.is_empty() {
-        args.push("-c:a".to_string());
-        args.push(config.audio_codec.clone());
+    args.push("-c:a".to_string());
+    args.push(config.audio_codec.clone());
 
-        let lossless_audio_codecs = ["flac", "alac", "pcm_s16le"];
-        if !lossless_audio_codecs.contains(&config.audio_codec.as_str()) {
-            args.push("-b:a".to_string());
-            args.push(format!("{}k", config.audio_bitrate));
-        }
+    let lossless_audio_codecs = ["flac", "alac", "pcm_s16le"];
+    if !lossless_audio_codecs.contains(&config.audio_codec.as_str()) {
+        args.push("-b:a".to_string());
+        args.push(format!("{}k", config.audio_bitrate));
     }
 
     match config.audio_channels.as_str() {
@@ -79,20 +77,17 @@ pub fn add_audio_codec_args(args: &mut Vec<String>, config: &ConversionConfig) {
     }
 }
 
-pub fn add_audio_codec_args_copy(args: &mut Vec<String>) {
-    args.push("-c:a".to_string());
-    args.push("copy".to_string());
-}
+pub fn add_subtitle_codec_args(args: &mut Vec<String>, config: &ConversionConfig) {
+    let codec = match config.container.as_str() {
+        "mkv" => Some("copy"),
+        "mp4" | "mov" => Some("mov_text"),
+        "webm" => Some("webvtt"),
+        _ => None,
+    };
 
-pub fn add_subtitle_copy_args(args: &mut Vec<String>, config: &ConversionConfig) {
-    if config.subtitle_burn_path.is_none()
-        || config
-            .subtitle_burn_path
-            .as_ref()
-            .map_or(true, |p| p.is_empty())
-    {
+    if let Some(codec) = codec {
         args.push("-c:s".to_string());
-        args.push("copy".to_string());
+        args.push(codec.to_string());
     }
 }
 

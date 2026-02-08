@@ -52,6 +52,10 @@
 	const isDragging = $derived(dragDropManager.isDragging);
 	const presets = $derived(presetsManager.presets);
 
+	const hasActionableFiles = $derived(
+		files.some((f) => f.isSelectedForConversion && f.status !== 'COMPLETED')
+	);
+
 	onMount(() => {
 		let unlistenDragDrop: (() => void) | undefined;
 		let mounted = true;
@@ -125,6 +129,7 @@
 		{selectedCount}
 		{isProcessing}
 		{activeView}
+		canStart={hasActionableFiles}
 		onChangeView={(v) => (activeView = v)}
 		onAddFile={fileListManager.handleAddFile}
 		onStartConversion={conversionQueue.startConversion}

@@ -7,15 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-02-08
+
+### Fixed
+
+- **Queue Cancellation Semantics:** Canceling a queued conversion now prevents it from starting later in the background. Queue state now tracks canceled IDs, avoids duplicate task IDs, and removes canceled items before worker launch.
+- **Process Signal Safety:** Pause/resume/cancel controls now ignore invalid PID `0` placeholders, preventing unsafe Unix signal targeting. ML upscale startup no longer publishes a fake PID, and unexpected encoder shutdowns now return an explicit worker error instead of reporting silent success.
+- **FFmpeg Stream Mapping:** Standard conversions now always map streams deterministically (`0:v:0`, `0:a?`, `0:s?`) when track overrides are not selected, eliminating ambiguous defaults and missing-stream edge cases.
+- **Audio Config Application:** Audio codec and bitrate settings are now applied consistently even when no explicit source audio tracks are selected.
+- **Cross-Tab Config Consistency:** Configuration normalization now runs in the shared state layer (including preset application), so container/codec/preset/upscale compatibility is enforced even if the Video tab was never opened.
+- **Compatibility Rule Unification:** Video container/codec/preset compatibility now comes from a shared frontend module used by both UI selection logic and config normalization, preventing drift between tab behavior and saved state validation.
+- **Input Validation Hardening:** Backend validation now rejects incompatible codec/container combinations and blocks ML upscaling with audio-only outputs before task enqueue.
+- **Subtitle Container Handling:** Subtitle stream behavior is now container-aware (`mov_text` for MP4/MOV, `webvtt` for WebM, `copy` for MKV) and no longer auto-maps subtitle tracks when only burn-in subtitles are requested.
+- **Queue Startup Recovery:** Conversion queue startup now handles per-file enqueue failures gracefully, marking only failed items as errors while continuing with valid tasks and keeping processing state in sync.
+- **Timecode Input UX:** Trim timecode fields now support pasting valid values (`HH:MM:SS.mmm`, `MM:SS`, or seconds), reducing manual editing friction.
+- **Lint Stability:** Added a scoped ESLint override for Shiki-rendered log HTML in `LogsView`, resolving the `svelte/no-at-html-tags` lint failure for trusted, syntax-highlighted output.
+- **Queue Logic:** Resolved an issue where completed files would be re-queued for conversion when restarting the batch. The queue now explicitly ignores files with a "Completed" status.
+- **Titlebar UX:** The "Start Conversion" button is now disabled when all selected files have already been successfully processed, providing better visual feedback and preventing accidental re-runs.
+
+### Added
+
+- **Hardware Decoding Support:** Integrated GPU-accelerated video decoding for input files using NVIDIA CUDA and Apple VideoToolbox. This reduces CPU load and improves conversion speed by offloading the decoding phase to the hardware.
+- **Log Syntax Highlighting:** Integrated Shiki highlighting engine into `LogsView` for improved readability of FFmpeg output.
+- **Custom Log Language:** Developed a comprehensive TextMate grammar for FFmpeg logs, featuring specialized highlighting for codecs, timestamps, file paths, CPU capabilities, and conversion phases (DECODE/ENCODE/UPSCALE).
+
+### Changed
+
+- **Settings Accessibility:** Users can now switch between all configuration tabs (Source, Output, Video, etc.) even after a file has been converted, while maintaining the locked state of individual settings.
+- **Store Convention Consistency:** `updateStore` now uses the same object-based `$state` pattern as other frontend stores, reducing architectural divergence in shared state management.
+
 ## [0.20.0] - 2026-02-08
 
 ### Added
+
 - **Codec-Container Compatibility:** Video encoders are now automatically filtered and disabled based on the selected output container (e.g., WebM only shows VP9/AV1 codecs). Incompatible encoders display an "Incompatible container" message and switch to a compatible codec automatically.
 
 ### Changed
+
 - **Backend Refactoring:** Split monolithic `ffmpeg.rs` (1048 lines) into focused modules: `utils.rs`, `args.rs`, `upscale.rs`, `worker.rs`. Improves maintainability without changing functionality.
 
 ### Fixed
+
 - **MKV Metadata Parsing:** Fixed metadata tags (Artist, Album, Genre, Date, Comment) not being read from MKV files. The parser now correctly handles both uppercase (MKV) and lowercase (MP4) tag variants.
 - **Progress Display:** Resolved an issue where the UI would remain stuck on "Queued" status during the ML upscaling decode phase. A new `conversion-started` event now immediately updates the status to "Converting" when processing begins.
 - **Windows Progress Indicator:** Fixed progress percentage not updating for h264 and h264_nvenc codecs on Windows. The FFmpeg stderr parser now correctly handles Windows-style carriage return (`\r`) line separators.
@@ -26,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.19.0] - 2026-02-07
 
 ### Added
+
 - **AI Upscaling:** Integrated AI-powered video upscaling using Real-ESRGAN models (x2, x4) for high-quality resolution enhancement.
 - **Features Architecture:** Introduced a new modular architecture in `src/lib/features/` to separate business logic from UI components.
   - `conversion`: Logic for queue management, presets, and conversion progress.
@@ -35,13 +68,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Unified Exports:** Implemented index files for feature modules and component groups to simplify imports and improve maintainability.
 
 ### Performance
+
 - **Log Virtualization:** Implemented a virtualized list for the application logs, enabling smooth scrolling and rendering of thousands of entries without UI lag.
 
 ### Fixed
+
 - **Video Trimming:** Resolved an issue where trimming a segment from the middle of a video would ignore the end point. The logic now uses a calculated duration (`-t`) instead of an absolute end time (`-to`) when a start offset is present.
 - **Progress Reporting:** Fixed inaccurate progress bars during trimmed conversions. Progress is now correctly calculated relative to the trimmed segment length rather than the full source duration.
 
 ### Fixed
+
 - **Process Lifecycle:** Resolved a "zombie process" issue on macOS where the application would remain running in the dock after closing the main window, due to hidden helper windows keeps the event loop alive.
 - **UI Contrast:** Fixed text contrast in `LogsView` to improve readability.
 
@@ -459,7 +495,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.20.0...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.21.0...HEAD
+[0.21.0]: https://github.com/66HEX/frame/compare/0.20.0...0.21.0
 [0.20.0]: https://github.com/66HEX/frame/compare/0.19.0...0.20.0
 [0.19.0]: https://github.com/66HEX/frame/compare/0.18.1...0.19.0
 [0.18.1]: https://github.com/66HEX/frame/compare/0.18.0...0.18.1

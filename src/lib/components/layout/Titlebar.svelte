@@ -10,6 +10,7 @@
 		fileCount = 0,
 		selectedCount = 0,
 		isProcessing = false,
+		canStart = false,
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
@@ -20,6 +21,7 @@
 		fileCount?: number;
 		selectedCount?: number;
 		isProcessing?: boolean;
+		canStart?: boolean;
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
@@ -40,6 +42,7 @@
 		{fileCount}
 		{selectedCount}
 		{isProcessing}
+		{canStart}
 		{activeView}
 		{onAddFile}
 		{onStartConversion}
@@ -52,6 +55,7 @@
 		{fileCount}
 		{selectedCount}
 		{isProcessing}
+		{canStart}
 		{activeView}
 		{onAddFile}
 		{onStartConversion}
@@ -64,6 +68,7 @@
 		{fileCount}
 		{selectedCount}
 		{isProcessing}
+		{canStart}
 		{activeView}
 		{onAddFile}
 		{onStartConversion}

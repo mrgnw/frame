@@ -52,6 +52,7 @@
 - **Bitrate Control:** Constant Rate Factor (CRF) or Target Bitrate (kbps).
 - **Scaling:** Bicubic, Lanczos, Bilinear, Nearest Neighbor.
 - **Metadata Probing:** Automated extraction of stream details (codec, duration, bitrate, channel layout) via `ffprobe`.
+- **AI Upscaling:** Integrated `Real-ESRGAN` for high-quality video upscaling (x2, x4).
 
 ### Architecture & Workflow
 

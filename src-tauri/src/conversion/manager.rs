@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicUsize, Ordering},
@@ -24,8 +24,8 @@ use windows::{
 };
 
 use crate::conversion::error::ConversionError;
-use crate::conversion::worker::run_ffmpeg_worker;
 use crate::conversion::types::{ConversionTask, DEFAULT_MAX_CONCURRENCY};
+use crate::conversion::worker::run_ffmpeg_worker;
 
 pub enum ManagerMessage {
     Enqueue(ConversionTask),
@@ -38,6 +38,7 @@ pub struct ConversionManager {
     pub(crate) sender: mpsc::Sender<ManagerMessage>,
     max_concurrency: Arc<AtomicUsize>,
     active_tasks: Arc<Mutex<HashMap<String, u32>>>,
+    cancelled_tasks: Arc<Mutex<HashSet<String>>>,
 }
 
 impl ConversionManager {
@@ -48,30 +49,76 @@ impl ConversionManager {
         let limiter = Arc::clone(&max_concurrency);
         let active_tasks = Arc::new(Mutex::new(HashMap::new()));
         let active_tasks_loop = Arc::clone(&active_tasks);
+        let cancelled_tasks = Arc::new(Mutex::new(HashSet::new()));
+        let cancelled_tasks_loop = Arc::clone(&cancelled_tasks);
 
         tauri::async_runtime::spawn(async move {
             let mut queue: VecDeque<ConversionTask> = VecDeque::new();
+            let mut queued_ids: HashSet<String> = HashSet::new();
             let mut running_tasks: HashMap<String, ()> = HashMap::new();
 
             while let Some(msg) = rx.recv().await {
                 match msg {
                     ManagerMessage::Enqueue(task) => {
+                        {
+                            let mut cancelled = cancelled_tasks_loop.lock().unwrap();
+                            cancelled.remove(&task.id);
+                        }
+
+                        if running_tasks.contains_key(&task.id) || queued_ids.contains(&task.id) {
+                            continue;
+                        }
+
+                        queued_ids.insert(task.id.clone());
                         queue.push_back(task);
                         ConversionManager::process_queue(
                             &app,
                             &tx_clone,
                             &mut queue,
+                            &mut queued_ids,
                             &mut running_tasks,
                             Arc::clone(&limiter),
+                            Arc::clone(&cancelled_tasks_loop),
                         )
                         .await;
                     }
                     ManagerMessage::TaskStarted(id, pid) => {
+                        let is_cancelled = {
+                            let cancelled = cancelled_tasks_loop.lock().unwrap();
+                            cancelled.contains(&id)
+                        };
+
+                        if is_cancelled {
+                            if pid > 0 {
+                                let _ = ConversionManager::terminate_process(pid);
+                            }
+                            running_tasks.remove(&id);
+                            {
+                                let mut tasks = active_tasks_loop.lock().unwrap();
+                                tasks.remove(&id);
+                            }
+                            ConversionManager::process_queue(
+                                &app,
+                                &tx_clone,
+                                &mut queue,
+                                &mut queued_ids,
+                                &mut running_tasks,
+                                Arc::clone(&limiter),
+                                Arc::clone(&cancelled_tasks_loop),
+                            )
+                            .await;
+                            continue;
+                        }
+
                         let mut tasks = active_tasks_loop.lock().unwrap();
                         tasks.insert(id, pid);
                     }
                     ManagerMessage::TaskCompleted(id) => {
                         running_tasks.remove(&id);
+                        {
+                            let mut cancelled = cancelled_tasks_loop.lock().unwrap();
+                            cancelled.remove(&id);
+                        }
                         {
                             let mut tasks = active_tasks_loop.lock().unwrap();
                             tasks.remove(&id);
@@ -81,8 +128,10 @@ impl ConversionManager {
                             &app,
                             &tx_clone,
                             &mut queue,
+                            &mut queued_ids,
                             &mut running_tasks,
                             Arc::clone(&limiter),
+                            Arc::clone(&cancelled_tasks_loop),
                         )
                         .await;
                     }
@@ -107,6 +156,10 @@ impl ConversionManager {
 
                         running_tasks.remove(&id);
                         {
+                            let mut cancelled = cancelled_tasks_loop.lock().unwrap();
+                            cancelled.remove(&id);
+                        }
+                        {
                             let mut tasks = active_tasks_loop.lock().unwrap();
                             tasks.remove(&id);
                         }
@@ -115,8 +168,10 @@ impl ConversionManager {
                             &app,
                             &tx_clone,
                             &mut queue,
+                            &mut queued_ids,
                             &mut running_tasks,
                             Arc::clone(&limiter),
+                            Arc::clone(&cancelled_tasks_loop),
                         )
                         .await;
                     }
@@ -128,6 +183,7 @@ impl ConversionManager {
             sender: tx,
             max_concurrency,
             active_tasks,
+            cancelled_tasks,
         }
     }
 
@@ -135,13 +191,24 @@ impl ConversionManager {
         app: &AppHandle,
         tx: &mpsc::Sender<ManagerMessage>,
         queue: &mut VecDeque<ConversionTask>,
+        queued_ids: &mut HashSet<String>,
         running_tasks: &mut HashMap<String, ()>,
         max_concurrency: Arc<AtomicUsize>,
+        cancelled_tasks: Arc<Mutex<HashSet<String>>>,
     ) {
         let limit = max_concurrency.load(Ordering::SeqCst).max(1);
 
         while running_tasks.len() < limit {
             if let Some(task) = queue.pop_front() {
+                queued_ids.remove(&task.id);
+                let is_cancelled = {
+                    let mut cancelled = cancelled_tasks.lock().unwrap();
+                    cancelled.remove(&task.id)
+                };
+                if is_cancelled {
+                    continue;
+                }
+
                 running_tasks.insert(task.id.clone(), ());
 
                 let app_clone = app.clone();
@@ -184,6 +251,10 @@ impl ConversionManager {
     pub fn pause_task(&self, id: &str) -> Result<(), ConversionError> {
         let tasks = self.active_tasks.lock().unwrap();
         if let Some(&pid) = tasks.get(id) {
+            if pid == 0 {
+                return Err(ConversionError::TaskNotFound(id.to_string()));
+            }
+
             #[cfg(unix)]
             unsafe {
                 if libc::kill(pid as libc::pid_t, libc::SIGSTOP) != 0 {
@@ -205,6 +276,10 @@ impl ConversionManager {
     pub fn resume_task(&self, id: &str) -> Result<(), ConversionError> {
         let tasks = self.active_tasks.lock().unwrap();
         if let Some(&pid) = tasks.get(id) {
+            if pid == 0 {
+                return Err(ConversionError::TaskNotFound(id.to_string()));
+            }
+
             #[cfg(unix)]
             unsafe {
                 if libc::kill(pid as libc::pid_t, libc::SIGCONT) != 0 {
@@ -224,51 +299,60 @@ impl ConversionManager {
     }
 
     pub fn cancel_task(&self, id: &str) -> Result<(), ConversionError> {
+        {
+            let mut cancelled = self.cancelled_tasks.lock().unwrap();
+            cancelled.insert(id.to_string());
+        }
+
         let tasks = self.active_tasks.lock().unwrap();
         if let Some(&pid) = tasks.get(id) {
-            // First resume the process to ensure it can handle the kill signal properly
-            #[cfg(unix)]
-            unsafe {
-                let _ = libc::kill(pid as libc::pid_t, libc::SIGCONT);
-                if libc::kill(pid as libc::pid_t, libc::SIGKILL) != 0 {
-                    return Err(ConversionError::Shell("Failed to send SIGKILL".to_string()));
-                }
+            if pid > 0 {
+                ConversionManager::terminate_process(pid)?;
             }
-
-            #[cfg(windows)]
-            unsafe {
-                // Resume first just in case
-                let _ = windows_suspend_resume(pid, false);
-
-                let process_handle = OpenProcess(
-                    windows::Win32::System::Threading::PROCESS_TERMINATE,
-                    false,
-                    pid,
-                )
-                .map_err(|e| {
-                    ConversionError::Shell(format!("Failed to open process for termination: {}", e))
-                })?;
-
-                let _ = windows::Win32::System::Threading::TerminateProcess(process_handle, 1);
-                let _ = CloseHandle(process_handle);
-            }
-
-            // Cleanup temp directory for ML upscale tasks
-            let temp_dir = std::env::temp_dir().join(format!("frame_upscale_{}", id));
-            if temp_dir.exists() {
-                let _ = std::fs::remove_dir_all(&temp_dir);
-            }
-
+            ConversionManager::cleanup_temp_upscale_dir(id);
             Ok(())
         } else {
-            // Task might not be running yet or already finished, which is fine for cancel
-            // Still try to cleanup temp dir in case it exists
-            let temp_dir = std::env::temp_dir().join(format!("frame_upscale_{}", id));
-            if temp_dir.exists() {
-                let _ = std::fs::remove_dir_all(&temp_dir);
-            }
+            ConversionManager::cleanup_temp_upscale_dir(id);
             Ok(())
         }
+    }
+
+    fn cleanup_temp_upscale_dir(id: &str) {
+        let temp_dir = std::env::temp_dir().join(format!("frame_upscale_{}", id));
+        if temp_dir.exists() {
+            let _ = std::fs::remove_dir_all(&temp_dir);
+        }
+    }
+
+    #[cfg(unix)]
+    fn terminate_process(pid: u32) -> Result<(), ConversionError> {
+        unsafe {
+            let _ = libc::kill(pid as libc::pid_t, libc::SIGCONT);
+            if libc::kill(pid as libc::pid_t, libc::SIGKILL) != 0 {
+                return Err(ConversionError::Shell("Failed to send SIGKILL".to_string()));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    fn terminate_process(pid: u32) -> Result<(), ConversionError> {
+        unsafe {
+            let _ = windows_suspend_resume(pid, false);
+
+            let process_handle = OpenProcess(
+                windows::Win32::System::Threading::PROCESS_TERMINATE,
+                false,
+                pid,
+            )
+            .map_err(|e| {
+                ConversionError::Shell(format!("Failed to open process for termination: {}", e))
+            })?;
+
+            let _ = windows::Win32::System::Threading::TerminateProcess(process_handle, 1);
+            let _ = CloseHandle(process_handle);
+        }
+        Ok(())
     }
 }
 

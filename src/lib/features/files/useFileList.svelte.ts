@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { stat } from '@tauri-apps/plugin-fs';
 import { probeMedia, getDefaultAudioCodec } from '$lib/services/media';
 import { getDefaultConfig } from '$lib/services/presets';
+import { normalizeConversionConfig } from '$lib/services/config';
 import { cancelConversion } from '$lib/services/conversion';
 import { openNativeFileDialog } from '$lib/services/dialog';
 import {
@@ -109,7 +110,12 @@ export function createFileListManager() {
 
 	async function handleRemoveFile(id: string, cancelTask?: (id: string) => Promise<void>) {
 		const file = files.find((f) => f.id === id);
-		if (file && (file.status === FileStatus.CONVERTING || file.status === FileStatus.PAUSED)) {
+		if (
+			file &&
+			(file.status === FileStatus.CONVERTING ||
+				file.status === FileStatus.PAUSED ||
+				file.status === FileStatus.QUEUED)
+		) {
 			try {
 				if (cancelTask) {
 					await cancelTask(id);
@@ -135,12 +141,7 @@ export function createFileListManager() {
 				if (f.id !== selectedFileId) return f;
 
 				const nextConfig = { ...f.config, ...newConfig };
-
-				if (newConfig.container === 'mp3' && nextConfig.audioCodec !== 'mp3') {
-					nextConfig.audioCodec = 'mp3';
-				}
-
-				return { ...f, config: nextConfig };
+				return { ...f, config: normalizeConversionConfig(nextConfig, f.metadata) };
 			});
 		}
 	}
@@ -160,14 +161,17 @@ export function createFileListManager() {
 			files = files.map((f) => {
 				if (f.id !== fileId) return f;
 
-				let newConfig = f.config;
-				if (!probeMetadata.videoCodec && !AUDIO_ONLY_CONTAINERS.includes(f.config.container)) {
+				let newConfig = normalizeConversionConfig(f.config, probeMetadata);
+				if (!probeMetadata.videoCodec && !AUDIO_ONLY_CONTAINERS.includes(newConfig.container)) {
 					const defaultAudioContainer = 'mp3';
-					newConfig = {
-						...f.config,
-						container: defaultAudioContainer,
-						audioCodec: getDefaultAudioCodec(defaultAudioContainer)
-					};
+					newConfig = normalizeConversionConfig(
+						{
+							...newConfig,
+							container: defaultAudioContainer,
+							audioCodec: getDefaultAudioCodec(defaultAudioContainer)
+						},
+						probeMetadata
+					);
 				}
 
 				return {

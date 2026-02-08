@@ -84,7 +84,6 @@
 					(AUDIO_ONLY_CONTAINERS.includes(config.container) || isSourceAudioOnly)}
 				{@const Icon = icons[tabId]}
 				<Button
-					{disabled}
 					variant={activeTab === tabId ? 'selected' : 'ghost'}
 					size="icon"
 					title={$_(`tabs.${tabId}`)}

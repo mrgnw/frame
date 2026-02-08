@@ -6,8 +6,7 @@ use tokio::sync::mpsc;
 
 use crate::conversion::args::{add_metadata_flags, build_output_path};
 use crate::conversion::codec::{
-    add_audio_codec_args, add_audio_codec_args_copy, add_fps_args, add_subtitle_copy_args,
-    add_video_codec_args,
+    add_audio_codec_args, add_fps_args, add_subtitle_codec_args, add_video_codec_args,
 };
 use crate::conversion::error::ConversionError;
 use crate::conversion::filters::{build_audio_filters, build_video_filters};
@@ -15,7 +14,7 @@ use crate::conversion::manager::ManagerMessage;
 use crate::conversion::types::{
     CompletedPayload, ConversionTask, LogPayload, MetadataMode, ProgressPayload, StartedPayload,
 };
-use crate::conversion::utils::{parse_time, FRAME_REGEX};
+use crate::conversion::utils::{FRAME_REGEX, parse_time};
 
 pub async fn run_upscale_worker(
     app: AppHandle,
@@ -73,10 +72,6 @@ pub async fn run_upscale_worker(
     let app_clone = app.clone();
     let id_clone = task.id.clone();
 
-    let _ = tx
-        .send(ManagerMessage::TaskStarted(task.id.clone(), 0))
-        .await;
-
     let _ = app_clone.emit(
         "conversion-started",
         StartedPayload {
@@ -92,14 +87,28 @@ pub async fn run_upscale_worker(
         },
     );
 
-    let mut dec_args = vec!["-i".to_string(), task.file_path.clone()];
+    let mut dec_args = Vec::new();
+
+    // Hardware decode acceleration (only -hwaccel, no output_format since we need CPU frames)
+    if task.config.hw_decode {
+        if crate::conversion::utils::is_nvenc_codec(&task.config.video_codec) {
+            dec_args.push("-hwaccel".to_string());
+            dec_args.push("cuda".to_string());
+        } else if crate::conversion::utils::is_videotoolbox_codec(&task.config.video_codec) {
+            dec_args.push("-hwaccel".to_string());
+            dec_args.push("videotoolbox".to_string());
+        }
+    }
 
     if let Some(start) = &task.config.start_time {
         if !start.is_empty() {
-            dec_args.insert(0, "-ss".to_string());
-            dec_args.insert(1, start.clone());
+            dec_args.push("-ss".to_string());
+            dec_args.push(start.clone());
         }
     }
+
+    dec_args.push("-i".to_string());
+    dec_args.push(task.file_path.clone());
 
     if let Some(end) = &task.config.end_time {
         if !end.is_empty() {
@@ -375,18 +384,18 @@ pub async fn run_upscale_worker(
             enc_args.push("-map".to_string());
             enc_args.push(format!("1:{}", track_index));
         }
-    } else {
+    } else if task
+        .config
+        .subtitle_burn_path
+        .as_ref()
+        .map_or(true, |path| path.trim().is_empty())
+    {
         enc_args.push("-map".to_string());
         enc_args.push("1:s?".to_string());
     }
 
     add_video_codec_args(&mut enc_args, &task.config);
-
-    if !task.config.selected_audio_tracks.is_empty() {
-        add_audio_codec_args(&mut enc_args, &task.config);
-    } else {
-        add_audio_codec_args_copy(&mut enc_args);
-    }
+    add_audio_codec_args(&mut enc_args, &task.config);
 
     let audio_filters = build_audio_filters(&task.config);
     if !audio_filters.is_empty() {
@@ -394,11 +403,17 @@ pub async fn run_upscale_worker(
         enc_args.push(audio_filters.join(","));
     }
 
-    add_subtitle_copy_args(&mut enc_args, &task.config);
+    if !task.config.selected_subtitle_tracks.is_empty()
+        || task
+            .config
+            .subtitle_burn_path
+            .as_ref()
+            .map_or(true, |path| path.trim().is_empty())
+    {
+        add_subtitle_codec_args(&mut enc_args, &task.config);
+    }
     add_fps_args(&mut enc_args, &task.config);
 
-    enc_args.push("-pix_fmt".to_string());
-    enc_args.push("yuv420p".to_string());
     enc_args.push("-shortest".to_string());
     enc_args.push("-y".to_string());
     enc_args.push(output_path.clone());
@@ -470,5 +485,8 @@ pub async fn run_upscale_worker(
         }
     }
 
-    Ok(())
+    let _ = std::fs::remove_dir_all(&temp_dir);
+    Err(ConversionError::Worker(
+        "Encoder terminated unexpectedly before reporting exit status".to_string(),
+    ))
 }

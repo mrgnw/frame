@@ -107,8 +107,11 @@ export function createConversionQueue(callbacks: ConversionCallbacks) {
 			(f) =>
 				f.isSelectedForConversion &&
 				f.status !== FileStatus.CONVERTING &&
-				f.status !== FileStatus.QUEUED
+				f.status !== FileStatus.QUEUED &&
+				f.status !== FileStatus.COMPLETED &&
+				f.status !== FileStatus.PAUSED
 		);
+		const pendingIds = pendingFiles.map((f) => f.id);
 
 		if (pendingFiles.length === 0) return;
 
@@ -126,16 +129,45 @@ export function createConversionQueue(callbacks: ConversionCallbacks) {
 
 		callbacks.onFilesUpdate((files) =>
 			files.map((f) => {
-				const isPending =
-					f.isSelectedForConversion &&
-					f.status !== FileStatus.CONVERTING &&
-					f.status !== FileStatus.QUEUED;
+				const isPending = pendingIds.includes(f.id);
 				return isPending ? { ...f, status: FileStatus.QUEUED, progress: 0 } : f;
 			})
 		);
 
+		const enqueueErrors: Record<string, string> = {};
+
 		for (const file of pendingFiles) {
-			await startConversionService(file.id, file.path, file.config, file.outputName);
+			try {
+				await startConversionService(file.id, file.path, file.config, file.outputName);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				enqueueErrors[file.id] = message;
+			}
+		}
+
+		const errorIds = Object.keys(enqueueErrors);
+		if (errorIds.length > 0) {
+			callbacks.onFilesUpdate((files) =>
+				files.map((f) =>
+					errorIds.includes(f.id)
+						? {
+								...f,
+								status: FileStatus.ERROR,
+								progress: 0,
+								conversionError: enqueueErrors[f.id]
+							}
+						: f
+				)
+			);
+			callbacks.onLogsUpdate((logs) => {
+				const next = { ...logs };
+				errorIds.forEach((id) => {
+					const current = next[id] || [];
+					next[id] = [...current, `[ERROR] Failed to queue conversion: ${enqueueErrors[id]}`];
+				});
+				return next;
+			});
+			checkAllDone();
 		}
 	}
 

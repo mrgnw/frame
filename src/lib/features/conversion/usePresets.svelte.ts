@@ -5,6 +5,7 @@ import {
 	createCustomPreset,
 	cloneConfig as clonePresetConfig
 } from '$lib/services/presets';
+import { normalizeConversionConfig } from '$lib/services/config';
 import { FileStatus, type FileItem, type PresetDefinition } from '$lib/types';
 
 export interface PresetsCallbacks {
@@ -24,9 +25,13 @@ export function createPresetsManager(callbacks: PresetsCallbacks) {
 
 	function applyPresetToSelection(preset: PresetDefinition) {
 		const selectedFileId = callbacks.getSelectedFileId();
+		const selectedFile = callbacks.getSelectedFile();
 		if (!selectedFileId) return;
 
-		const nextConfig = clonePresetConfig(preset.config);
+		const nextConfig = normalizeConversionConfig(
+			clonePresetConfig(preset.config),
+			selectedFile?.metadata
+		);
 		callbacks.onFilesUpdate((files) =>
 			files.map((f) => (f.id === selectedFileId ? { ...f, config: nextConfig } : f))
 		);
@@ -35,7 +40,12 @@ export function createPresetsManager(callbacks: PresetsCallbacks) {
 	function handleApplyPresetToAll(preset: PresetDefinition) {
 		callbacks.onFilesUpdate((files) =>
 			files.map((f) =>
-				f.status === FileStatus.IDLE ? { ...f, config: clonePresetConfig(preset.config) } : f
+				f.status === FileStatus.IDLE
+					? {
+							...f,
+							config: normalizeConversionConfig(clonePresetConfig(preset.config), f.metadata)
+						}
+					: f
 			)
 		);
 	}

@@ -52,6 +52,7 @@
 - **Controllo bitrate:** Qualità costante (CRF) o bitrate target (kbps)
 - **Ridimensionamento:** Bicubico, Lanczos, Bilineare, Vicino più prossimo
 - **Analisi metadati:** Estrazione automatica delle informazioni sui flussi tramite `ffprobe`
+- **Upscaling AI:** Supporto integrato `Real-ESRGAN` per l'upscaling video di alta qualità (x2, x4)
 
 ### Architettura e workflow
 

@@ -21,6 +21,7 @@
 		fileCount = 0,
 		selectedCount = 0,
 		isProcessing = false,
+		canStart = false,
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
@@ -31,6 +32,7 @@
 		fileCount?: number;
 		selectedCount?: number;
 		isProcessing?: boolean;
+		canStart?: boolean;
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
@@ -186,7 +188,7 @@
 		{#if onStartConversion}
 			<Button
 				onclick={onStartConversion}
-				disabled={isProcessing || selectedCount === 0}
+				disabled={isProcessing || selectedCount === 0 || !canStart}
 				variant="default"
 				class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
 			>
