@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Trim Range Validation:** Task validation now rejects non-increasing trim ranges (`end_time <= start_time`) and malformed trim timestamps before enqueue.
 - **Output Extension Consistency:** Custom output names now always end with the selected container extension, preventing mismatches between UI container choice and written file suffix.
 - **Dialog Directory Scope:** Folder picker permission scopes now respect the `recursive` flag when granting Tauri directory access, avoiding unintentionally broad directory grants.
+- **Native Dialog Kind Contract:** Backend dialog kind parsing now explicitly accepts `question`, matching the frontend `askNativeDialog` type contract.
 
 ## [0.21.1] - 2026-02-08
 
