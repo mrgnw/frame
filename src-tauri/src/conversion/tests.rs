@@ -47,6 +47,16 @@ mod tests {
         }
     }
 
+    fn create_temp_input_file() -> std::path::PathBuf {
+        let ts = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("frame-validate-{}.tmp", ts));
+        fs::write(&path, b"test").unwrap();
+        path
+    }
+
     #[test]
     fn test_default_mp4_h264() {
         let config = sample_config("mp4");
@@ -352,17 +362,38 @@ mod tests {
         let mut config = sample_config("mp3");
         config.ml_upscale = Some("esrgan-2x".into());
 
-        let ts = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!("frame-validate-{}.tmp", ts));
-        fs::write(&path, b"test").unwrap();
+        let path = create_temp_input_file();
 
         let result = validate_task_input(path.to_str().unwrap(), &config);
         let _ = fs::remove_file(&path);
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_rejects_non_increasing_trim_range() {
+        let mut config = sample_config("mp4");
+        config.start_time = Some("00:02:00.000".into());
+        config.end_time = Some("00:01:00.000".into());
+
+        let path = create_temp_input_file();
+        let result = validate_task_input(path.to_str().unwrap(), &config);
+        let _ = fs::remove_file(&path);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_accepts_increasing_trim_range() {
+        let mut config = sample_config("mp4");
+        config.start_time = Some("00:01:00.000".into());
+        config.end_time = Some("00:02:00.000".into());
+
+        let path = create_temp_input_file();
+        let result = validate_task_input(path.to_str().unwrap(), &config);
+        let _ = fs::remove_file(&path);
+
+        assert!(result.is_ok());
     }
 }
 

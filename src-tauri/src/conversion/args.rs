@@ -231,6 +231,37 @@ pub fn validate_task_input(
         )));
     }
 
+    let start_time = config.start_time.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    let end_time = config.end_time.as_deref().map(str::trim).filter(|s| !s.is_empty());
+
+    if let Some(start) = start_time {
+        if parse_time(start).is_none() {
+            return Err(ConversionError::InvalidInput(format!(
+                "Invalid start time: {}",
+                start
+            )));
+        }
+    }
+
+    if let Some(end) = end_time {
+        if parse_time(end).is_none() {
+            return Err(ConversionError::InvalidInput(format!(
+                "Invalid end time: {}",
+                end
+            )));
+        }
+    }
+
+    if let (Some(start), Some(end)) = (start_time, end_time) {
+        if let (Some(start_t), Some(end_t)) = (parse_time(start), parse_time(end)) {
+            if end_t <= start_t {
+                return Err(ConversionError::InvalidInput(
+                    "End time must be greater than start time".to_string(),
+                ));
+            }
+        }
+    }
+
     if config.resolution == "custom" {
         let w_str = config.custom_width.as_deref().unwrap_or("-1");
         let h_str = config.custom_height.as_deref().unwrap_or("-1");
