@@ -323,15 +323,9 @@ pub async fn run_upscale_worker(
         )));
     }
 
-    let output_fps = if task.config.fps != "original" {
-        task.config.fps.clone()
-    } else {
-        fps.to_string()
-    };
-
     let mut enc_args = vec![
         "-framerate".to_string(),
-        output_fps.clone(),
+        fps.to_string(),
         "-start_number".to_string(),
         "1".to_string(),
         "-i".to_string(),
