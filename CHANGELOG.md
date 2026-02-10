@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Upscaling Duration and Gaps:** Forced Constant Frame Rate (CFR) and synchronization during frame extraction to prevent duration drift and sequence gaps (static images) in AI-upscaled videos.
+- **Upscaling Pixel Format:** Restored pixel format preservation in the AI upscaling pipeline, ensuring output matches source bit-depth (e.g., 10-bit) or defaults to compatible yuv420p.
 - **AI Upscale Progress:** Improved progress accuracy by driving updates from per-frame completion logs and hardening calculations for videos where total frame counts cannot be pre-determined.
 - **Upscaler Preflight:** Resolved an issue where the AI upscaler preflight check would fail on some systems due to non-zero exit codes during help-text verification.
 - **Log Highlighting (CSP):** Updated Content Security Policy to allow inline styles, fixing Shiki-based runtime log highlighting in production builds.

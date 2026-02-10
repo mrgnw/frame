@@ -433,6 +433,7 @@ mod tests {
             "output.mp4",
             23.976,
             &config,
+            None,
         );
 
         let framerate_idx = args.iter().position(|arg| arg == "-framerate").unwrap();
@@ -451,6 +452,7 @@ mod tests {
             "output.mp4",
             30.0,
             &config,
+            None,
         );
 
         assert!(contains_arg_pair(&args, "-map_metadata", "1"));
@@ -469,6 +471,7 @@ mod tests {
             "output.mp4",
             30.0,
             &config,
+            None,
         );
 
         assert!(contains_arg_pair(&args, "-map_metadata", "-1"));

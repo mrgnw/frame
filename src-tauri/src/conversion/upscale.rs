@@ -25,6 +25,7 @@ pub(crate) fn build_upscale_encode_args(
     output_path: &str,
     source_fps: f64,
     config: &ConversionConfig,
+    pixel_format: Option<String>,
 ) -> Vec<String> {
     let mut enc_args = vec![
         "-framerate".to_string(),
@@ -111,6 +112,18 @@ pub(crate) fn build_upscale_encode_args(
     }
 
     add_fps_args(&mut enc_args, config);
+
+    // Pixel format handling: try to preserve high bit-depth or default to yuv420p
+    enc_args.push("-pix_fmt".to_string());
+    if let Some(pf) = pixel_format {
+        if pf.contains("10") || pf.contains("12") {
+            enc_args.push(pf);
+        } else {
+            enc_args.push("yuv420p".to_string());
+        }
+    } else {
+        enc_args.push("yuv420p".to_string());
+    }
 
     enc_args.push("-shortest".to_string());
     enc_args.push("-y".to_string());
@@ -350,6 +363,12 @@ pub async fn run_upscale_worker(
         dec_args.push(video_filters.join(","));
     }
 
+    // Force constant frame rate during extraction to prevent duration drift and sequence gaps
+    dec_args.push("-r".to_string());
+    dec_args.push(fps.to_string());
+    dec_args.push("-vsync".to_string());
+    dec_args.push("cfr".to_string());
+
     dec_args.push(
         input_frames_dir
             .join("frame_%08d.png")
@@ -549,6 +568,7 @@ pub async fn run_upscale_worker(
         &output_path,
         fps,
         &task.config,
+        probe.pixel_format,
     );
 
     let (mut enc_rx, enc_child) = app
