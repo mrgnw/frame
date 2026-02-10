@@ -317,6 +317,15 @@ pub fn validate_task_input(
         .as_ref()
         .is_some_and(|mode| !mode.is_empty() && mode != "none");
 
+    if let Some(mode) = config.ml_upscale.as_deref() {
+        if !mode.is_empty() && mode != "none" && mode != "esrgan-2x" && mode != "esrgan-4x" {
+            return Err(ConversionError::InvalidInput(format!(
+                "Invalid ML upscale mode: {}",
+                mode
+            )));
+        }
+    }
+
     if is_audio_only && has_ml_upscale {
         return Err(ConversionError::InvalidInput(
             "ML upscaling requires a video container".to_string(),

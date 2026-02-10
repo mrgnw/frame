@@ -385,6 +385,18 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_rejects_unknown_ml_upscale_mode() {
+        let mut config = sample_config("mp4");
+        config.ml_upscale = Some("esrgan-8x".into());
+
+        let path = create_temp_input_file();
+        let result = validate_task_input(path.to_str().unwrap(), &config);
+        let _ = fs::remove_file(&path);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_validate_rejects_non_increasing_trim_range() {
         let mut config = sample_config("mp4");
         config.start_time = Some("00:02:00.000".into());
