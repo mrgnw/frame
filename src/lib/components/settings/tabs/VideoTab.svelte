@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { ConversionConfig } from '$lib/types';
 	import { cn } from '$lib/utils/cn';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -56,13 +57,20 @@
 	const isNvencEncoder = $derived(NVENC_ENCODERS.has(config.videoCodec));
 	const isVideotoolboxEncoder = $derived(VIDEOTOOLBOX_ENCODERS.has(config.videoCodec));
 	const isHardwareEncoder = $derived(isNvencEncoder || isVideotoolboxEncoder);
+	const mlUpscaleAvailable = $derived(capabilities.encoders.ml_upscale);
 	const isMlUpscaleActive = $derived(config.mlUpscale && config.mlUpscale !== 'none');
 	const effectiveResolution = $derived(isMlUpscaleActive ? 'original' : config.resolution);
 	const presetOptions = VIDEO_PRESETS;
 
 	$effect(() => {
 		if (isMlUpscaleActive && config.resolution !== 'original') {
-			onUpdate({ resolution: 'original' });
+			untrack(() => onUpdate({ resolution: 'original' }));
+		}
+	});
+
+	$effect(() => {
+		if (!mlUpscaleAvailable && config.mlUpscale && config.mlUpscale !== 'none') {
+			untrack(() => onUpdate({ mlUpscale: 'none' }));
 		}
 	});
 
@@ -75,17 +83,28 @@
 	}
 
 	$effect(() => {
-		const fallback = firstAllowedCodec(config.container);
-		if (!fallback) return;
-		if (!isVideoCodecAllowed(config.container, config.videoCodec)) {
-			onUpdate({ videoCodec: fallback.id });
+		// We want to re-run this when container or videoCodec changes
+		const container = config.container;
+		const videoCodec = config.videoCodec;
+
+		if (!isVideoCodecAllowed(container, videoCodec)) {
+			const fallback = firstAllowedCodec(container);
+			if (fallback) {
+				untrack(() => onUpdate({ videoCodec: fallback.id }));
+			}
 		}
 	});
 
 	$effect(() => {
-		if (!isVideoPresetAllowed(config.videoCodec, config.preset)) {
-			const fallback = getFirstAllowedPreset(config.videoCodec);
-			onUpdate({ preset: fallback });
+		// We want to re-run this when videoCodec or preset changes
+		const videoCodec = config.videoCodec;
+		const preset = config.preset;
+
+		if (!isVideoPresetAllowed(videoCodec, preset)) {
+			const fallback = getFirstAllowedPreset(videoCodec);
+			if (fallback !== preset) {
+				untrack(() => onUpdate({ preset: fallback }));
+			}
 		}
 	});
 
@@ -176,7 +195,7 @@
 					<Button
 						variant={(config.mlUpscale || 'none') === opt.id ? 'selected' : 'outline'}
 						onclick={() => onUpdate({ mlUpscale: opt.id as ConversionConfig['mlUpscale'] })}
-						{disabled}
+						disabled={disabled || (opt.id !== 'none' && !mlUpscaleAvailable)}
 						class="w-full"
 					>
 						{opt.label}
@@ -226,29 +245,31 @@
 		</div>
 	</div>
 
-	<div class="space-y-3 pt-2">
-		<Label variant="section">{$_('video.encodingSpeed')}</Label>
-		<div class="grid grid-cols-1">
-			{#each presetOptions as preset (preset)}
-				{@const allowed = isVideoPresetAllowed(config.videoCodec, preset)}
-				<ListItem
-					selected={allowed && config.preset === preset}
-					onclick={() => allowed && onUpdate({ preset })}
-					disabled={disabled || !allowed}
-					class={cn(!allowed && 'pointer-events-none opacity-50')}
-				>
-					<span>{$_(`encodingSpeed.${preset}`)}</span>
-					<span class="text-[9px] opacity-50">
-						{#if allowed}
-							{$_(`encodingSpeed.${preset}Desc`)}
-						{:else}
-							{$_('video.presetIncompatible')}
-						{/if}
-					</span>
-				</ListItem>
-			{/each}
+	{#if !isVideotoolboxEncoder}
+		<div class="space-y-3 pt-2">
+			<Label variant="section">{$_('video.encodingSpeed')}</Label>
+			<div class="grid grid-cols-1">
+				{#each presetOptions as preset (preset)}
+					{@const allowed = isVideoPresetAllowed(config.videoCodec, preset)}
+					<ListItem
+						selected={allowed && config.preset === preset}
+						onclick={() => allowed && onUpdate({ preset })}
+						disabled={disabled || !allowed}
+						class={cn(!allowed && 'pointer-events-none opacity-50')}
+					>
+						<span>{$_(`encodingSpeed.${preset}`)}</span>
+						<span class="text-[9px] opacity-50">
+							{#if allowed}
+								{$_(`encodingSpeed.${preset}Desc`)}
+							{:else}
+								{$_('video.presetIncompatible')}
+							{/if}
+						</span>
+					</ListItem>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<div class="space-y-3 pt-2">
 		<Label variant="section">{$_('video.qualityControl')}</Label>
@@ -314,7 +335,7 @@
 					/>
 				{/if}
 			</div>
-			<div class="flex justify-between text-[9px] text-gray-alpha-600 uppercase">
+			<div class="flex justify-between text-[9px] text-gray-alpha-600">
 				{#if isHardwareEncoder}
 					<span>{$_('video.lowQuality')}</span>
 					<span>{$_('video.bestQuality')}</span>
@@ -358,7 +379,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="nvenc-spatial-aq">{$_('video.nvencSpatialAq')}</Label>
-						<p class="text-[9px] text-gray-alpha-600 uppercase">
+						<p class="text-[9px] text-gray-alpha-600">
 							{$_('video.nvencSpatialAqHint')}
 						</p>
 					</div>
@@ -372,7 +393,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="nvenc-temporal-aq">{$_('video.nvencTemporalAq')}</Label>
-						<p class="text-[9px] text-gray-alpha-600 uppercase">
+						<p class="text-[9px] text-gray-alpha-600">
 							{$_('video.nvencTemporalAqHint')}
 						</p>
 					</div>
@@ -394,7 +415,7 @@
 					/>
 					<div class="space-y-0.5">
 						<Label for="videotoolbox-allow-sw">{$_('video.videotoolboxAllowSw')}</Label>
-						<p class="text-[9px] text-gray-alpha-600 uppercase">
+						<p class="text-[9px] text-gray-alpha-600">
 							{$_('video.videotoolboxAllowSwHint')}
 						</p>
 					</div>
@@ -415,7 +436,7 @@
 				/>
 				<div class="space-y-0.5">
 					<Label for="hw-decode">{$_('video.hwDecode')}</Label>
-					<p class="text-[9px] text-gray-alpha-600 uppercase">
+					<p class="text-[9px] text-gray-alpha-600">
 						{$_('video.hwDecodeHint')}
 					</p>
 				</div>

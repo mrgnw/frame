@@ -25,6 +25,7 @@ pub(crate) fn build_upscale_encode_args(
     output_path: &str,
     source_fps: f64,
     config: &ConversionConfig,
+    pixel_format: Option<String>,
 ) -> Vec<String> {
     let mut enc_args = vec![
         "-framerate".to_string(),
@@ -112,6 +113,18 @@ pub(crate) fn build_upscale_encode_args(
 
     add_fps_args(&mut enc_args, config);
 
+    // Pixel format handling: try to preserve high bit-depth or default to yuv420p
+    enc_args.push("-pix_fmt".to_string());
+    if let Some(pf) = pixel_format {
+        if pf.contains("10") || pf.contains("12") {
+            enc_args.push(pf);
+        } else {
+            enc_args.push("yuv420p".to_string());
+        }
+    } else {
+        enc_args.push("yuv420p".to_string());
+    }
+
     enc_args.push("-shortest".to_string());
     enc_args.push("-y".to_string());
     enc_args.push(output_path.to_string());
@@ -119,16 +132,125 @@ pub(crate) fn build_upscale_encode_args(
     enc_args
 }
 
+pub(crate) fn resolve_upscale_mode(
+    mode: &str,
+) -> Result<(&'static str, &'static str), ConversionError> {
+    match mode {
+        "esrgan-2x" => Ok(("2", "realesr-animevideov3-x2")),
+        "esrgan-4x" => Ok(("4", "realesr-animevideov3-x4")),
+        _ => Err(ConversionError::InvalidInput(format!(
+            "Invalid upscale mode: {}",
+            mode
+        ))),
+    }
+}
+
+pub(crate) fn compute_upscale_threads(
+    source_width: u32,
+    source_height: u32,
+    scale: u32,
+) -> String {
+    let output_pixels = (source_width as u64 * scale as u64)
+        * (source_height as u64 * scale as u64);
+
+    // proc: concurrent GPU inference frames — limited by VRAM
+    // > 4K output (~8.3M px): ~500MB+ per frame → single concurrent frame
+    // > 1080p output (~2M px): moderate pressure → 2 concurrent frames
+    // ≤ 1080p output: lightweight, pipeline benefits from concurrency → 4
+    let proc = if output_pixels > 8_294_400 {
+        1
+    } else if output_pixels > 2_073_600 {
+        2
+    } else {
+        4
+    };
+
+    // load/save: I/O threads — limited by CPU cores
+    let cpus = std::thread::available_parallelism()
+        .map(|n| n.get() as u32)
+        .unwrap_or(4);
+    let io = cpus.div_ceil(2).clamp(1, 4);
+
+    format!("{}:{}:{}", io, proc, io)
+}
+
+pub(crate) async fn validate_upscale_runtime(
+    app: &AppHandle,
+    mode: &str,
+) -> Result<(), ConversionError> {
+    let (_, model_name) = resolve_upscale_mode(mode)?;
+
+    let models_path = app
+        .path()
+        .resolve("resources/models", BaseDirectory::Resource)
+        .map_err(|e| ConversionError::Shell(e.to_string()))?;
+
+    let model_param = models_path.join(format!("{}.param", model_name));
+    let model_bin = models_path.join(format!("{}.bin", model_name));
+
+    if !model_param.is_file() || !model_bin.is_file() {
+        return Err(ConversionError::InvalidInput(format!(
+            "ML upscaling models are missing for '{}'. Expected files in '{}'. Run `bun run setup:upscaler` and rebuild the app.",
+            mode,
+            models_path.to_string_lossy()
+        )));
+    }
+
+    let output = app
+        .shell()
+        .sidecar("realesrgan-ncnn-vulkan")
+        .map_err(|e| {
+            ConversionError::InvalidInput(format!(
+                "Upscaler sidecar is unavailable: {}. Run `bun run setup:upscaler` and rebuild the app.",
+                e
+            ))
+        })?
+        .args(["-h"])
+        .output()
+        .await
+        .map_err(|e| {
+            ConversionError::InvalidInput(format!(
+                "Upscaler sidecar failed to start: {}. Verify binary permissions and system dependencies (Vulkan/Metal).",
+                e
+            ))
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let details = if !stderr.is_empty() { stderr } else { stdout };
+        let details_lc = details.to_ascii_lowercase();
+        let looks_like_help = details_lc.contains("usage: realesrgan-ncnn-vulkan")
+            || details_lc.contains("-i input-path")
+            || details_lc.contains("-o output-path");
+
+        if !looks_like_help {
+            return Err(ConversionError::InvalidInput(format!(
+                "Upscaler preflight check failed: {}",
+                if details.is_empty() {
+                    "unknown error".to_string()
+                } else {
+                    details
+                }
+            )));
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn run_upscale_worker(
     app: AppHandle,
     tx: mpsc::Sender<ManagerMessage>,
     task: ConversionTask,
 ) -> Result<(), ConversionError> {
-    let (scale, model_name) = match task.config.ml_upscale.as_deref() {
-        Some("esrgan-2x") => ("2", "realesr-animevideov3-x2"),
-        Some("esrgan-4x") => ("4", "realesr-animevideov3-x4"),
-        _ => return Err(ConversionError::InvalidInput("Invalid upscale mode".into())),
-    };
+    let mode = task
+        .config
+        .ml_upscale
+        .as_deref()
+        .ok_or_else(|| ConversionError::InvalidInput("Invalid upscale mode".into()))?;
+
+    let (scale, model_name) = resolve_upscale_mode(mode)?;
 
     let output_path = build_output_path(
         &task.file_path,
@@ -241,6 +363,12 @@ pub async fn run_upscale_worker(
         dec_args.push(video_filters.join(","));
     }
 
+    // Force constant frame rate during extraction to prevent duration drift and sequence gaps
+    dec_args.push("-r".to_string());
+    dec_args.push(fps.to_string());
+    dec_args.push("-vsync".to_string());
+    dec_args.push("cfr".to_string());
+
     dec_args.push(
         input_frames_dir
             .join("frame_%08d.png")
@@ -347,7 +475,11 @@ pub async fn run_upscale_worker(
         "-n".to_string(),
         model_name.to_string(),
         "-j".to_string(),
-        "4:4:4".to_string(),
+        compute_upscale_threads(
+            probe.width.unwrap_or(1920),
+            probe.height.unwrap_or(1080),
+            scale.parse::<u32>().unwrap_or(2),
+        ),
         "-g".to_string(),
         "0".to_string(),
         "-t".to_string(),
@@ -372,6 +504,7 @@ pub async fn run_upscale_worker(
     let mut upscale_success = false;
     let mut last_error = String::new();
     let mut completed_frames: u32 = 0;
+    let mut last_upscale_progress: f64 = 5.0;
 
     while let Some(event) = upscale_rx.recv().await {
         if let CommandEvent::Stderr(ref line_bytes) = event {
@@ -385,6 +518,7 @@ pub async fn run_upscale_worker(
                     .next()
                     .map(|c| c.is_ascii_digit())
                     .unwrap_or(false);
+
             if !is_percentage_line && !trimmed.is_empty() {
                 let _ = app_clone.emit(
                     "conversion-log",
@@ -398,19 +532,21 @@ pub async fn run_upscale_worker(
             if line.contains("→") || line.contains("->") {
                 completed_frames += 1;
 
-                let progress = if total_frames > 0 {
-                    5.0 + (completed_frames as f64 / total_frames as f64) * 85.0
-                } else {
-                    5.0 + (completed_frames as f64).min(85.0)
-                };
+                if total_frames == 0 {
+                    continue;
+                }
+                let progress = 5.0 + (completed_frames as f64 / total_frames as f64) * 85.0;
 
-                let _ = app_clone.emit(
-                    "conversion-progress",
-                    ProgressPayload {
-                        id: id_clone.clone(),
-                        progress: progress.min(90.0),
-                    },
-                );
+                if progress > last_upscale_progress {
+                    last_upscale_progress = progress;
+                    let _ = app_clone.emit(
+                        "conversion-progress",
+                        ProgressPayload {
+                            id: id_clone.clone(),
+                            progress: progress.min(90.0),
+                        },
+                    );
+                }
             }
         }
         if let CommandEvent::Terminated(payload) = event {
@@ -432,6 +568,7 @@ pub async fn run_upscale_worker(
         &output_path,
         fps,
         &task.config,
+        probe.pixel_format,
     );
 
     let (mut enc_rx, enc_child) = app

@@ -142,10 +142,11 @@ bun install
 
 **3. Setup Binaries**
 
-Frame requires FFmpeg and FFprobe sidecar binaries. We provide a script to fetch the correct version for your platform automatically:
+Frame requires FFmpeg/FFprobe sidecar binaries and Real-ESRGAN sidecar assets for AI upscaling. We provide scripts to fetch the correct versions for your platform automatically:
 
 ```bash
 bun run setup:ffmpeg
+bun run setup:upscaler
 ```
 
 **4. Build or Run**

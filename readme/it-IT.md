@@ -101,7 +101,7 @@ Il modo più semplice per eseguire Frame è scaricare un pacchetto precompilato 
 - Binari **FFmpeg** e **FFprobe** nella directory `src-tauri/binaries/`
   - Convenzione di denominazione: `ffmpeg-<target-triple>` (es: `ffmpeg-aarch64-apple-darwin`)
 
-> Suggerimento: Esegui `bun run setup:ffmpeg` per scaricare automaticamente i binari corretti. Usa `--force` per aggiornare.
+> Suggerimento: Esegui `bun run setup:ffmpeg` per scaricare automaticamente FFmpeg/FFprobe e `bun run setup:upscaler` per Real-ESRGAN (upscaling AI). Usa `--force` per aggiornare.
 
 ### Istruzioni di build
 

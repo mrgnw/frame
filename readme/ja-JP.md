@@ -101,7 +101,7 @@ Frame を実行する最も簡単な方法は [GitHub Releases](https://github.c
 - **FFmpeg** と **FFprobe** バイナリを `src-tauri/binaries/` ディレクトリに配置
   - 命名規則：`ffmpeg-<target-triple>`（例：`ffmpeg-aarch64-apple-darwin` または `ffmpeg-x86_64-pc-windows-msvc.exe`）
 
-> ヒント：`bun run setup:ffmpeg`（または `npm run setup:ffmpeg`）を実行すると、OS/アーキテクチャに適したバイナリを自動ダウンロードできます。`--force` で既存のダウンロードを更新できます。
+> ヒント：`bun run setup:ffmpeg`（または `npm run setup:ffmpeg`）で FFmpeg/FFprobe を、`bun run setup:upscaler`（または `npm run setup:upscaler`）で Real-ESRGAN（AI アップスケーリング）を取得できます。`--force` で既存のダウンロードを更新できます。
 
 ### ビルド手順
 

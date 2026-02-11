@@ -385,6 +385,18 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_rejects_unknown_ml_upscale_mode() {
+        let mut config = sample_config("mp4");
+        config.ml_upscale = Some("esrgan-8x".into());
+
+        let path = create_temp_input_file();
+        let result = validate_task_input(path.to_str().unwrap(), &config);
+        let _ = fs::remove_file(&path);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_validate_rejects_non_increasing_trim_range() {
         let mut config = sample_config("mp4");
         config.start_time = Some("00:02:00.000".into());
@@ -421,6 +433,7 @@ mod tests {
             "output.mp4",
             23.976,
             &config,
+            None,
         );
 
         let framerate_idx = args.iter().position(|arg| arg == "-framerate").unwrap();
@@ -439,6 +452,7 @@ mod tests {
             "output.mp4",
             30.0,
             &config,
+            None,
         );
 
         assert!(contains_arg_pair(&args, "-map_metadata", "1"));
@@ -457,6 +471,7 @@ mod tests {
             "output.mp4",
             30.0,
             &config,
+            None,
         );
 
         assert!(contains_arg_pair(&args, "-map_metadata", "-1"));
@@ -1109,5 +1124,61 @@ mod hwaccel_tests {
         let config = hwaccel_config("libx264");
         let args = build_ffmpeg_args("in.mp4", "out.mp4", &config);
         assert!(!args.contains(&"-hwaccel".to_string()));
+    }
+}
+
+#[cfg(test)]
+mod upscale_thread_tests {
+    use crate::conversion::upscale::compute_upscale_threads;
+
+    fn extract_proc(threads_str: &str) -> u32 {
+        threads_str
+            .split(':')
+            .nth(1)
+            .unwrap()
+            .parse::<u32>()
+            .unwrap()
+    }
+
+    #[test]
+    fn small_source_2x_gets_high_concurrency() {
+        // 854×480 @ 2x → 1708×960 = ~1.6M px → proc=4
+        let result = compute_upscale_threads(854, 480, 2);
+        assert_eq!(extract_proc(&result), 4);
+    }
+
+    #[test]
+    fn hd_source_2x_gets_moderate_concurrency() {
+        // 1280×720 @ 2x → 2560×1440 = ~3.7M px → proc=2
+        let result = compute_upscale_threads(1280, 720, 2);
+        assert_eq!(extract_proc(&result), 2);
+    }
+
+    #[test]
+    fn fullhd_source_2x_gets_moderate_concurrency() {
+        // 1920×1080 @ 2x → 3840×2160 = ~8.3M px → proc=2
+        let result = compute_upscale_threads(1920, 1080, 2);
+        assert_eq!(extract_proc(&result), 2);
+    }
+
+    #[test]
+    fn fullhd_source_4x_gets_minimal_concurrency() {
+        // 1920×1080 @ 4x → 7680×4320 = ~33.2M px → proc=1
+        let result = compute_upscale_threads(1920, 1080, 4);
+        assert_eq!(extract_proc(&result), 1);
+    }
+
+    #[test]
+    fn uhd_source_2x_gets_minimal_concurrency() {
+        // 3840×2160 @ 2x → 7680×4320 = ~33.2M px → proc=1
+        let result = compute_upscale_threads(3840, 2160, 2);
+        assert_eq!(extract_proc(&result), 1);
+    }
+
+    #[test]
+    fn small_source_4x_gets_moderate_concurrency() {
+        // 854×480 @ 4x → 3416×1920 = ~6.6M px → proc=2
+        let result = compute_upscale_threads(854, 480, 4);
+        assert_eq!(extract_proc(&result), 2);
     }
 }

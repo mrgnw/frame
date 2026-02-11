@@ -101,7 +101,7 @@ brew install --cask frame
 - **FFmpeg** 和 **FFprobe** 二进制文件必须放在 `src-tauri/binaries/` 目录下
   - 命名规范：`ffmpeg-<target-triple>`（如 `ffmpeg-aarch64-apple-darwin` 或 `ffmpeg-x86_64-pc-windows-msvc.exe`）
 
-> 提示：运行 `bun run setup:ffmpeg`（或 `npm run setup:ffmpeg`）可自动下载适合你系统的二进制文件。使用 `--force` 可刷新已有下载。
+> 提示：运行 `bun run setup:ffmpeg`（或 `npm run setup:ffmpeg`）可自动下载 FFmpeg/FFprobe；运行 `bun run setup:upscaler`（或 `npm run setup:upscaler`）可下载 Real-ESRGAN（AI 超分）组件。使用 `--force` 可刷新已有下载。
 
 ### 构建说明
 

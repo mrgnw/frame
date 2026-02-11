@@ -101,7 +101,7 @@ brew install --cask frame
 - Бинарные файлы **FFmpeg** и **FFprobe** в директории `src-tauri/binaries/`
   - Соглашение об именах: `ffmpeg-<target-triple>` (например, `ffmpeg-aarch64-apple-darwin`)
 
-> Совет: Выполните `bun run setup:ffmpeg` для автоматической загрузки нужных бинарных файлов. Используйте `--force` для обновления.
+> Совет: Выполните `bun run setup:ffmpeg` для автоматической загрузки FFmpeg/FFprobe и `bun run setup:upscaler` для Real-ESRGAN (AI-апскейлинг). Используйте `--force` для обновления.
 
 ### Инструкции по сборке
 

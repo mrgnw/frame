@@ -8,6 +8,7 @@ use crate::conversion::types::{ConversionConfig, ConversionTask, ProbeMetadata};
 
 #[command]
 pub async fn queue_conversion(
+    app: AppHandle,
     manager: tauri::State<'_, ConversionManager>,
     id: String,
     file_path: String,
@@ -15,6 +16,14 @@ pub async fn queue_conversion(
     config: ConversionConfig,
 ) -> Result<(), ConversionError> {
     validate_task_input(&file_path, &config)?;
+
+    if let Some(mode) = config
+        .ml_upscale
+        .as_deref()
+        .filter(|mode| !mode.is_empty() && *mode != "none")
+    {
+        crate::conversion::upscale::validate_upscale_runtime(&app, mode).await?;
+    }
 
     let task = ConversionTask {
         id,

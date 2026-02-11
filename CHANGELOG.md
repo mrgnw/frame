@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-02-11
+
+### Added
+
+- **AI Upscaling Setup:** Updated documentation across all supported languages to guide users through Real-ESRGAN asset installation.
+- **Upscaling Capability Detection:** The app now automatically detects the presence of the `realesrgan-ncnn-vulkan` sidecar and required ML models, gating UI controls accordingly.
+
+### Performance
+
+- **Upscale Thread Tuning:** The ML upscaling pipeline now dynamically tunes `realesrgan-ncnn-vulkan` thread counts (`load:proc:save`) based on source resolution, scale factor, and available CPU cores instead of using a fixed `4:4:4` configuration. This prevents VRAM exhaustion on lower-end GPUs while allowing higher concurrency on smaller inputs.
+
+### Fixed
+
+- **VideoToolbox Selection Freeze:** Resolved an infinite reactive loop in the settings panel triggered by selecting VideoToolbox encoders, which were incorrectly reporting all encoding presets as invalid.
+- **Upscaling Duration and Gaps:** Forced Constant Frame Rate (CFR) and synchronization during frame extraction to prevent duration drift and sequence gaps (static images) in AI-upscaled videos.
+- **Upscaling Pixel Format:** Restored pixel format preservation in the AI upscaling pipeline, ensuring output matches source bit-depth (e.g., 10-bit) or defaults to compatible yuv420p.
+- **AI Upscale Progress:** Improved progress accuracy by driving updates from per-frame completion logs and hardening calculations for videos where total frame counts cannot be pre-determined.
+- **Upscaler Preflight:** Resolved an issue where the AI upscaler preflight check would fail on some systems due to non-zero exit codes during help-text verification.
+- **Log Highlighting (CSP):** Updated Content Security Policy to allow inline styles, fixing Shiki-based runtime log highlighting in production builds.
+- **Upscale Mode Validation:** Added strict backend validation for ML upscale modes to prevent invalid configurations from entering the processing queue.
+- **ML Control Reactivity:** Fixed a UI bug where ML upscale buttons remained enabled even if runtime dependencies were missing.
+
 ## [0.21.2] - 2026-02-09
 
 ### Fixed
@@ -520,7 +542,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic media metadata probing via FFprobe.
 - Preset-based configuration system.
 
-[Unreleased]: https://github.com/66HEX/frame/compare/0.21.2...HEAD
+[Unreleased]: https://github.com/66HEX/frame/compare/0.22.0...HEAD
+[0.22.0]: https://github.com/66HEX/frame/compare/0.21.2...0.22.0
 [0.21.2]: https://github.com/66HEX/frame/compare/0.21.1...0.21.2
 [0.21.1]: https://github.com/66HEX/frame/compare/0.21.0...0.21.1
 [0.21.0]: https://github.com/66HEX/frame/compare/0.20.0...0.21.0

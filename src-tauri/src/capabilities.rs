@@ -1,5 +1,6 @@
 use regex::Regex;
-use tauri::{AppHandle, command};
+use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Manager, command};
 use tauri_plugin_shell::ShellExt;
 
 #[derive(serde::Serialize, Clone, Debug)]
@@ -9,6 +10,23 @@ pub struct AvailableEncoders {
     pub hevc_videotoolbox: bool,
     pub hevc_nvenc: bool,
     pub av1_nvenc: bool,
+    pub ml_upscale: bool,
+}
+
+fn has_upscale_models(app: &AppHandle) -> bool {
+    let models_path = match app.path().resolve("resources/models", BaseDirectory::Resource) {
+        Ok(path) => path,
+        Err(_) => return false,
+    };
+
+    [
+        "realesr-animevideov3-x2.param",
+        "realesr-animevideov3-x2.bin",
+        "realesr-animevideov3-x4.param",
+        "realesr-animevideov3-x4.bin",
+    ]
+    .iter()
+    .all(|name| models_path.join(name).is_file())
 }
 
 #[command]
@@ -37,11 +55,15 @@ pub async fn get_available_encoders(app: AppHandle) -> Result<AvailableEncoders,
         }
     };
 
+    let has_upscaler_sidecar = app.shell().sidecar("realesrgan-ncnn-vulkan").is_ok();
+    let ml_upscale = has_upscaler_sidecar && has_upscale_models(&app);
+
     Ok(AvailableEncoders {
         h264_videotoolbox: has_encoder("h264_videotoolbox"),
         h264_nvenc: has_encoder("h264_nvenc"),
         hevc_videotoolbox: has_encoder("hevc_videotoolbox"),
         hevc_nvenc: has_encoder("hevc_nvenc"),
         av1_nvenc: has_encoder("av1_nvenc"),
+        ml_upscale,
     })
 }
