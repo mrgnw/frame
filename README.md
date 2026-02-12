@@ -20,6 +20,8 @@
 
 **Frame** is a high-performance media conversion utility built on the Tauri v2 framework. It provides a native interface for FFmpeg operations, allowing for granular control over video and audio transcoding parameters. The application leverages a Rust-based backend for concurrent task management and process execution, coupled with a Svelte 5 frontend for configuration and state monitoring.
 
+This fork adds **Spatial Video** conversion: turn any 2D video into a stereoscopic 3D spatial video for Apple Vision Pro using AI depth estimation.
+
 <br />
 <div align="center">
   <img src="./preview.png" alt="Frame Application Preview" width="800" />
@@ -54,138 +56,124 @@
 - **Metadata Probing:** Automated extraction of stream details (codec, duration, bitrate, channel layout) via `ffprobe`.
 - **AI Upscaling:** Integrated `Real-ESRGAN` for high-quality video upscaling (x2, x4).
 
+### Spatial Video (macOS only)
+
+- **2D to 3D conversion** using [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2) depth estimation and DIBR (Depth Image Based Rendering).
+- **Apple Vision Pro output** as MV-HEVC spatial video via the [`spatial`](https://blog.mikeswanson.com/spatial_docs/) CLI.
+- **Configurable depth model** size (small/medium/large) and 3D intensity.
+- **Progress tracking** with per-frame updates through the pipeline stages.
+
 ### Architecture & Workflow
 
 - **Concurrent Processing:** Async task queue manager implemented in Rust (`tokio::mpsc`) limiting concurrent FFmpeg processes (default: 2).
 - **Real-time Telemetry:** Stream parsing of FFmpeg `stderr` for accurate progress tracking and log output.
 - **Preset Management:** Configuration persistence for reusable conversion profiles.
 
-## Technical Stack
+## Build from Source
 
-### Backend (Rust / Tauri)
-
-- **Core:** Tauri v2 (Rust Edition 2024).
-- **Runtime:** `tokio` (Async I/O).
-- **Serialization:** `serde`, `serde_json`.
-- **Process Management:** `tauri-plugin-shell` for sidecar execution (FFmpeg/FFprobe).
-- **System Integration:** `tauri-plugin-dialog`, `tauri-plugin-fs`, `window-vibrancy`.
-
-### Frontend (SvelteKit)
-
-- **Framework:** Svelte 5 (Runes API).
-- **Build System:** Vite.
-- **Styling:** Tailwind CSS v4, `clsx`, `tailwind-merge`.
-- **State Management:** Svelte 5 `$state` / `$props`.
-- **Internationalization:** Multi-language interface with automatic system language detection.
-- **Typography:** Geist Sans (embedded), Geist Mono (embedded).
-
-## Installation
-
-### Download Prebuilt Binaries
-
-The easiest way to get started is to download the latest release for your platform (macOS, Windows, or Linux) directly from GitHub.
-
-[**Download Latest Release**](https://github.com/66HEX/frame/releases)
-
-> **Note:** Since the application is not yet code-signed, you may need to manually approve it in your system settings (see the warning at the top of this file).
-
-### Homebrew (macOS)
-
-For macOS users, you can install and update Frame easily using our custom Homebrew Tap:
-
-```bash
-brew tap 66HEX/frame
-brew install --cask frame
-```
-
-### Linux System Requirements
-
-Even when using the **AppImage**, Frame relies on the system's **WebKitGTK** and **GStreamer** libraries for rendering the UI and handling media playback. If the application crashes upon adding a source or the video preview remains blank, you likely need to install the missing GStreamer plugins.
-
-- **Ubuntu / Debian:**
-
-  ```bash
-  sudo apt update
-  sudo apt install libwebkit2gtk-4.1-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav
-  ```
-
-- **Arch Linux:**
-
-  ```bash
-  sudo pacman -S --needed webkit2gtk-4.1 gst-plugins-base gst-plugins-good gst-libav
-  ```
-
-- **Fedora:**
-  ```bash
-  sudo dnf install webkit2gtk4.1 gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-libav
-  ```
-
-### Build from Source
-
-If you prefer to build the application yourself or want to contribute, follow these steps.
-
-**1. Prerequisites**
+### 1. Prerequisites
 
 - **Rust:** [Install Rust](https://www.rust-lang.org/tools/install)
 - **Bun (or Node.js):** [Install Bun](https://bun.sh/)
 - **OS Dependencies:** Follow the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system.
 
-**2. Setup Project**
-
-Clone the repository and install dependencies:
+### 2. Clone and install
 
 ```bash
-git clone https://github.com/66HEX/frame.git
+git clone https://github.com/mrgnw/frame.git
 cd frame
 bun install
 ```
 
-**3. Setup Binaries**
+### 3. Setup sidecar binaries
 
-Frame requires FFmpeg/FFprobe sidecar binaries and Real-ESRGAN sidecar assets for AI upscaling. We provide scripts to fetch the correct versions for your platform automatically:
+Frame requires FFmpeg/FFprobe sidecar binaries and Real-ESRGAN sidecar assets for AI upscaling:
 
 ```bash
 bun run setup:ffmpeg
 bun run setup:upscaler
 ```
 
-**4. Build or Run**
+### 4. Setup spatial video (macOS only)
 
-- **Development:**
+The spatial video feature requires three additional things: the `spatial` CLI, the `spatial-maker` Python pipeline, and depth model checkpoints.
 
-  ```bash
-  bun tauri dev
-  ```
+**Install the spatial CLI** (converts side-by-side stereo to MV-HEVC):
 
-- **Production Build:**
-  ```bash
-  bun tauri build
-  ```
+```bash
+brew install spatial
+```
+
+**Install spatial-maker** (the AI depth estimation pipeline):
+
+```bash
+uv tool install spatial-maker
+```
+
+> Requires [uv](https://docs.astral.sh/uv/getting-started/installation/). This installs `spatial-maker` from [PyPI](https://pypi.org/project/spatial-maker/) along with its dependencies (PyTorch, OpenCV, Depth Anything V2).
+
+**Download depth model checkpoints** (you only need the sizes you plan to use):
+
+```bash
+mkdir -p ~/.spatial-maker/checkpoints
+
+# Small (fastest, 24.8M params) - recommended to start
+curl -L -o ~/.spatial-maker/checkpoints/depth_anything_v2_vits.pth \
+  https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth
+
+# Base (balanced, 97.5M params)
+curl -L -o ~/.spatial-maker/checkpoints/depth_anything_v2_vitb.pth \
+  https://huggingface.co/depth-anything/Depth-Anything-V2-Base/resolve/main/depth_anything_v2_vitb.pth
+
+# Large (best quality, 335.3M params)
+curl -L -o ~/.spatial-maker/checkpoints/depth_anything_v2_vitl.pth \
+  https://huggingface.co/depth-anything/Depth-Anything-V2-Large/resolve/main/depth_anything_v2_vitl.pth
+```
+
+### 5. Run
+
+```bash
+bun tauri dev
+```
+
+Production build:
+
+```bash
+bun tauri build
+```
 
 ## Usage
 
-1.  **Input:** Use the system dialog to select files.
-2.  **Configuration:**
-    - **Source:** View detected file metadata.
-    - **Output:** Select container format and output filename.
-    - **Video:** Configure codec, bitrate/CRF, resolution, and framerate.
-    - **Audio:** Select codec, bitrate, channels, and specific tracks.
-    - **Presets:** Save and load reusable conversion profiles.
-3.  **Execution:** Initiates the conversion process via the Rust backend.
-4.  **Monitoring:** View real-time logs and percentage counters in the UI.
+### Standard Conversion
 
-## Star History
+1. **Add files** using the + button or drag and drop.
+2. **Configure** in the settings panel on the right:
+   - **Source:** View detected file metadata.
+   - **Output:** Select container format and output filename.
+   - **Video:** Configure codec, bitrate/CRF, resolution, and framerate.
+   - **Audio:** Select codec, bitrate, channels, and specific tracks.
+   - **Presets:** Save and load reusable conversion profiles.
+3. Click **Start** to begin conversion.
+4. Monitor progress and logs in real time.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=66HEX/frame&type=timeline&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=66HEX/frame&type=timeline" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=66HEX/frame&type=timeline" />
-</picture>
+### Spatial Video
+
+1. **Add a video file** as above.
+2. Open the **Spatial tab** (glasses icon) in the settings panel to configure:
+   - **Depth Model:** Small (fast), Medium (balanced), or Large (best quality).
+   - **3D Intensity:** Controls the stereo disparity in pixels (20-30 subtle, 30-40 moderate, 40-50 strong).
+   - **Skip Downscale:** Keep original resolution instead of normalizing to 1080p@24fps.
+3. Click the **Spatial** button in the titlebar (next to Start).
+4. The pipeline runs through 4 stages: downscale, depth estimation + stereo, audio mux, and MV-HEVC packaging.
+5. Output is a `.mov` file viewable on Apple Vision Pro.
 
 ## Acknowledgments & Third-Party Code
 
 - **Real-ESRGAN**: Copyright (c) 2021, Xintao Wang. Licensed under [BSD 3-Clause](https://github.com/xinntao/Real-ESRGAN/blob/master/LICENSE).
 - **FFmpeg**: Licensed under [GPLv3](https://www.ffmpeg.org/legal.html).
+- **Depth Anything V2**: Yang et al. Licensed under [Apache 2.0](https://github.com/DepthAnything/Depth-Anything-V2/blob/main/LICENSE).
+- **spatial CLI**: Mike Swanson. [Documentation](https://blog.mikeswanson.com/spatial_docs/).
+- **Frame** (upstream): [66HEX/frame](https://github.com/66HEX/frame). Licensed under GPL-3.0.
 
 ## License
 
