@@ -1,6 +1,7 @@
 mod capabilities;
 mod conversion;
 mod dialog;
+mod spatial;
 use std::time::Duration;
 use tauri::window::{Color, EffectState};
 use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
@@ -120,6 +121,7 @@ pub fn run() {
             }
 
             app.manage(conversion::ConversionManager::new(app.handle().clone()));
+            app.manage(spatial::SpatialManager::new(app.handle().clone()));
 
             Ok(())
         })
@@ -141,6 +143,8 @@ pub fn run() {
             capabilities::get_available_encoders,
             dialog::open_native_file_dialog,
             dialog::ask_native_dialog,
+            spatial::commands::queue_spatial,
+            spatial::commands::cancel_spatial,
             close_splash,
         ])
         .run(tauri::generate_context!())

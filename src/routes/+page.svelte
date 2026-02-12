@@ -16,6 +16,7 @@
 
 	import { createFileListManager, createDragDropManager } from '$lib/features/files';
 	import { createConversionQueue, createPresetsManager } from '$lib/features/conversion';
+	import { createSpatialQueue } from '$lib/features/spatial';
 	import { createAppUpdateManager, UpdateDialog } from '$lib/features/update';
 
 	const fileListManager = createFileListManager();
@@ -25,6 +26,14 @@
 	const updateManager = createAppUpdateManager();
 
 	const conversionQueue = createConversionQueue({
+		onFilesUpdate: fileListManager.updateFiles,
+		onLogsUpdate: fileListManager.updateLogs,
+		getFiles: () => fileListManager.files,
+		getIsProcessing: () => isProcessing,
+		setIsProcessing: (value) => (isProcessing = value)
+	});
+
+	const spatialQueue = createSpatialQueue({
 		onFilesUpdate: fileListManager.updateFiles,
 		onLogsUpdate: fileListManager.updateLogs,
 		getFiles: () => fileListManager.files,
@@ -99,6 +108,11 @@
 		return cleanup;
 	});
 
+	$effect(() => {
+		const cleanup = spatialQueue.setupListeners();
+		return cleanup;
+	});
+
 	// Error dialog handler - needs to stay here for i18n context
 	$effect(() => {
 		void fileListManager.files;
@@ -133,6 +147,7 @@
 		onChangeView={(v) => (activeView = v)}
 		onAddFile={fileListManager.handleAddFile}
 		onStartConversion={conversionQueue.startConversion}
+		onStartSpatial={spatialQueue.startSpatialConversion}
 		onOpenSettings={() => (showSettings = !showSettings)}
 	/>
 
@@ -200,6 +215,8 @@
 								onSavePreset={presetsManager.handleSavePreset}
 								onDeletePreset={presetsManager.handleDeletePreset}
 								disabled={selectedFileLocked}
+								spatialConfig={spatialQueue.config}
+								onSpatialUpdate={spatialQueue.updateConfig}
 							/>
 						{:else}
 							<EmptySelection />

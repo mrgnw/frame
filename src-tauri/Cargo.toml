@@ -24,7 +24,7 @@ once_cell = "1.21.3"
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-fs = "2.4.5"
 tauri-plugin-store = "2.3.0"
-tokio = "1.49.0"
+tokio = { version = "1.49.0", features = ["process", "io-util"] }
 tauri-plugin-prevent-default = "4.0.3"
 thiserror = "2.0.18"
 tauri-plugin-os = "2.3.2"

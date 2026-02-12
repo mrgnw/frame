@@ -128,6 +128,21 @@ export interface PresetDefinition {
 
 export type MetadataStatus = 'idle' | 'loading' | 'ready' | 'error';
 
+export interface SpatialConfig {
+	encoderSize: 's' | 'm' | 'l';
+	maxDisparity: number;
+	skipDownscale: boolean;
+	duration?: number;
+}
+
+export type SpatialStatus = 'idle' | 'queued' | 'processing' | 'completed' | 'error';
+
+export const DEFAULT_SPATIAL_CONFIG: SpatialConfig = {
+	encoderSize: 's',
+	maxDisparity: 40,
+	skipDownscale: false,
+};
+
 export const AUDIO_ONLY_CONTAINERS = ['mp3', 'm4a', 'wav', 'flac'];
 
 export const ALL_CONTAINERS = ['mp4', 'mkv', 'webm', 'mov', 'mp3', 'm4a', 'wav', 'flac'] as const;

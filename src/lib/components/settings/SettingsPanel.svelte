@@ -5,7 +5,8 @@
 		type ConversionConfig,
 		type MetadataStatus,
 		type PresetDefinition,
-		type SourceMetadata
+		type SourceMetadata,
+		type SpatialConfig
 	} from '$lib/types';
 	import { _ } from '$lib/i18n';
 
@@ -16,6 +17,7 @@
 	import AudioTab from './tabs/AudioTab.svelte';
 	import SubtitlesTab from './tabs/SubtitlesTab.svelte';
 	import MetadataTab from './tabs/MetadataTab.svelte';
+	import SpatialTab from './tabs/SpatialTab.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import {
 		IconFileUp,
@@ -24,10 +26,11 @@
 		IconMusic,
 		IconCaptions,
 		IconTags,
-		IconBookmark
+		IconBookmark,
+		IconGlasses
 	} from '$lib/icons';
 
-	const TABS = ['source', 'output', 'video', 'audio', 'subtitles', 'metadata', 'presets'] as const;
+	const TABS = ['source', 'output', 'video', 'audio', 'subtitles', 'metadata', 'presets', 'spatial'] as const;
 	type TabId = (typeof TABS)[number];
 
 	let {
@@ -43,7 +46,9 @@
 		onUpdateOutputName,
 		metadata,
 		metadataStatus = 'idle',
-		metadataError
+		metadataError,
+		spatialConfig,
+		onSpatialUpdate
 	}: {
 		config: ConversionConfig;
 		onUpdate: (newConfig: Partial<ConversionConfig>) => void;
@@ -58,6 +63,8 @@
 		metadata?: SourceMetadata;
 		metadataStatus?: MetadataStatus;
 		metadataError?: string;
+		spatialConfig?: SpatialConfig;
+		onSpatialUpdate?: (config: Partial<SpatialConfig>) => void;
 	} = $props();
 
 	let activeTab = $state<TabId>('source');
@@ -71,7 +78,8 @@
 		audio: IconMusic,
 		subtitles: IconCaptions,
 		metadata: IconTags,
-		presets: IconBookmark
+		presets: IconBookmark,
+		spatial: IconGlasses
 	};
 </script>
 
@@ -118,8 +126,10 @@
 			<AudioTab {config} {disabled} {onUpdate} {metadata} />
 		{:else if activeTab === 'subtitles'}
 			<SubtitlesTab {config} {disabled} {onUpdate} {metadata} />
-		{:else}
+		{:else if activeTab === 'metadata'}
 			<MetadataTab {config} {disabled} {onUpdate} {metadata} />
+		{:else if activeTab === 'spatial' && spatialConfig && onSpatialUpdate}
+			<SpatialTab config={spatialConfig} {disabled} onUpdate={onSpatialUpdate} />
 		{/if}
 	</div>
 </div>

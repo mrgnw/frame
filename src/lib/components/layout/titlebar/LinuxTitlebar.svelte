@@ -10,7 +10,8 @@
 		IconMinus,
 		IconSquare,
 		IconClose,
-		IconSettings
+		IconSettings,
+		IconGlasses
 	} from '$lib/icons';
 	import { cn } from '$lib/utils/cn';
 	import frameIcon from '$lib/assets/icons/frame.svg?raw';
@@ -28,6 +29,7 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
+		onStartSpatial,
 		onChangeView,
 		onOpenSettings
 	}: {
@@ -39,6 +41,7 @@
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
+		onStartSpatial?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
 		onOpenSettings?: () => void;
 	} = $props();
@@ -138,27 +141,40 @@
 					</Button>
 				{/if}
 
-				{#if onStartConversion}
-					<Button
-						onclick={onStartConversion}
-						disabled={isProcessing || selectedCount === 0 || !canStart}
-						variant="default"
-						class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
-					>
-						{#if isProcessing}
-							<span class="animate-pulse">{$_('titlebar.processing')}</span>
-						{:else}
-							<IconPlay size={14} color="currentColor" />
-							{$_('titlebar.start')}
-						{/if}
-					</Button>
-				{/if}
-			</div>
+			{#if onStartSpatial}
+				<Button
+					onclick={onStartSpatial}
+					disabled={isProcessing || selectedCount === 0 || !canStart}
+					variant="secondary"
+					class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
+					title="Convert to spatial 3D video"
+				>
+					<IconGlasses size={14} />
+					Spatial
+				</Button>
+			{/if}
+
+			{#if onStartConversion}
+				<Button
+					onclick={onStartConversion}
+					disabled={isProcessing || selectedCount === 0 || !canStart}
+					variant="default"
+					class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
+				>
+					{#if isProcessing}
+						<span class="animate-pulse">{$_('titlebar.processing')}</span>
+					{:else}
+						<IconPlay size={14} color="currentColor" />
+						{$_('titlebar.start')}
+					{/if}
+				</Button>
+			{/if}
 		</div>
 	</div>
+</div>
 
-	<div
-		class="pointer-events-auto absolute top-0 right-0 z-50 flex h-full items-center gap-0.5 px-2"
+<div
+	class="pointer-events-auto absolute top-0 right-0 z-50 flex h-full items-center gap-0.5 px-2"
 	>
 		<Button
 			variant="ghost"

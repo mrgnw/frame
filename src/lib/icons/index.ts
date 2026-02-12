@@ -1,4 +1,5 @@
 export { default as IconBookmark } from './components/IconBookmark.svelte';
+export { default as IconGlasses } from './components/IconGlasses.svelte';
 export { default as IconCaptions } from './components/IconCaptions.svelte';
 export { default as IconCheck } from './components/IconCheck.svelte';
 export { default as IconListChecks } from './components/IconListChecks.svelte';
