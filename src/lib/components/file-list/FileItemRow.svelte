@@ -5,6 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Checkbox from '$lib/components/ui/Checkbox.svelte';
 	import { _ } from '$lib/i18n';
+	import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
 	let {
 		item,
@@ -75,8 +76,17 @@
 						item.status === FileStatus.PAUSED ? 'text-gray-alpha-600' : 'text-amber-800'
 					)}>{Math.round(item.progress)}%</span
 				>
-			{:else if item.status === FileStatus.COMPLETED}
-				<span class="text-[13px] text-blue-600">{$_('fileStatus.ready')}</span>
+		{:else if item.status === FileStatus.COMPLETED}
+			<button
+				class="cursor-pointer text-[13px] text-blue-600 underline decoration-transparent transition-colors hover:decoration-blue-600"
+				onclick={(e) => {
+					e.stopPropagation();
+					revealItemInDir(item.path);
+				}}
+				title="Reveal in Finder"
+			>
+				{$_('fileStatus.ready')}
+			</button>
 			{:else if item.status === FileStatus.QUEUED}
 				<span class="text-[13px] text-gray-alpha-600">{$_('fileStatus.queued')}</span>
 			{:else if item.status === FileStatus.ERROR}
