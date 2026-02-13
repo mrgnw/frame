@@ -1,0 +1,120 @@
+name: Test spatial-maker
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'spatial-maker/**'
+      - '.github/workflows/test-spatial-maker.yml'
+  pull_request:
+    paths:
+      - 'spatial-maker/**'
+      - '.github/workflows/test-spatial-maker.yml'
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }}, ${{ matrix.features }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        features:
+          - 'default'
+          - 'jxl'
+          - 'avif'
+          - 'jxl,avif'
+          - 'native-formats'
+        exclude:
+          # HEIC requires system libheif which is complex to set up in CI
+          # Test it separately or locally
+          - features: 'native-formats'
+            os: windows-latest
+          - features: 'native-formats'
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: spatial-maker
+
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Build (default features)
+        if: matrix.features == 'default'
+        working-directory: spatial-maker
+        run: cargo build --verbose
+
+      - name: Build (with features)
+        if: matrix.features != 'default'
+        working-directory: spatial-maker
+        run: cargo build --features ${{ matrix.features }} --verbose
+
+      - name: Test (default features)
+        if: matrix.features == 'default'
+        working-directory: spatial-maker
+        run: cargo test --verbose
+
+      - name: Test (with features)
+        if: matrix.features != 'default'
+        working-directory: spatial-maker
+        run: cargo test --features ${{ matrix.features }} --verbose
+
+      - name: Run doctests (default features)
+        if: matrix.features == 'default'
+        working-directory: spatial-maker
+        run: cargo test --doc --verbose
+
+      - name: Run doctests (with features)
+        if: matrix.features != 'default'
+        working-directory: spatial-maker
+        run: cargo test --doc --features ${{ matrix.features }} --verbose
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: spatial-maker
+
+      - name: Run clippy (default)
+        working-directory: spatial-maker
+        run: cargo clippy -- -D warnings
+
+      - name: Run clippy (all features)
+        working-directory: spatial-maker
+        run: cargo clippy --features jxl,avif -- -D warnings
+
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check formatting
+        working-directory: spatial-maker
+        run: cargo fmt --all -- --check
