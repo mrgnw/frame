@@ -8,7 +8,7 @@ license = "MIT"
 
 [dependencies]
 ort = { version = "2.0.0-rc.11", features = ["coreml"] }
-image = "0.24"
+image = { version = "0.24", default-features = false, features = ["jpeg", "png", "gif", "bmp", "tiff", "webp"] }
 ndarray = "0.15"
 anyhow = "1.0"
 thiserror = "1.0"
@@ -22,8 +22,24 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 clap = { version = "4.4", features = ["derive"] }
 
+# Optional native decoders
+jxl-oxide = { version = "0.9", optional = true }
+libheif-rs = { version = "2.1", optional = true }
+
 [dev-dependencies]
 tempfile = "3.8"
+
+[features]
+default = []
+
+# Native format decoders (optional - falls back to ffmpeg if not enabled)
+avif = ["image/avif"]               # AVIF via dav1d (requires system libdav1d)
+jxl = ["jxl-oxide"]                 # JPEG XL via jxl-oxide (pure Rust!)
+heic = ["libheif-rs"]               # HEIC via libheif (requires system libheif)
+
+# Convenience bundles
+native-formats = ["avif", "jxl", "heic"]
+all-formats = ["native-formats"]
 
 [[example]]
 name = "photo"

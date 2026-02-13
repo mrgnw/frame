@@ -32,3 +32,6 @@ checkpoints/
 # Temporary files
 *.tmp
 *.log
+
+# Example outputs
+examples/outputs/

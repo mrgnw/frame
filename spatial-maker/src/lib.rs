@@ -8,34 +8,38 @@
 //! - **Stereo Generation**: Convert depth maps to stereo pairs using depth-image-based rendering (DIBR)
 //! - **Model Management**: Automatic model discovery and download from HuggingFace
 //! - **Photo Pipeline**: End-to-end spatial photo generation (single image)
+//! - **Multi-Format Input**: Support for JPEG, PNG, AVIF, JPEG XL (JXL), and HEIC formats
 //! - **Video Pipeline**: Frame-by-frame video processing with progress callbacks
 //! - **CoreML Support**: Leverages Apple Neural Engine on macOS with CoreML execution provider
 //!
 //! ## Example
 //!
-//! ```no_run
-//! use spatial_maker::{process_photo, SpatialConfig};
-//! use std::path::Path;
-//!
-//! # async fn example() -> anyhow::Result<()> {
-//! let config = SpatialConfig::default();
-//! process_photo(
-//!     Path::new("input.jpg"),
-//!     Path::new("output_sbs.jpg"),
-//!     config,
-//! ).await?;
-//! # Ok(())
-//! # }
-//! ```
-
+/// ```no_run
+/// use spatial_maker::{process_photo, SpatialConfig, OutputOptions};
+/// use std::path::Path;
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// let config = SpatialConfig::default();
+/// let output_options = OutputOptions::default();
+/// process_photo(
+///     Path::new("input.jpg"),
+///     Path::new("output_sbs.jpg"),
+///     config,
+///     output_options,
+/// ).await?;
+/// # Ok(())
+/// # }
+/// ```
 pub mod depth;
 pub mod error;
+pub mod image_loader;
 pub mod model;
 pub mod output;
 pub mod stereo;
 
 pub use depth::{estimate_depth, DepthConfig};
 pub use error::{SpatialError, SpatialResult};
+pub use image_loader::load_image;
 pub use model::{find_model, get_checkpoint_dir, model_exists};
 pub use output::{save_stereo_image, ImageEncoding, MVHEVCConfig, OutputFormat, OutputOptions};
 pub use stereo::generate_stereo_pair;
@@ -76,7 +80,7 @@ impl Default for SpatialConfig {
 ///
 /// # Arguments
 ///
-/// * `input_path` - Path to input image (JPEG, PNG, etc.)
+/// * `input_path` - Path to input image (JPEG, PNG, AVIF, JXL, HEIC, etc.)
 /// * `output_path` - Path to write output stereo image
 /// * `config` - Spatial processing configuration (depth estimation)
 /// * `output_options` - Output format and encoding options
@@ -84,6 +88,15 @@ impl Default for SpatialConfig {
 /// # Returns
 ///
 /// Returns `Ok(())` on success.
+///
+/// # Supported Input Formats
+///
+/// - JPEG (.jpg, .jpeg)
+/// - PNG (.png)
+/// - AVIF (.avif)
+/// - JPEG XL (.jxl)
+/// - HEIC/HEIF (.heic, .heif)
+/// - GIF, BMP, TIFF, WebP (via standard image crate)
 ///
 /// # Example
 ///
@@ -99,8 +112,8 @@ impl Default for SpatialConfig {
 /// };
 /// let output_options = OutputOptions::default();
 /// process_photo(
-///     Path::new("photo.jpg"),
-///     Path::new("spatial_photo.jpg"),
+///     Path::new("photo.heic"),
+///     Path::new("spatial_photo.heic"),
 ///     config,
 ///     output_options,
 /// ).await?;
@@ -115,10 +128,9 @@ pub async fn process_photo(
 ) -> SpatialResult<()> {
     tracing::info!("📸 Processing photo: {:?}", input_path);
 
-    // Load input image
+    // Load input image with multi-format support
     tracing::debug!("Loading image from {:?}", input_path);
-    let input_image = image::open(input_path)
-        .map_err(|e| SpatialError::ImageError(format!("Failed to load image: {}", e)))?;
+    let input_image = load_image(input_path).await?;
 
     // Estimate depth
     tracing::debug!("Estimating depth with encoder: {}", config.encoder_size);

@@ -10,6 +10,7 @@ Replaces the Python `spatial-maker` package with a native Rust implementation, e
 - **Fast Stereo Generation**: Depth-Image-Based Rendering (DIBR) in pure Rust
 - **Apple Neural Engine**: CoreML execution provider for M-series Macs
 - **Automatic Model Management**: Downloads and caches models to `~/.spatial-maker/checkpoints/`
+- **Multi-Format Input Support**: Natively supports JPEG, PNG, GIF, BMP, TIFF, WebP; auto-converts AVIF, JXL, HEIC
 - **Photo & Video Support**: Single image processing and frame-by-frame video pipelines
 - **Progress Callbacks**: Real-time feedback during processing
 - **Graceful Error Handling**: Comprehensive error types and logging
@@ -57,16 +58,21 @@ async fn main() -> anyhow::Result<()> {
 cargo build --example photo --release
 
 # Run
-cargo run --example photo -- input.jpg --output spatial.jpg --encoder s
+cargo run --example photo -- --input input.jpg --output spatial.jpg --encoder s
 
 # With options
 cargo run --example photo -- \
-    input.jpg \
+    --input input.jpg \
     --output spatial.jpg \
     --encoder s \
     --max-disparity 30 \
     --target-size 518 \
     --verbose
+
+# Works with AVIF, JXL, HEIC too (automatic conversion)!
+cargo run --example photo -- --input photo.heic --output spatial.jpg
+cargo run --example photo -- --input photo.avif --output spatial.jpg
+cargo run --example photo -- --input photo.jxl --output spatial.jpg
 ```
 
 ### Custom Configuration
@@ -92,6 +98,32 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+## Supported Formats
+
+### Input Formats
+
+**Native Support** (no conversion required):
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- BMP (.bmp)
+- TIFF (.tiff, .tif)
+- WebP (.webp)
+
+**Auto-Converted** (requires `ffmpeg`):
+- AVIF (.avif)
+- JPEG XL (.jxl)
+- HEIC/HEIF (.heic, .heif) — includes Apple spatial photos
+
+> **Note**: If you pass an AVIF, JXL, or HEIC image, `spatial-maker` automatically converts it to JPEG using ffmpeg before processing. Install ffmpeg with `brew install ffmpeg` (macOS), `apt-get install ffmpeg` (Ubuntu), or `choco install ffmpeg` (Windows).
+
+### Output Formats
+
+- **Stereo Images**: JPEG or PNG (left-right, top-bottom, or separate files)
+- **MV-HEVC Spatial Photos**: `.heic` format for Apple Photos (requires `spatial` CLI tool)
+
+For detailed information, see [`AUTOMATIC_CONVERSION.md`](./AUTOMATIC_CONVERSION.md).
 
 ## Architecture
 
