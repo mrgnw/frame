@@ -16,6 +16,7 @@ export interface ConversionCallbacks {
 	getFiles: () => FileItem[];
 	getIsProcessing: () => boolean;
 	setIsProcessing: (value: boolean) => void;
+	onConversionCompleted?: (id: string, outputPath: string) => void;
 }
 
 export function createConversionQueue(callbacks: ConversionCallbacks) {
@@ -34,14 +35,18 @@ export function createConversionQueue(callbacks: ConversionCallbacks) {
 					})
 				);
 			},
-			(payload) => {
+		(payload) => {
+			if (callbacks.onConversionCompleted) {
+				callbacks.onConversionCompleted(payload.id, payload.outputPath);
+			} else {
 				callbacks.onFilesUpdate((files) =>
 					files.map((f) =>
 						f.id === payload.id ? { ...f, status: FileStatus.COMPLETED, progress: 100 } : f
 					)
 				);
 				checkAllDone();
-			},
+			}
+		},
 			(payload) => {
 				callbacks.onFilesUpdate((files) =>
 					files.map((f) =>

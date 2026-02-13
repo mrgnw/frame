@@ -27,6 +27,30 @@ export interface SpatialStartedEvent {
 	id: string;
 }
 
+export interface ModelDownloadProgressEvent {
+	encoderSize: string;
+	bytesDownloaded: number;
+	totalBytes: number;
+	progress: number;
+}
+
+export interface ModelDownloadCompleteEvent {
+	encoderSize: string;
+}
+
+export interface ModelDownloadErrorEvent {
+	encoderSize: string;
+	error: string;
+}
+
+export async function checkSpatialModels(): Promise<Record<string, boolean>> {
+	return invoke('check_spatial_models');
+}
+
+export async function downloadSpatialModel(encoderSize: string): Promise<void> {
+	return invoke('download_spatial_model', { encoderSize });
+}
+
 export async function startSpatial(id: string, filePath: string, config: SpatialConfig) {
 	try {
 		await invoke('queue_spatial', { id, filePath, config });
@@ -78,5 +102,32 @@ export async function setupSpatialListeners(
 		unlistenCompleted();
 		unlistenError();
 		unlistenLog();
+	};
+}
+
+export async function setupModelDownloadListeners(
+	onProgress: (payload: ModelDownloadProgressEvent) => void,
+	onComplete: (payload: ModelDownloadCompleteEvent) => void,
+	onError: (payload: ModelDownloadErrorEvent) => void
+): Promise<UnlistenFn> {
+	const unlistenProgress = await listen<ModelDownloadProgressEvent>(
+		'spatial-model-download-progress',
+		(event) => onProgress(event.payload)
+	);
+
+	const unlistenComplete = await listen<ModelDownloadCompleteEvent>(
+		'spatial-model-download-complete',
+		(event) => onComplete(event.payload)
+	);
+
+	const unlistenError = await listen<ModelDownloadErrorEvent>(
+		'spatial-model-download-error',
+		(event) => onError(event.payload)
+	);
+
+	return () => {
+		unlistenProgress();
+		unlistenComplete();
+		unlistenError();
 	};
 }

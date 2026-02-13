@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::process::Stdio;
 use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -18,20 +19,25 @@ pub async fn run_spatial_worker(
 ) -> Result<(), SpatialError> {
     let id = task.id.clone();
 
+    let input_path = Path::new(&task.file_path);
+    let output_path = input_path.with_file_name(format!(
+        "{}_spatial.mov",
+        input_path.file_stem().unwrap_or_default().to_string_lossy()
+    ));
+
     let mut cmd = Command::new("uv");
     cmd.arg("tool")
         .arg("run")
         .arg("spatial-maker")
         .arg(&task.file_path)
+        .arg("--output")
+        .arg(&output_path)
         .arg("--json-progress")
         .arg("--encoder")
         .arg(&task.config.encoder_size)
         .arg("--max-disparity")
-        .arg(task.config.max_disparity.to_string());
-
-    if task.config.skip_downscale {
-        cmd.arg("--skip-downscale");
-    }
+        .arg(task.config.max_disparity.to_string())
+        .arg("--skip-downscale");
 
     if let Some(duration) = task.config.duration {
         cmd.arg("--duration").arg(duration.to_string());
@@ -96,8 +102,7 @@ pub async fn run_spatial_worker(
                             .and_then(|v| v.as_str())
                             .unwrap_or("unknown");
                         let progress = match stage {
-                            "downscale" => 5.0,
-                            "depth_stereo" => 10.0,
+                            "depth_stereo" => 0.0,
                             "audio_mux" => 85.0,
                             "spatial_make" => 90.0,
                             _ => 0.0,
@@ -113,8 +118,8 @@ pub async fn run_spatial_worker(
                     }
                     Some("progress") => {
                         if let Some(pct) = json.get("pct").and_then(|v| v.as_f64()) {
-                            // depth_stereo is 10-85% of total
-                            let mapped = 10.0 + (pct / 100.0) * 75.0;
+                            // depth_stereo is 0-85% of total (no downscale step)
+                            let mapped = (pct / 100.0) * 85.0;
                             let _ = app_stdout.emit(
                                 "spatial-progress",
                                 SpatialProgressPayload {

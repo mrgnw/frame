@@ -167,6 +167,7 @@ pub struct StartedPayload {
 }
 
 #[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompletedPayload {
     pub id: String,
     pub output_path: String,

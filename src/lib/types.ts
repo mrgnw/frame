@@ -129,6 +129,7 @@ export interface PresetDefinition {
 export type MetadataStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export interface SpatialConfig {
+	enabled: boolean;
 	encoderSize: 's' | 'm' | 'l';
 	maxDisparity: number;
 	skipDownscale: boolean;
@@ -138,9 +139,10 @@ export interface SpatialConfig {
 export type SpatialStatus = 'idle' | 'queued' | 'processing' | 'completed' | 'error';
 
 export const DEFAULT_SPATIAL_CONFIG: SpatialConfig = {
+	enabled: false,
 	encoderSize: 's',
 	maxDisparity: 40,
-	skipDownscale: false,
+	skipDownscale: true,
 };
 
 export const AUDIO_ONLY_CONTAINERS = ['mp3', 'm4a', 'wav', 'flac'];

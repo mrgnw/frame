@@ -7,6 +7,30 @@ pub struct SpatialConfig {
     pub max_disparity: u32,
     pub skip_downscale: bool,
     pub duration: Option<f64>,
+    #[serde(default)]
+    pub enabled: bool,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelDownloadProgressPayload {
+    pub encoder_size: String,
+    pub bytes_downloaded: u64,
+    pub total_bytes: u64,
+    pub progress: f64,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelDownloadCompletePayload {
+    pub encoder_size: String,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelDownloadErrorPayload {
+    pub encoder_size: String,
+    pub error: String,
 }
 
 #[derive(Debug, Clone)]

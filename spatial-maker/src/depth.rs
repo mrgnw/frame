@@ -80,6 +80,15 @@ fn preprocess_image(image: &DynamicImage, target_size: u32) -> (Vec<f32>, u32, u
         (w, target_size)
     };
 
+    tracing::debug!(
+        "Preprocessing: Original {}x{}, resizing to {}x{} (target_size={})",
+        orig_width,
+        orig_height,
+        new_width,
+        new_height,
+        target_size
+    );
+
     // Resize image
     let resized = image.resize_exact(new_width, new_height, image::imageops::FilterType::Lanczos3);
 
@@ -126,13 +135,14 @@ fn preprocess_image(image: &DynamicImage, target_size: u32) -> (Vec<f32>, u32, u
 
 /// Run inference on a preprocessed tensor
 ///
-/// Returns the raw depth map output from the model
+/// Returns a tuple of (depth_data, actual_height, actual_width)
+/// The actual dimensions are extracted from the model output shape
 fn run_inference(
     session: &mut Session,
     input_tensor: Vec<f32>,
     height: u32,
     width: u32,
-) -> SpatialResult<Vec<f32>> {
+) -> SpatialResult<(Vec<f32>, u32, u32)> {
     tracing::debug!("Running inference on {}x{} image", width, height);
 
     // Create input shape: (batch=1, channels=3, height, width)
@@ -160,8 +170,32 @@ fn run_inference(
             SpatialError::TensorError(format!("Failed to extract output tensor: {:?}", e))
         })?;
 
-        let (_shape, data) = depth_tensor;
-        Ok(data.to_vec())
+        let (shape, data) = depth_tensor;
+        tracing::debug!(
+            "Output tensor shape: {:?}, total elements: {}",
+            shape,
+            data.len()
+        );
+
+        // Extract actual dimensions from model output shape [batch, height, width]
+        let (actual_height, actual_width) = if shape.len() == 3 {
+            (shape[1] as u32, shape[2] as u32)
+        } else if shape.len() == 2 {
+            (shape[0] as u32, shape[1] as u32)
+        } else {
+            return Err(SpatialError::TensorError(format!(
+                "Unexpected output shape: {:?}",
+                shape
+            )));
+        };
+
+        tracing::debug!(
+            "Actual output dimensions: {}x{}",
+            actual_height,
+            actual_width
+        );
+
+        Ok((data.to_vec(), actual_height, actual_width))
     } else {
         Err(SpatialError::TensorError(
             "No outputs from model".to_string(),
@@ -227,22 +261,49 @@ pub async fn estimate_depth(
     let (input_tensor, prep_height, prep_width) = preprocess_image(image, config.target_size);
 
     // Run inference
-    let depth_raw = run_inference(&mut session, input_tensor, prep_height, prep_width)?;
+    let (depth_raw, actual_height, actual_width) =
+        run_inference(&mut session, input_tensor, prep_height, prep_width)?;
+
+    tracing::debug!(
+        "Model output actual dimensions: {}x{} (expected {}x{})",
+        actual_height,
+        actual_width,
+        prep_height,
+        prep_width
+    );
 
     // Normalize depth
     let depth_normalized = normalize_depth(&depth_raw);
 
     // Convert to ndarray (height, width)
-    let depth_array = ndarray::Array1::from_vec(depth_normalized)
-        .into_shape((prep_height as usize, prep_width as usize))
-        .map_err(|e| SpatialError::TensorError(format!("Failed to reshape depth: {}", e)))?;
+    // Use actual output dimensions from the model, not our preprocessing dimensions
+    let h = actual_height as usize;
+    let w = actual_width as usize;
+    let expected_elements = h * w;
+    let actual_elements = depth_normalized.len();
 
-    // Convert from row-major (default) to proper 2D array if needed
-    let depth_2d = depth_array
-        .into_shape((prep_height as usize, prep_width as usize))
-        .map_err(|e| SpatialError::TensorError(format!("Shape conversion failed: {}", e)))?;
+    tracing::debug!(
+        "Reshaping depth: using actual model output dimensions {}x{} = {} elements, got {}",
+        h,
+        w,
+        expected_elements,
+        actual_elements
+    );
 
-    tracing::info!("Depth estimation complete: {}x{}", prep_height, prep_width);
+    let depth_2d = ndarray::Array1::from_vec(depth_normalized)
+        .into_shape((h, w))
+        .map_err(|e| {
+            SpatialError::TensorError(format!(
+                "Failed to reshape depth to {}x{} ({} elements): {}",
+                h, w, expected_elements, e
+            ))
+        })?;
+
+    tracing::info!(
+        "Depth estimation complete: {}x{}",
+        actual_height,
+        actual_width
+    );
 
     Ok(depth_2d)
 }

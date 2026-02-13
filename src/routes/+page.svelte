@@ -17,6 +17,7 @@
 	import { createFileListManager, createDragDropManager } from '$lib/features/files';
 	import { createConversionQueue, createPresetsManager } from '$lib/features/conversion';
 	import { createSpatialQueue } from '$lib/features/spatial';
+	import { FileStatus } from '$lib/types';
 	import { createAppUpdateManager, UpdateDialog } from '$lib/features/update';
 
 	const fileListManager = createFileListManager();
@@ -25,7 +26,7 @@
 	});
 	const updateManager = createAppUpdateManager();
 
-	const conversionQueue = createConversionQueue({
+	const spatialQueue = createSpatialQueue({
 		onFilesUpdate: fileListManager.updateFiles,
 		onLogsUpdate: fileListManager.updateLogs,
 		getFiles: () => fileListManager.files,
@@ -33,12 +34,24 @@
 		setIsProcessing: (value) => (isProcessing = value)
 	});
 
-	const spatialQueue = createSpatialQueue({
+	const conversionQueue = createConversionQueue({
 		onFilesUpdate: fileListManager.updateFiles,
 		onLogsUpdate: fileListManager.updateLogs,
 		getFiles: () => fileListManager.files,
 		getIsProcessing: () => isProcessing,
-		setIsProcessing: (value) => (isProcessing = value)
+		setIsProcessing: (value) => (isProcessing = value),
+		onConversionCompleted: (id: string, outputPath: string) => {
+			if (spatialQueue.config.enabled) {
+				spatialQueue.queueSpatialForFile(id, outputPath);
+			} else {
+				fileListManager.updateFiles((files) =>
+					files.map((f) =>
+						f.id === id ? { ...f, status: FileStatus.COMPLETED, progress: 100 } : f
+					)
+				);
+				conversionQueue.checkAllDone();
+			}
+		}
 	});
 
 	const presetsManager = createPresetsManager({
@@ -147,7 +160,6 @@
 		onChangeView={(v) => (activeView = v)}
 		onAddFile={fileListManager.handleAddFile}
 		onStartConversion={conversionQueue.startConversion}
-		onStartSpatial={spatialQueue.startSpatialConversion}
 		onOpenSettings={() => (showSettings = !showSettings)}
 	/>
 

@@ -10,8 +10,7 @@
 		IconMinus,
 		IconSquare,
 		IconClose,
-		IconSettings,
-		IconGlasses
+		IconSettings
 	} from '$lib/icons';
 	import { cn } from '$lib/utils/cn';
 	import frameIcon from '$lib/assets/icons/frame.svg?raw';
@@ -29,7 +28,6 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onStartSpatial,
 		onChangeView,
 		onOpenSettings
 	}: {
@@ -41,7 +39,6 @@
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
-		onStartSpatial?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
 		onOpenSettings?: () => void;
 	} = $props();
@@ -141,20 +138,7 @@
 					</Button>
 				{/if}
 
-			{#if onStartSpatial}
-				<Button
-					onclick={onStartSpatial}
-					disabled={isProcessing || selectedCount === 0 || !canStart}
-					variant="secondary"
-					class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
-					title="Convert to spatial 3D video"
-				>
-					<IconGlasses size={14} />
-					Spatial
-				</Button>
-			{/if}
-
-			{#if onStartConversion}
+				{#if onStartConversion}
 				<Button
 					onclick={onStartConversion}
 					disabled={isProcessing || selectedCount === 0 || !canStart}

@@ -7,8 +7,7 @@
 		IconHardDrive,
 		IconLayoutList,
 		IconTerminal,
-		IconSettings,
-		IconGlasses
+		IconSettings
 	} from '$lib/icons';
 	import { cn } from '$lib/utils/cn';
 	import frameIcon from '$lib/assets/icons/frame.svg?raw';
@@ -26,7 +25,6 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onStartSpatial,
 		onChangeView,
 		onOpenSettings
 	}: {
@@ -38,7 +36,6 @@
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
-		onStartSpatial?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
 		onOpenSettings?: () => void;
 	} = $props();
@@ -185,19 +182,6 @@
 			<Button onclick={onAddFile} variant="secondary" class="pointer-events-auto gap-2">
 				<IconPlus size={14} />
 				{$_('titlebar.addSource')}
-			</Button>
-		{/if}
-
-		{#if onStartSpatial}
-			<Button
-				onclick={onStartSpatial}
-				disabled={isProcessing || selectedCount === 0 || !canStart}
-				variant="secondary"
-				class={cn('pointer-events-auto gap-2', isProcessing && 'cursor-progress')}
-				title="Convert to spatial 3D video"
-			>
-				<IconGlasses size={14} />
-				Spatial
 			</Button>
 		{/if}
 

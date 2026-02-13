@@ -145,6 +145,8 @@ pub fn run() {
             dialog::ask_native_dialog,
             spatial::commands::queue_spatial,
             spatial::commands::cancel_spatial,
+            spatial::commands::check_spatial_models,
+            spatial::commands::download_spatial_model,
             close_splash,
         ])
         .run(tauri::generate_context!())

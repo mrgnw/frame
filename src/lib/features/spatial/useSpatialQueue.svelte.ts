@@ -158,6 +158,39 @@ export function createSpatialQueue(callbacks: SpatialCallbacks) {
 		}
 	}
 
+	async function queueSpatialForFile(id: string, filePath: string) {
+		callbacks.onFilesUpdate((files) =>
+			files.map((f) =>
+				f.id === id ? { ...f, status: FileStatus.QUEUED, progress: 0 } : f
+			)
+		);
+		callbacks.onLogsUpdate((logs) => {
+			const current = logs[id] || [];
+			return { ...logs, [id]: [...current, '[SPATIAL] Queuing spatial conversion...'] };
+		});
+
+		try {
+			await startSpatialService(id, filePath, spatialConfig);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			callbacks.onFilesUpdate((files) =>
+				files.map((f) =>
+					f.id === id
+						? { ...f, status: FileStatus.ERROR, conversionError: message }
+						: f
+				)
+			);
+			callbacks.onLogsUpdate((logs) => {
+				const current = logs[id] || [];
+				return {
+					...logs,
+					[id]: [...current, `[ERROR] Failed to queue spatial conversion: ${message}`]
+				};
+			});
+			checkAllDone();
+		}
+	}
+
 	async function cancelTask(id: string) {
 		try {
 			await cancelSpatial(id);
@@ -176,6 +209,7 @@ export function createSpatialQueue(callbacks: SpatialCallbacks) {
 		},
 		setupListeners,
 		startSpatialConversion,
+		queueSpatialForFile,
 		cancelTask,
 		checkAllDone,
 		updateConfig

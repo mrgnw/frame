@@ -14,7 +14,6 @@
 		activeView = 'dashboard',
 		onAddFile,
 		onStartConversion,
-		onStartSpatial,
 		onChangeView,
 		onOpenSettings
 	}: {
@@ -26,7 +25,6 @@
 		activeView?: 'dashboard' | 'logs';
 		onAddFile?: () => void;
 		onStartConversion?: () => void;
-		onStartSpatial?: () => void;
 		onChangeView?: (view: 'dashboard' | 'logs') => void;
 		onOpenSettings?: () => void;
 	} = $props();
@@ -48,7 +46,6 @@
 		{activeView}
 		{onAddFile}
 		{onStartConversion}
-		{onStartSpatial}
 		{onChangeView}
 		{onOpenSettings}
 	/>
@@ -62,7 +59,6 @@
 		{activeView}
 		{onAddFile}
 		{onStartConversion}
-		{onStartSpatial}
 		{onChangeView}
 		{onOpenSettings}
 	/>
@@ -76,7 +72,6 @@
 		{activeView}
 		{onAddFile}
 		{onStartConversion}
-		{onStartSpatial}
 		{onChangeView}
 		{onOpenSettings}
 	/>

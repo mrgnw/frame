@@ -345,15 +345,38 @@ fn encode_mvhevc(stereo_path: &Path, config: &MVHEVCConfig) -> SpatialResult<()>
     // Determine output path (replace extension with .heic)
     let hevc_path = stereo_path.with_extension("heic");
 
-    // Build the command
+    // Determine stereo format from filename or default to side-by-side
+    let format = if stereo_path.to_string_lossy().contains("top-bottom")
+        || stereo_path.to_string_lossy().contains("_tb_")
+    {
+        "hou" // horizontal over/under
+    } else if stereo_path.to_string_lossy().contains("separate")
+        || stereo_path.to_string_lossy().contains("_L.")
+        || stereo_path.to_string_lossy().contains("_R.")
+    {
+        // For separate files, spatial make needs to be called with two inputs
+        // This is handled separately, not through this function
+        return Err(SpatialError::ImageError(
+            "Separate stereo format requires two input files. Use side-by-side or top-bottom format for MV-HEVC encoding.".to_string()
+        ));
+    } else {
+        "sbs" // side-by-side (default)
+    };
+
+    // Build the command: spatial make --input <stereo> --output <heic> --format <format> --quality <0.0-1.0>
+    let quality_normalized = (config.quality as f32 / 100.0).max(0.0).min(1.0);
+
     let mut cmd = Command::new(spatial_path);
-    cmd.arg("encode")
+    cmd.arg("make")
         .arg("--input")
         .arg(stereo_path)
         .arg("--output")
         .arg(&hevc_path)
+        .arg("--format")
+        .arg(format)
         .arg("--quality")
-        .arg(config.quality.to_string());
+        .arg(quality_normalized.to_string())
+        .arg("--overwrite");
 
     tracing::debug!("Running: {:?}", cmd);
 
