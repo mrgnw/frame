@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-02-13
+
+### Added
+
+- **Native Image Format Support (spatial-maker v0.1.0):** Integrated spatial-maker library with native decoder support for modern image formats
+  - Native AVIF decoder via `image` crate
+  - Native JPEG XL (JXL) decoder via pure Rust `jxl-oxide`
+  - Native HEIC decoder via `libheif-rs` bindings
+  - Intelligent ffmpeg fallback when native decoders unavailable
+  - Feature flags for opt-in native decoder support (`avif`, `jxl`, `heic`)
+  - Users can now process AVIF, JXL, and HEIC images directly in spatial photo generation without manual conversion
+
+### Changed
+
+- **Spatial Photo Input:** Expanded supported input formats to include AVIF, JPEG XL, and HEIC alongside existing JPEG/PNG support
+- **Image Loading:** Implemented automatic format detection and transparent conversion for modern formats
+
+### Technical
+
+- **spatial-maker Library:** Released v0.1.0 as internal library with comprehensive documentation
+  - 46/46 tests passing (42 unit + 4 doc tests)
+  - Zero breaking changes to API
+  - 19 documentation files (~160KB)
+  - Pure Rust JXL support with no system dependencies
+
 ## [0.22.0] - 2026-02-11
 
 ### Added
